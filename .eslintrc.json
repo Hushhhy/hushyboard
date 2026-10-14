@@ -1,0 +1,13 @@
+// .eslintrc.json
+{
+  "extends": [
+    "next/core-web-vitals",
+    "prettier" // Add "prettier" to the END of extends
+  ],
+  "plugins": [
+    "prettier" // Add "prettier" to the plugins array
+  ],
+  "rules": {
+    "prettier/prettier": "error" // Enable the prettier/prettier rule
+  }
+}
