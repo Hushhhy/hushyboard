@@ -1,1 +1,4 @@
 generated/
+.claude/
+skills-lock.json
+package-lock.json
