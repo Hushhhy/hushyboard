@@ -14,6 +14,9 @@
     "db:psql": "docker compose exec db sh -c \"psql -U $POSTGRES_USER -d $POSTGRES_DB\""
   },
   "dependencies": {
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "7.10.0",
+    "dotenv": "18.0.7",
     "next": "16.4.0",
     "react": "19.3.0",
     "react-dom": "19.3.0"
@@ -28,6 +31,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.7",
     "prettier": "^3.9.10",
+    "prisma": "7.10.0",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

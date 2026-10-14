@@ -40,3 +40,23 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/generated/
+
+# Skills IA d'autres outils (copies de .claude/skills)
+/.agents/
+/.windsurf/
+
+# Windows
+Thumbs.db
+dekstop.ini
+
+# Pipeline Python (phase 6)
+
+__pycache__/
+.venv/
+
+# Playwright (phase 7)
+/test-results/
+/playwright-report/
+/blob-report/
