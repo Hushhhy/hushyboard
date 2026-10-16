@@ -23,6 +23,14 @@ model User {
   sessions      Session[]
   accounts      Account[]
 
+  // Career domain
+  resumes        Resume[]
+  applications   Application[]
+  jobOffers      JobOffer[]
+  certifications Certification[]
+  courses        Course[]
+  xpEvents       XpEvent[]
+
   @@unique([email])
   @@map("user")
 }
@@ -73,4 +81,210 @@ model Verification {
 
   @@index([identifier])
   @@map("verification")
+}
+
+// =============================================================================
+// CAREER DOMAIN
+// The only domain that earns XP. Levels are not stored: they are computed from
+// the sum of XpEvent.amount (see lib/xp.ts).
+// =============================================================================
+
+enum ApplicationStatus {
+  SENT
+  WAITING
+  HR_INTERVIEW
+  TECH_INTERVIEW
+  OFFER
+  REJECTED
+  NO_RESPONSE
+}
+
+enum ContractType {
+  INTERNSHIP
+  APPRENTICESHIP
+  PERMANENT
+  FIXED_TERM
+  VIE
+  FREELANCE
+  OTHER
+}
+
+enum OfferDecision {
+  PENDING
+  APPLIED
+  DISMISSED
+}
+
+enum CourseStatus {
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum CertificationStatus {
+  PLANNED
+  IN_PROGRESS
+  OBTAINED
+}
+
+enum XpReason {
+  APPLICATION_SENT
+  HR_INTERVIEW
+  TECH_INTERVIEW
+  COURSE_COMPLETED
+  CERTIFICATION_OBTAINED
+  OFFER_RECEIVED
+}
+
+/// A version of the CV (e.g. "Data Engineer, FR"). The PDF itself is stored later (phase 3).
+model Resume {
+  id           String        @id @default(cuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  language     String        @default("fr")
+  fileUrl      String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  applications Application[]
+
+  @@index([userId])
+  @@map("resumes")
+}
+
+/// A job offer spotted during the watch ("Veille" tab), before deciding to apply or not.
+model JobOffer {
+  id           String        @id @default(cuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title        String
+  company      String
+  location     String?
+  contractType ContractType?
+  source       String?
+  url          String?
+  tags         String[]
+  foundAt      DateTime      @default(now())
+  decision     OfferDecision @default(PENDING)
+  application  Application?
+
+  @@index([userId, decision])
+  @@map("job_offers")
+}
+
+/// An application sent to a company. Its current status is copied here for fast filtering;
+/// the full history lives in ApplicationEvent.
+model Application {
+  id           String             @id @default(cuid())
+  userId       String
+  user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  company      String
+  position     String
+  contractType ContractType?
+  location     String?
+  source       String?
+  url          String?
+  status       ApplicationStatus  @default(SENT)
+  sentAt       DateTime           @default(now())
+  followUpAt   DateTime?
+  notes        String?
+  resumeId     String?
+  resume       Resume?            @relation(fields: [resumeId], references: [id], onDelete: SetNull)
+  jobOfferId   String?            @unique
+  jobOffer     JobOffer?          @relation(fields: [jobOfferId], references: [id], onDelete: SetNull)
+  events       ApplicationEvent[]
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@index([userId, status])
+  @@index([userId, sentAt])
+  @@map("applications")
+}
+
+/// One step in an application's history ("sent on 15/10", "HR interview on 22/10").
+model ApplicationEvent {
+  id            String            @id @default(cuid())
+  applicationId String
+  application   Application       @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  status        ApplicationStatus
+  occurredAt    DateTime          @default(now())
+  note          String?
+
+  @@index([applicationId, occurredAt])
+  @@map("application_events")
+}
+
+/// A certification, obtained or targeted (e.g. "IBM Data Engineering").
+model Certification {
+  id            String              @id @default(cuid())
+  userId        String
+  user          User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  issuer        String
+  status        CertificationStatus @default(PLANNED)
+  totalCourses  Int?
+  plannedFor    DateTime?
+  obtainedAt    DateTime?
+  credentialUrl String?
+  costCents     Int?
+  courses       Course[]
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  @@index([userId, status])
+  @@map("certifications")
+}
+
+/// A course, standalone or part of a certification path ("course 4 of 13").
+model Course {
+  id              String         @id @default(cuid())
+  userId          String
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title           String
+  provider        String
+  status          CourseStatus   @default(PLANNED)
+  progress        Int            @default(0) // percentage, 0 to 100
+  position        Int? // order inside the certification path
+  certificationId String?
+  certification   Certification? @relation(fields: [certificationId], references: [id], onDelete: SetNull)
+  startedAt       DateTime?
+  completedAt     DateTime?
+  nextDeadline    DateTime?
+  notes           CourseNote[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  @@index([userId, status])
+  @@map("courses")
+}
+
+model CourseNote {
+  id        String   @id @default(cuid())
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title     String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([courseId])
+  @@map("course_notes")
+}
+
+/// One XP gain. We store every gain instead of a total, so nothing is ever counted twice
+/// and the "XP journal" can show where each point comes from.
+model XpEvent {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reason     XpReason
+  sourceId   String // id of the application, course or certification that earned the XP
+  amount     Int
+  label      String // shown in the journal, e.g. "Entretien technique · Qonto"
+  occurredAt DateTime @default(now())
+
+  // The same source can only earn the same reward once (no double counting).
+  @@unique([reason, sourceId])
+  @@index([userId, occurredAt])
+  @@map("xp_events")
 }
