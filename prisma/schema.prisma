@@ -31,6 +31,22 @@ model User {
   courses        Course[]
   xpEvents       XpEvent[]
 
+  // Habits & goals domain
+  habits      Habit[]
+  habitPauses HabitPause[]
+  goals       Goal[]
+
+  // Leisure domain
+  games Game[]
+
+  // Finance domain
+  financeCategories FinanceCategory[]
+  transactions      Transaction[]
+  csvImports        CsvImport[]
+
+  // Trophies (every domain, no XP)
+  trophies TrophyUnlock[]
+
   @@unique([email])
   @@map("user")
 }
@@ -287,4 +303,220 @@ model XpEvent {
   @@unique([reason, sourceId])
   @@index([userId, occurredAt])
   @@map("xp_events")
+}
+
+// =============================================================================
+// HABITS & GOALS DOMAIN
+// No XP here. Streaks are computed from check-ins (never stored), skipping
+// rest days and pauses so a holiday never breaks a streak.
+// =============================================================================
+
+/// A habit, e.g. "1 h de SQL" on weekdays, or "Calisthenics" 3 times a week.
+model Habit {
+  id           String         @id @default(cuid())
+  userId       String
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  activeDays   Int[] // ISO weekdays: 1 = Monday … 7 = Sunday
+  timesPerWeek Int? // set for "X times a week" habits; null = every active day
+  unit         String? // optional quantity unit, e.g. "min" or "pages"
+  position     Int            @default(0)
+  archivedAt   DateTime?
+  checkIns     HabitCheckIn[]
+  pauses       HabitPause[]
+  goals        Goal[]
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@index([userId])
+  @@map("habits")
+}
+
+/// "Done" for one habit on one day, with an optional quantity (45 min, 30 pages).
+model HabitCheckIn {
+  id        String   @id @default(cuid())
+  habitId   String
+  habit     Habit    @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  date      DateTime @db.Date
+  quantity  Int?
+  createdAt DateTime @default(now())
+
+  // A habit can only be checked once per day.
+  @@unique([habitId, date])
+  @@map("habit_check_ins")
+}
+
+/// A pause (holidays, illness): freezes the streak. habitId null = every habit.
+model HabitPause {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  habitId   String?
+  habit     Habit?   @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  reason    String?
+  createdAt DateTime @default(now())
+
+  @@index([userId, startDate])
+  @@map("habit_pauses")
+}
+
+/// A goal with a numeric target ("20 h de SQL en octobre") and/or steps ("10 km : 5 étapes").
+/// When linked to a habit, check-in quantities fill the progress automatically.
+model Goal {
+  id             String     @id @default(cuid())
+  userId         String
+  user           User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title          String
+  target         Int?
+  unit           String?
+  manualProgress Int        @default(0)
+  deadline       DateTime?  @db.Date
+  habitId        String?
+  habit          Habit?     @relation(fields: [habitId], references: [id], onDelete: SetNull)
+  achievedAt     DateTime?
+  steps          GoalStep[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@index([userId])
+  @@map("goals")
+}
+
+model GoalStep {
+  id       String    @id @default(cuid())
+  goalId   String
+  goal     Goal      @relation(fields: [goalId], references: [id], onDelete: Cascade)
+  title    String
+  position Int
+  doneAt   DateTime?
+
+  @@index([goalId])
+  @@map("goal_steps")
+}
+
+// =============================================================================
+// LEISURE DOMAIN (video games only for now)
+// =============================================================================
+
+enum GameStatus {
+  NOT_STARTED
+  PLAYING
+  PAUSED
+  FINISHED
+  DROPPED
+}
+
+/// A game, ordered inside its franchise by story order (e.g. Assassin's Creed by era).
+model Game {
+  id              String     @id @default(cuid())
+  userId          String
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title           String
+  franchise       String?
+  storyOrder      Int? // position in the franchise's story, used for "next in franchise"
+  setting         String? // in-game era, e.g. "1715"
+  platform        String?
+  status          GameStatus @default(NOT_STARTED)
+  progressCurrent Int? // e.g. sequence 6…
+  progressTotal   Int? // …of 13
+  minutesPlayed   Int?
+  coverUrl        String?
+  startedAt       DateTime?
+  finishedAt      DateTime?
+  notes           String?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([userId, franchise])
+  @@index([userId, status])
+  @@map("games")
+}
+
+// =============================================================================
+// FINANCE DOMAIN
+// Money is stored as an integer number of cents (never a float): 12,30 € = 1230.
+// Expenses are negative, income is positive.
+// =============================================================================
+
+enum CategoryKind {
+  EXPENSE
+  INCOME
+  SAVINGS
+}
+
+enum TransactionSource {
+  MANUAL
+  CSV_IMPORT
+}
+
+/// Reference data: the list of categories (seeded with a default list, then editable).
+model FinanceCategory {
+  id           String        @id @default(cuid())
+  userId       String
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name         String
+  kind         CategoryKind
+  position     Int           @default(0)
+  archivedAt   DateTime?
+  transactions Transaction[]
+
+  @@unique([userId, name])
+  @@map("finance_categories")
+}
+
+/// Usage data: one line of the bank statement, typed by hand or imported from a CSV.
+model Transaction {
+  id          String            @id @default(cuid())
+  userId      String
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        DateTime          @db.Date
+  label       String
+  amountCents Int // negative = expense, positive = income
+  categoryId  String?
+  category    FinanceCategory?  @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  source      TransactionSource @default(MANUAL)
+  importId    String?
+  import      CsvImport?        @relation(fields: [importId], references: [id], onDelete: SetNull)
+  importHash  String? // fingerprint of the CSV line, to skip duplicates on re-import
+  notes       String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  @@unique([userId, importHash])
+  @@index([userId, date])
+  @@map("transactions")
+}
+
+/// Trace of a CSV import. The file itself is never stored (GDPR): only the resulting transactions.
+model CsvImport {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  fileName      String
+  rowCount      Int
+  importedCount Int
+  skippedCount  Int
+  importedAt    DateTime      @default(now())
+  transactions  Transaction[]
+
+  @@index([userId, importedAt])
+  @@map("csv_imports")
+}
+
+// =============================================================================
+// TROPHIES (every domain, never XP)
+// Trophy definitions (name, condition) live in code; the database only stores unlocks.
+// =============================================================================
+
+model TrophyUnlock {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  trophyKey  String // e.g. "first-interview", "habit-streak-7"
+  unlockedAt DateTime @default(now())
+
+  @@unique([userId, trophyKey])
+  @@map("trophy_unlocks")
 }
