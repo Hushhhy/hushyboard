@@ -10,8 +10,8 @@ async function DBStatus() {
 
 export default function Home() {
   return (
-    <main className="p-8">
-      <h1 className="text-2xl font-semibold">Hushyboard</h1>
+    <main id="content" className="p-8">
+      <h1 className="font-display text-display-24">HushyBoard</h1>
       <Suspense fallback={<p>Connexion à la base…</p>}>
         <DBStatus />
       </Suspense>
