@@ -5,8 +5,12 @@ import { formatLongDate, formatMonth } from '@/lib/dates';
 import { getLevelInfo, LEVEL_TITLES } from '@/lib/xp';
 import { formatEuros } from '@/lib/finance';
 import { ModuleCard } from '@/components/ui/module-card';
-import { ProgressRuler } from '@/components/ui/progress-ruler';
+import { Ruler } from '@/components/ui/ruler';
 import { EmptyState } from '@/components/ui/empty-state';
+import { BarChart } from '@/components/ui/bar-row';
+import { buttonClasses } from '@/components/ui/button';
+import { LevelMedal } from '@/components/ui/level-medal';
+import { Skeleton, LoadingRegion } from '@/components/ui/skeleton';
 import {
   CareerIcon,
   CheckIcon,
@@ -95,10 +99,11 @@ function CareerModule({ data }: { data: HomeData }) {
             <b className="text-title-18 text-fg-1">{level.xpIntoLevel}</b> / {level.xpForLevel} XP
           </span>
         </p>
-        <ProgressRuler
+        <Ruler
           value={level.xpIntoLevel}
           max={level.xpForLevel}
           label="Expérience du niveau"
+          valueText={`${level.xpIntoLevel} XP sur ${level.xpForLevel}, niveau ${level.level}, ${level.title}`}
           colorClass="bg-career"
         />
       </div>
@@ -113,10 +118,7 @@ function CareerModule({ data }: { data: HomeData }) {
                 {course.certification ? ` · ${course.certification.name}` : ''}
               </p>
             </div>
-            <Link
-              href="/career/courses"
-              className="inline-flex h-9 items-center rounded-control bg-action px-4 text-body-14 font-semibold text-on-action hover:bg-action-hover"
-            >
+            <Link href="/career/courses" className={buttonClasses({ variant: 'primary' })}>
               Reprendre le cours
             </Link>
           </>
@@ -131,23 +133,6 @@ function CareerModule({ data }: { data: HomeData }) {
         )}
       </div>
     </ModuleCard>
-  );
-}
-
-// Hexagonal medal with the level number.
-function LevelMedal({ level }: { level: number }) {
-  return (
-    <div className="relative grid h-22 w-20 shrink-0 place-items-center" aria-hidden="true">
-      <svg viewBox="0 0 92 100" className="absolute inset-0 size-full">
-        <path
-          d="M46 3 88 27v46L46 97 4 73V27z"
-          className="fill-career-deep stroke-career"
-          strokeWidth="2.5"
-          strokeLinejoin="round"
-        />
-      </svg>
-      <span className="relative font-display text-display-40 text-career tabular">{level}</span>
-    </div>
   );
 }
 
@@ -171,18 +156,18 @@ function HabitsModule({ data }: { data: HomeData }) {
         <EmptyState
           title="Aucune habitude prévue aujourd'hui."
           description="Crée ta première habitude : un clic par jour suffit pour la suivre."
-          actionLabel="Créer une habitude"
-          actionHref="/habits"
+          action={{ label: 'Créer une habitude', href: '/habits' }}
         />
       ) : (
         <>
-          <ProgressRuler
+          <Ruler
             value={done}
             max={habits.length}
             segments={habits.length}
             label="Habitudes faites aujourd'hui"
+            valueText={`${done} habitudes faites sur ${habits.length}`}
             colorClass="bg-habits"
-            heightClass="h-1.5"
+            size="small"
           />
           <ul className="flex flex-col">
             {habits.map((habit) => (
@@ -210,32 +195,6 @@ function HabitsModule({ data }: { data: HomeData }) {
   );
 }
 
-function BarRow({
-  label,
-  value,
-  total,
-  colorClass,
-}: {
-  label: string;
-  value: number;
-  total: number;
-  colorClass: string;
-}) {
-  const width = total > 0 ? (value / total) * 100 : 0;
-  return (
-    <div className="grid grid-cols-[96px_1fr_32px] items-center gap-2.5 text-caption-12 text-fg-2">
-      <span>{label}</span>
-      <span className="h-2 overflow-hidden rounded-tick bg-surface-sunken">
-        <span
-          className={`block h-full rounded-tick ${colorClass}`}
-          style={{ width: `${width}%` }}
-        />
-      </span>
-      <span className="text-right font-semibold text-fg-1 tabular">{value}</span>
-    </div>
-  );
-}
-
 function ApplicationsModule({ data }: { data: HomeData }) {
   const { applications } = data;
   return (
@@ -249,8 +208,7 @@ function ApplicationsModule({ data }: { data: HomeData }) {
         <EmptyState
           title="Aucune candidature suivie."
           description="Ajoute ta première candidature pour voir tes réponses ici."
-          actionLabel="Ajouter une candidature"
-          actionHref="/career/job-search"
+          action={{ label: 'Ajouter une candidature', href: '/career/job-search' }}
         />
       ) : (
         <>
@@ -258,26 +216,30 @@ function ApplicationsModule({ data }: { data: HomeData }) {
             <span className="text-kpi-30 tabular">{applications.total}</span>
             <span className="text-body-14 text-fg-2">envoyées</span>
           </p>
-          <div className="flex flex-col gap-1.5">
-            <BarRow
-              label="Sans réponse"
-              value={applications.noResponse}
-              total={applications.total}
-              colorClass="bg-fg-3"
-            />
-            <BarRow
-              label="Refus"
-              value={applications.rejected}
-              total={applications.total}
-              colorClass="bg-danger"
-            />
-            <BarRow
-              label="Entretiens"
-              value={applications.interviews}
-              total={applications.total}
-              colorClass="bg-info"
-            />
-          </div>
+          <BarChart
+            caption={`Réponses à tes ${applications.total} candidatures`}
+            valueHeader="Candidatures"
+            rows={[
+              {
+                key: 'no-response',
+                label: 'Sans réponse',
+                value: applications.noResponse,
+                colorClass: 'bg-fg-3',
+              },
+              {
+                key: 'rejected',
+                label: 'Refus',
+                value: applications.rejected,
+                colorClass: 'bg-danger',
+              },
+              {
+                key: 'interviews',
+                label: 'Entretiens',
+                value: applications.interviews,
+                colorClass: 'bg-info',
+              },
+            ]}
+          />
         </>
       )}
     </ModuleCard>
@@ -316,8 +278,7 @@ function OfferModule({ data }: { data: HomeData }) {
         <EmptyState
           title="Aucune offre à trier."
           description="Les offres repérées dans ta veille apparaîtront ici."
-          actionLabel="Ouvrir la veille"
-          actionHref="/career/job-search"
+          action={{ label: 'Ouvrir la veille', href: '/career/job-search' }}
         />
       )}
     </ModuleCard>
@@ -327,7 +288,6 @@ function OfferModule({ data }: { data: HomeData }) {
 function FinanceModule({ data, monthLabel }: { data: HomeData; monthLabel: string }) {
   const { incomeCents, expensesCents } = data.finance;
   const balance = incomeCents - expensesCents;
-  const max = Math.max(incomeCents, expensesCents);
   const hasData = incomeCents > 0 || expensesCents > 0;
 
   return (
@@ -345,27 +305,32 @@ function FinanceModule({ data, monthLabel }: { data: HomeData; monthLabel: strin
             {formatEuros(balance)}
           </p>
           <p className="text-caption-12 text-fg-3">Solde du mois</p>
-          <div className="flex flex-col gap-1.5">
-            <BarRow
-              label="Revenus"
-              value={Math.round(incomeCents / 100)}
-              total={Math.round(max / 100)}
-              colorClass="bg-finance"
-            />
-            <BarRow
-              label="Dépenses"
-              value={Math.round(expensesCents / 100)}
-              total={Math.round(max / 100)}
-              colorClass="bg-fg-3"
-            />
-          </div>
+          <BarChart
+            caption={`Revenus et dépenses de ${monthLabel}`}
+            valueHeader="Montant"
+            rows={[
+              {
+                key: 'income',
+                label: 'Revenus',
+                value: incomeCents,
+                colorClass: 'bg-finance',
+                display: formatEuros(incomeCents),
+              },
+              {
+                key: 'expenses',
+                label: 'Dépenses',
+                value: expensesCents,
+                colorClass: 'bg-fg-3',
+                display: formatEuros(expensesCents),
+              },
+            ]}
+          />
         </>
       ) : (
         <EmptyState
           title="Aucune transaction ce mois-ci."
           description="Importe le relevé CSV de ta banque ou saisis une dépense."
-          actionLabel="Ouvrir les finances"
-          actionHref="/finance"
+          action={{ label: 'Ouvrir les finances', href: '/finance' }}
         />
       )}
     </ModuleCard>
@@ -387,13 +352,13 @@ function LeisureModule({ data }: { data: HomeData }) {
           <p className="text-caption-12 text-fg-3">Jeux vidéo · en cours</p>
           <p className="font-semibold">{game.title}</p>
           {game.progressCurrent !== null && game.progressTotal ? (
-            <ProgressRuler
+            <Ruler
               value={game.progressCurrent}
               max={game.progressTotal}
               segments={Math.min(game.progressTotal, 12)}
               label="Progression du jeu"
               colorClass="bg-leisure"
-              heightClass="h-1.5"
+              size="small"
             />
           ) : null}
           {data.nextGame ? (
@@ -406,8 +371,7 @@ function LeisureModule({ data }: { data: HomeData }) {
         <EmptyState
           title="Aucun jeu en cours."
           description="Ajoute tes jeux par franchise, dans l'ordre de l'histoire."
-          actionLabel="Ajouter un jeu"
-          actionHref="/leisure/games"
+          action={{ label: 'Ajouter un jeu', href: '/leisure/games' }}
         />
       )}
     </ModuleCard>
@@ -439,17 +403,21 @@ function TrophiesModule({ data }: { data: HomeData }) {
 // Static placeholder shown while the data loads (no looping animation, as decided in the design).
 export function HomeDashboardSkeleton() {
   return (
-    <div aria-hidden="true" className="flex flex-1 flex-col gap-4">
-      <div className="h-13 w-2/3 rounded-control bg-surface-default" />
+    <LoadingRegion label="Chargement du tableau de bord…" className="flex flex-1 flex-col gap-4">
+      <Skeleton surface="card" className="h-13 w-2/3" />
       <div className="grid flex-1 grid-cols-12 grid-rows-[1.4fr_1fr_1fr] gap-3">
-        <div className="col-span-7 rounded-card bg-surface-default" />
-        <div className="col-span-5 rounded-card bg-surface-default" />
-        <div className="col-span-4 rounded-card bg-surface-default" />
-        <div className="col-span-4 rounded-card bg-surface-default" />
-        <div className="col-span-4 rounded-card bg-surface-default" />
-        <div className="col-span-6 rounded-card bg-surface-default" />
-        <div className="col-span-6 rounded-card bg-surface-default" />
+        {[
+          'col-span-7',
+          'col-span-5',
+          'col-span-4',
+          'col-span-4',
+          'col-span-4',
+          'col-span-6',
+          'col-span-6',
+        ].map((span, index) => (
+          <Skeleton key={index} surface="card" className={span} />
+        ))}
       </div>
-    </div>
+    </LoadingRegion>
   );
 }
