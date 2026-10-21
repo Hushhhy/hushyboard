@@ -2,8 +2,14 @@ import { describe, expect, it } from 'vitest';
 import {
   formatLongDate,
   formatMonth,
+  formatMonthKey,
+  formatMonthKeyName,
+  isMonthKey,
   isoWeekdayInParis,
+  monthKeyInParis,
+  monthKeyRange,
   monthRangeInParis,
+  shiftMonthKey,
   todayInParis,
 } from './dates';
 
@@ -72,5 +78,36 @@ describe('French formatting', () => {
   it('formats a long date and a month name', () => {
     expect(formatLongDate(new Date('2026-10-22T12:00:00Z'))).toBe('jeudi 22 octobre');
     expect(formatMonth(new Date('2026-10-22T12:00:00Z'))).toBe('octobre');
+  });
+});
+
+describe('month keys', () => {
+  it('reads the current Paris month', () => {
+    expect(monthKeyInParis(new Date('2026-10-31T23:30:00Z'))).toBe('2026-11');
+    expect(monthKeyInParis(new Date('2026-10-22T12:00:00Z'))).toBe('2026-10');
+  });
+
+  it('validates keys', () => {
+    expect(isMonthKey('2026-10')).toBe(true);
+    expect(isMonthKey('2026-13')).toBe(false);
+    expect(isMonthKey('2026-1')).toBe(false);
+    expect(isMonthKey('octobre')).toBe(false);
+  });
+
+  it('shifts across years', () => {
+    expect(shiftMonthKey('2026-10', 3)).toBe('2027-01');
+    expect(shiftMonthKey('2026-01', -1)).toBe('2025-12');
+    expect(shiftMonthKey('2026-10', 0)).toBe('2026-10');
+  });
+
+  it('gives the month range with the end excluded', () => {
+    const { start, end } = monthKeyRange('2026-12');
+    expect(start.toISOString()).toBe('2026-12-01T00:00:00.000Z');
+    expect(end.toISOString()).toBe('2027-01-01T00:00:00.000Z');
+  });
+
+  it('formats in French', () => {
+    expect(formatMonthKey('2026-10')).toBe('octobre 2026');
+    expect(formatMonthKeyName('2026-09')).toBe('septembre');
   });
 });
