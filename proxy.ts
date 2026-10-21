@@ -9,6 +9,7 @@ export async function proxy(request: NextRequest) {
   return NextResponse.next();
 }
 
+// /styleguide holds no data and is a 404 in production (see app/styleguide/page.tsx).
 export const config = {
-  matcher: ['/((?!api/auth|login|legal|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!api/auth|login|legal|styleguide|_next/static|_next/image|favicon.ico).*)'],
 };
