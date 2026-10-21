@@ -12,7 +12,7 @@ export default function LoginPage(props: PageProps<'/login'>) {
     >
       <NeuralBackground />
       <div className="relative flex w-full max-w-100 flex-col gap-6">
-        <p className="font-display text-display-30">HushyBoard</p>
+        <p className="font-display text-display-30">Hushyboard</p>
         <section className="flex flex-col gap-4 rounded-card border border-line-subtle bg-surface-default/90 p-6 shadow-overlay">
           <h1 className="font-display text-display-24">Connexion</h1>
           <p className="text-fg-2">Espace personnel, accès réservé.</p>

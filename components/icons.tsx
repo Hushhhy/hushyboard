@@ -87,6 +87,7 @@ export const FinanceIcon = createIcon(
     <path d="M4.4 5.8v4.1c0 1.3 2.5 2.3 5.6 2.3s5.6-1 5.6-2.3V5.8M4.4 9.9V14c0 1.3 2.5 2.3 5.6 2.3s5.6-1 5.6-2.3V9.9" />
   </>
 );
+export const MailIcon = createIcon(<path d="M3 5.5h14v10H3zM3.5 6l6.5 5 6.5-5" />);
 export const TrophyIcon = createIcon(<path d="M10 2.5 16.5 6.25v7.5L10 17.5l-6.5-3.75v-7.5z" />);
 export const SignOutIcon = createIcon(
   <>

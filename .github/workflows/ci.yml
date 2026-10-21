@@ -16,9 +16,14 @@ jobs:
   check:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # Dummy values so lib/env.ts validates. CI never connects to a database or to GitHub.
     env:
       DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
       BETTER_AUTH_SECRET: ci-only-dummy-secret-not-used-anywhere-000
+      BETTER_AUTH_URL: http://localhost:3000
+      GITHUB_CLIENT_ID: ci-dummy
+      GITHUB_CLIENT_SECRET: ci-dummy
+      ALLOWED_GITHUB_ID: '1'
     steps:
       - uses: actions/checkout@v4
 
@@ -32,4 +37,5 @@ jobs:
       - run: npm run lint
       - run: npm run typecheck
       - run: npm run format:check
+      - run: npm test
       - run: npm run build
