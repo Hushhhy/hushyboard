@@ -13,6 +13,13 @@ export const XP_REWARDS: Record<XpReason, number> = {
 // Daily cap, applied to applications only (5 qualified applications per day).
 export const DAILY_APPLICATION_XP_CAP = 75;
 
+// XP granted for one more application, given the application XP already earned today (Paris day).
+// Once the cap is reached the application still counts, it just earns 0 XP.
+export function applicationXpAllowance(earnedToday: number): number {
+  const left = Math.max(0, DAILY_APPLICATION_XP_CAP - earnedToday);
+  return Math.min(XP_REWARDS.APPLICATION_SENT, left);
+}
+
 // Level titles: the road of the Argonauts. Displayed text, so in French.
 export const LEVEL_TITLES = [
   'Mousse',
