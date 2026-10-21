@@ -1,0 +1,314 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hushyboard · Écrans</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root{
+  color-scheme: dark;
+  --bg-0: oklch(0.135 0.006 260); --bg: oklch(0.165 0.008 260); --s1: oklch(0.205 0.010 260); --s2: oklch(0.245 0.012 260); --s3: oklch(0.285 0.014 260); --s4: oklch(0.34 0.015 260);
+  --line: oklch(0.30 0.012 260); --line-strong: oklch(0.58 0.015 260);
+  --t1: oklch(0.955 0.006 85); --t2: oklch(0.81 0.010 260); --t3: oklch(0.70 0.012 260);
+  --action: oklch(0.93 0.035 88); --on-action: oklch(0.18 0.010 260); --focus: oklch(0.93 0.010 260);
+  --car: oklch(0.84 0.145 82); --car-d: oklch(0.32 0.06 82);
+  --hab: oklch(0.82 0.12 190); --hab-d: oklch(0.30 0.05 190);
+  --loi: oklch(0.76 0.15 345); --loi-d: oklch(0.30 0.07 345);
+  --fin: oklch(0.76 0.11 280); --fin-d: oklch(0.33 0.06 280);
+  --ok: oklch(0.82 0.14 150); --warn: oklch(0.80 0.125 60); --err: oklch(0.72 0.16 25); --info: oklch(0.80 0.09 240);
+  --voile: oklch(0.10 0.005 260 / 0.55);
+  --ui: "IBM Plex Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --display: "Bricolage Grotesque", "IBM Plex Sans", "Arial Narrow", system-ui, sans-serif;
+  --sh-sup: inset 0 1px 0 oklch(1 0 0 / .07), 0 24px 48px -16px oklch(0 0 0 / .8);
+}
+*{box-sizing:border-box}
+html{background:var(--bg-0)}
+body{margin:0;background:var(--bg-0);color:var(--t1);font:400 16px/1.4 var(--ui);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit}
+#mock svg{width:18px;height:18px;flex:none}
+.n{font-variant-numeric:tabular-nums slashed-zero}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.page{padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:32px 64px;max-width:1360px;margin:0 auto}
+.lede h1{font:750 clamp(28px,5vw,44px)/1.05 var(--display);letter-spacing:-.03em;margin:0 0 8px}
+.lede p{color:var(--t2);margin:0 0 20px;max-width:70ch}
+.picker{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 16px}
+.picker button{border:1px solid var(--line);background:var(--s1);color:var(--t2);border-radius:8px;padding:6px 10px;font-size:14px;font-weight:500;cursor:pointer}
+.picker button[aria-pressed="true"]{background:var(--s2);color:var(--t1);border-color:var(--line-strong);font-weight:600}
+.picker .grp{width:100%;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);font-weight:600;margin-top:6px}
+.mock{overflow-x:auto;border-radius:18px}
+/* ---------- App ---------- */
+.app{width:1280px;height:800px;display:grid;grid-template-columns:244px 1fr;background:var(--bg);border-radius:16px;overflow:hidden;position:relative;border:1px solid var(--line);font-size:14px}
+.app.solo{grid-template-columns:1fr}
+.side{background:var(--bg-0);padding:20px 12px 16px;display:flex;flex-direction:column;gap:2px;border-right:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:10px;padding:0 10px 18px;font:750 20px/1 var(--display);letter-spacing:-.02em}
+.nav-h{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--t3);padding:14px 10px 6px}
+.nav-i{display:flex;align-items:center;gap:10px;height:34px;padding:0 10px;border-radius:8px;color:var(--t2);text-decoration:none;position:relative;font-weight:500}
+.nav-i svg{width:18px;height:18px;flex:none;color:var(--t3)}
+.nav-i.on{background:var(--s2);color:var(--t1)}
+.nav-i.on::before{content:"";position:absolute;left:-12px;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--t1)}
+.nav-i.on svg{color:var(--t1)!important}
+.nav-i .c{margin-left:auto;font-size:12px;color:var(--t3)}
+.who{margin-top:auto;display:flex;align-items:center;gap:10px;padding:10px;border-radius:10px;background:var(--bg)}
+.who .av{width:30px;height:30px;border-radius:8px;background:var(--car-d);color:var(--car);display:grid;place-items:center;font-weight:600}
+.who small{display:block;color:var(--t3);font-size:12px}
+.main{padding:20px 28px 24px;display:flex;flex-direction:column;gap:16px;min-width:0;min-height:0;position:relative}
+.top{display:flex;align-items:center;gap:16px;height:52px;flex:none}
+.top .crumb{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);font-weight:600;margin:0}
+.top h2{font:700 24px/1.15 var(--display);letter-spacing:-.02em;margin:2px 0 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top .grow{flex:1;min-width:0}
+.sample{font-size:12px;color:var(--t3);border:1px dashed var(--line-strong);border-radius:6px;padding:3px 8px;white-space:nowrap}
+.cmdk{display:flex;align-items:center;gap:10px;width:300px;height:38px;padding:0 8px 0 12px;background:var(--s1);border:1px solid var(--line);border-radius:10px;color:var(--t3)}
+.cmdk span{flex:1}
+kbd{font:600 12px var(--ui);color:var(--t2);background:var(--s3);border-radius:5px;padding:2px 6px;border:1px solid var(--line)}
+/* tabs */
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);flex:none}
+.tab{padding:8px 10px 10px;color:var(--t2);font-weight:500;position:relative}
+.tab.on{color:var(--t1);font-weight:600}
+.tab.on::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:2px;background:var(--t1);border-radius:2px}
+/* modules */
+.mod{background:var(--s1);border-radius:14px;padding:16px 18px;display:flex;flex-direction:column;gap:10px;min-width:0;min-height:0}
+.mod.focal{background:var(--s2);box-shadow:inset 0 1px 0 oklch(1 0 0 / .06),0 18px 40px -18px oklch(0 0 0 / .7)}
+.mh{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--t3);margin:0}
+.mh svg{width:16px;height:16px;flex:none}
+.mh .r{margin-left:auto;text-transform:none;letter-spacing:0;font-weight:500}
+.row{display:flex;gap:12px;min-height:0}
+.col{display:flex;flex-direction:column;gap:12px;min-width:0;min-height:0}
+.f1{flex:1;min-width:0}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:36px;padding:0 14px;border-radius:8px;border:1px solid transparent;font-weight:600;font-size:14px;white-space:nowrap;cursor:pointer}
+.btn-p{background:var(--action);color:var(--on-action)}
+.btn-s{background:var(--s3);color:var(--t1);border-color:var(--line)}
+.btn-q{background:none;color:var(--t2);padding:0 6px}
+.btn-d{background:none;color:var(--err);border-color:var(--err)}
+.btn-dp{background:var(--err);color:var(--on-action)}
+.k{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);font-weight:600}
+.big{font-size:30px;line-height:1.1;font-weight:600;letter-spacing:-.01em}
+.muted{color:var(--t2)} .faint{color:var(--t3)} .sm{font-size:12px} .b{font-weight:600}
+.ruler{display:flex;gap:3px;height:8px}
+.ruler i{flex:1;background:var(--bg-0);border-radius:2px;overflow:hidden;position:relative}
+.ruler i b{position:absolute;inset:0 auto 0 0;border-radius:2px}
+.track{height:10px;background:var(--bg-0);border-radius:2px;overflow:hidden;flex:1}
+.track b{display:block;height:100%;border-radius:2px}
+.chk{width:24px;height:24px;border-radius:7px;border:1.5px solid var(--line-strong);display:grid;place-items:center;flex:none}
+.chk.done{background:var(--hab);border-color:var(--hab)}
+.chk.done svg{color:var(--bg-0)}
+.chk.pause{border-style:dashed;border-color:var(--t3);color:var(--t3)}
+.chk svg{width:14px;height:14px}
+.week{display:flex;gap:3px;align-items:flex-end;height:14px}
+.week b{width:5px;height:12px;border-radius:2px;background:none;border:1px solid var(--line-strong)}
+.week b.on{background:var(--hab);border-color:var(--hab)}
+.week b.r{height:4px;background:var(--line-strong);border:0}
+.week b.p{height:2px;background:var(--t3);border:0}
+.week b.t{outline:1px solid var(--t3);outline-offset:1px}
+.hrow{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:10px}
+.hrow:hover{background:var(--s2)}
+.tag{display:inline-flex;align-items:center;font-size:12px;color:var(--t2);background:var(--s2);border-radius:6px;padding:2px 8px;white-space:nowrap}
+.pill{display:inline-flex;align-items:center;gap:6px;height:24px;padding:0 9px 0 7px;border-radius:6px;font-size:12px;font-weight:600;color:var(--t1);background:var(--s1);border:1px solid currentColor;white-space:nowrap}
+.pill span{color:var(--t1)}
+.pill svg{width:12px;height:12px}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;background:var(--s1);color:var(--t2);font-weight:500;white-space:nowrap}
+.chip.on{background:var(--s2);color:var(--t1);border:1px solid var(--line-strong);font-weight:600}
+.chip small{color:var(--t3);font-size:12px}
+.field{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px 0 12px;border-radius:8px;background:var(--bg-0);border:1px solid var(--line-strong);color:var(--t3)}
+.field.filled{color:var(--t1)}
+.lbl{font-size:12px;font-weight:600;color:var(--t2);margin-bottom:4px;display:block}
+table.t{width:100%;border-collapse:collapse;background:var(--s1);border-radius:14px;overflow:hidden}
+.t th{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);font-weight:600;text-align:left;padding:10px 14px;border-bottom:1px solid var(--line)}
+.t td{padding:10px 14px;border-bottom:1px solid var(--line);color:var(--t2);white-space:nowrap}
+.t tr:last-child td{border-bottom:0}
+.t td.r,.t th.r{text-align:right}
+.t td:first-child{color:var(--t1);font-weight:500}
+.t tr.sel td{background:var(--s2)}
+.cover{width:44px;height:64px;border-radius:4px;flex:none;display:flex;flex-direction:column;justify-content:space-between;padding:5px 4px;background:var(--loi-d);border:1px solid oklch(0.45 0.09 345);font:800 11px/.95 var(--display);color:var(--loi)}
+.cover small{font:700 11px var(--ui);color:var(--t1)}
+.cover.game{background:oklch(0.26 0.03 230);border-color:oklch(0.42 0.04 230);color:var(--t1)}
+.cover.read{opacity:.55}
+.empty{border:1px dashed var(--line-strong);border-radius:14px;padding:24px;display:flex;flex-direction:column;gap:8px;align-items:flex-start}
+.err{display:flex;gap:12px;align-items:flex-start;border:1px solid var(--err);background:oklch(0.72 0.16 25 / .08);border-radius:10px;padding:12px 14px}
+.okbox{display:flex;gap:12px;align-items:center;border:1px solid var(--ok);border-radius:10px;padding:10px 14px}
+.heat{display:grid;grid-template-columns:repeat(12,1fr);grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:4px}
+.heat i{aspect-ratio:1;border-radius:3px;background:var(--bg-0);border:1px solid var(--line)}
+.heat i.l1{background:var(--hab-d);border-color:var(--hab-d)}
+.heat i.l2{background:oklch(0.50 0.08 190);border-color:transparent}
+.heat i.l3{background:oklch(0.66 0.10 190);border-color:transparent}
+.heat i.l4{background:var(--hab);border-color:transparent}
+.heat i.rest{background:none;border:1px dashed var(--line)}
+.scrim{position:absolute;inset:0;background:var(--voile);z-index:5}
+.sheet{position:absolute;z-index:6;background:var(--s3);border-radius:16px;box-shadow:var(--sh-sup)}
+.pal{left:482px;top:110px;width:560px;overflow:hidden}
+.pal-in{display:flex;align-items:center;gap:10px;padding:0 16px;height:52px;border-bottom:1px solid var(--line);font-size:16px}
+.pal-g{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--t3);font-weight:600;padding:10px 16px 4px}
+.pal ul{list-style:none;margin:0;padding:0 8px 8px}
+.pal li{display:flex;align-items:center;gap:10px;height:36px;padding:0 10px;border-radius:8px;color:var(--t2)}
+.pal li svg{width:16px;height:16px}
+.pal li.on{background:var(--s4);color:var(--t1)}
+.pal li .h{margin-left:auto;font-size:12px;color:var(--t2)}
+.pal-f{display:flex;gap:16px;padding:10px 16px;border-top:1px solid var(--line);font-size:12px;color:var(--t3)}
+.panel{right:0;top:0;bottom:0;width:400px;border-radius:16px 0 0 16px;padding:20px;display:flex;flex-direction:column;gap:14px;z-index:6}
+.tl{list-style:none;margin:0;padding:0 0 0 14px;border-left:1px solid var(--line-strong);display:flex;flex-direction:column;gap:12px}
+.tl li{position:relative;color:var(--t2)}
+.tl li::before{content:"";position:absolute;left:-19px;top:6px;width:9px;height:9px;border-radius:50%;background:var(--s3);border:1.5px solid var(--t2)}
+.tl li.now::before{background:var(--t1);border-color:var(--t1)}
+.toast{right:24px;top:84px;width:360px;padding:14px 16px;display:grid;grid-template-columns:52px 1fr;gap:12px}
+.dialog{left:50%;top:50%;transform:translate(-50%,-50%);width:440px;padding:22px;display:flex;flex-direction:column;gap:12px}
+.dl{display:grid;grid-template-columns:auto 1fr;gap:6px 16px;margin:0}
+.dl dt{color:var(--t3)} .dl dd{margin:0;color:var(--t1)}
+.note{color:var(--t3);font-size:12px}
+.legal{max-width:68ch;overflow:auto;padding-right:8px}
+.legal h3{font:700 18px/1.2 var(--ui);margin:18px 0 6px}
+.legal p{color:var(--t2);margin:0 0 8px;font-size:14px}
+.below{margin-top:12px;color:var(--t3);font-size:14px;max-width:80ch}
+@media (max-width:640px){.picker button{font-size:13px}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<symbol id="i-home" viewBox="0 0 20 20"><path d="M3 9.5 10 4l7 5.5V16a1 1 0 0 1-1 1h-3.5v-4.5h-5V17H4a1 1 0 0 1-1-1z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+<symbol id="i-car" viewBox="0 0 20 20"><path d="M10 2.5l6.5 3.75v7.5L10 17.5l-6.5-3.75v-7.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 13.2V7.6M7.4 10.1 10 7.5l2.6 2.6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-profil" viewBox="0 0 20 20"><circle cx="10" cy="7" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4 17c.8-3 3.2-4.5 6-4.5s5.2 1.5 6 4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+<symbol id="i-cv" viewBox="0 0 20 20"><rect x="4.5" y="2.8" width="11" height="14.4" rx="1.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7.5 7h5M7.5 10h5M7.5 13h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+<symbol id="i-cert" viewBox="0 0 20 20"><circle cx="10" cy="8" r="4.6" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7.4 11.8 6.6 17.2l3.4-1.7 3.4 1.7-.8-5.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+<symbol id="i-cours" viewBox="0 0 20 20"><path d="M2.8 5.3c2.6-1 5-1 7.2.6 2.2-1.6 4.6-1.6 7.2-.6v10.6c-2.6-1-5-1-7.2.6-2.2-1.6-4.6-1.6-7.2-.6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M10 5.9v10.6" stroke="currentColor" stroke-width="1.6"/></symbol>
+<symbol id="i-search" viewBox="0 0 20 20"><circle cx="8.8" cy="8.8" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m12.6 12.6 4.2 4.2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+<symbol id="i-ana" viewBox="0 0 20 20"><path d="M3.5 16.5h13M5.5 16.5v-5M9 16.5V6M12.5 16.5v-7.5M16 16.5V3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+<symbol id="i-hab" viewBox="0 0 20 20"><rect x="3.2" y="4.4" width="13.6" height="12.4" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M3.2 8h13.6M7 2.8v3M13 2.8v3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="m7.3 12.2 1.9 1.9 3.6-3.7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-loi" viewBox="0 0 20 20"><path d="M10 2.6l1.5 3 3.3-.9-.7 3.3 3 1.5-3 1.5.7 3.3-3.3-.9-1.5 3-1.5-3-3.3.9.7-3.3-3-1.5 3-1.5-.7-3.3 3.3.9z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+<symbol id="i-comics" viewBox="0 0 20 20"><path d="M3.5 4.5h13v8.6H9.3l-3.6 3v-3H3.5z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 8.8h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+<symbol id="i-jeux" viewBox="0 0 20 20"><path d="M6.2 6.5h7.6a3.6 3.6 0 0 1 3.5 4.4l-.7 3.2a1.8 1.8 0 0 1-3 .9L12 13.4H8l-1.6 1.6a1.8 1.8 0 0 1-3-.9l-.7-3.2a3.6 3.6 0 0 1 3.5-4.4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M7 9v2.4M5.8 10.2h2.4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></symbol>
+<symbol id="i-fin" viewBox="0 0 20 20"><ellipse cx="10" cy="5.8" rx="5.6" ry="2.3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M4.4 5.8v4.1c0 1.3 2.5 2.3 5.6 2.3s5.6-1 5.6-2.3V5.8M4.4 9.9V14c0 1.3 2.5 2.3 5.6 2.3s5.6-1 5.6-2.3V9.9" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+<symbol id="i-check" viewBox="0 0 14 14"><path d="M3 7.4 5.8 10 11 4.2" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-pause" viewBox="0 0 14 14"><path d="M5 3.5v7M9 3.5v7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none"/></symbol>
+<symbol id="i-plus" viewBox="0 0 20 20"><path d="M10 4.5v11M4.5 10h11" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></symbol>
+<symbol id="i-up" viewBox="0 0 20 20"><path d="M10 13V4M6.6 7.4 10 4l3.4 3.4M4 13.5v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-x" viewBox="0 0 14 14"><path d="M3.5 3.5l7 7M10.5 3.5l-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+<symbol id="i-gh" viewBox="0 0 20 20"><path d="M10 2.5a7.5 7.5 0 0 0-2.4 14.6c.4.1.5-.2.5-.4v-1.4c-2.1.5-2.5-1-2.5-1-.3-.9-.8-1.1-.8-1.1-.7-.5 0-.5 0-.5.8.1 1.2.8 1.2.8.7 1.2 1.8.8 2.2.6.1-.5.3-.8.5-1-1.7-.2-3.4-.8-3.4-3.7 0-.8.3-1.5.8-2-.1-.2-.3-1 .1-2 0 0 .6-.2 2.1.8a7 7 0 0 1 3.8 0c1.4-1 2.1-.8 2.1-.8.4 1 .2 1.8.1 2 .5.5.8 1.2.8 2 0 2.9-1.8 3.5-3.4 3.7.3.2.5.7.5 1.4v2.1c0 .2.1.5.5.4A7.5 7.5 0 0 0 10 2.5z" fill="currentColor"/></symbol>
+<symbol id="g-hex" viewBox="0 0 44 48"><path d="M22 2.5 40.5 13v22L22 45.5 3.5 35V13z"/></symbol>
+</defs></svg>
+
+<div class="page">
+  <header class="lede">
+    <h1>Hushyboard : toutes les pages</h1>
+    <p>Cadran &amp; Vitrine, avec les tokens validés à la porte 3. Les pages déjà dessinées dans Figma (Accueil, Recherches pro, Analyses, Profil, CV, Certifications) n'y sont pas répétées. Choisis un écran ; chaque maquette fait 1280 × 800.</p>
+  </header>
+  <nav class="picker" id="picker" aria-label="Écrans"></nav>
+  <div class="mock" id="mock" tabindex="0" aria-label="Maquette"></div>
+  <p class="below" id="note"></p>
+</div>
+
+<script>
+const I=(id,c,s)=>`<svg style="${c?'color:var(--'+c+');':''}${s?'width:'+s+'px;height:'+s+'px':''}" aria-hidden="true"><use href="#${id}"/></svg>`;
+const NAV=[['Accueil','i-home'],['h','Carrière','i-car','car'],['Profil','i-profil'],['CV','i-cv'],['Certifications','i-cert'],['Cours','i-cours'],['Recherches pro','i-search','','1'],['Analyses','i-ana'],['s'],['Habitudes & objectifs','i-hab','hab','2'],['h','Loisirs','i-loi','loi'],['Comics','i-comics'],['Jeux vidéo','i-jeux'],['s'],['Finances','i-fin','fin']];
+function side(on){return `<nav class="side" aria-label="Navigation principale"><div class="brand">${I('i-car','car',22)}Hushyboard</div>`+NAV.map(n=>{if(n[0]==='h')return `<div class="nav-h">${I(n[2],n[3],14)}${n[1]}</div>`; if(n[0]==='s')return '<div style="height:12px"></div>'; const [l,ic,col,c]=n; return `<a class="nav-i${l===on?' on':''}" href="#">${I(ic,col)}${l.replace('&','&amp;')}${c?`<span class="c n">${c}</span>`:''}</a>`;}).join('')+`<div class="who"><span class="av">A</span><span>Alex<small>acarpent · 42 Paris</small></span></div></nav>`;}
+function topBar(crumb,title){return `<div class="top"><div class="grow"><p class="crumb">${crumb}</p><h2>${title}</h2></div><span class="sample">Données d'exemple</span><div class="cmdk">${I('i-search','',16)}<span>Cocher, ajouter, aller à…</span><kbd>⌘K</kbd></div></div>`;}
+const tabs=(l,i)=>`<div class="tabs">${l.map((x,k)=>`<span class="tab${k===i?' on':''}">${x}</span>`).join('')}</div>`;
+const ruler=(n,f,c,h)=>`<div class="ruler" style="height:${h||8}px">${Array.from({length:n},(_,k)=>{const p=Math.max(0,Math.min(1,f-k));return `<i>${p?`<b style="width:${p*100}%;background:var(--${c})"></b>`:''}</i>`}).join('')}</div>`;
+const bar=(p,c)=>`<span class="track"><b style="width:${p*100}%;background:var(--${c})"></b></span>`;
+const chk=s=>s==='done'?`<span class="chk done">${I('i-check')}</span>`:s==='pause'?`<span class="chk pause">${I('i-pause')}</span>`:`<span class="chk"></span>`;
+const week=d=>`<span class="week" aria-hidden="true">${d.map((x,k)=>`<b class="${x===1?'on':x==='r'?'r':x==='p'?'p':''}${k===6?' t':''}"></b>`).join('')}</span>`;
+const app=(nav,crumb,title,body,extra='')=>`<div class="app">${side(nav)}<main class="main">${topBar(crumb,title)}${body}</main>${extra}</div>`;
+const S=[];
+const add=(grp,name,html,note)=>S.push({grp,name,html,note});
+
+// ---------- Cours ----------
+add('Carrière','Cours',app('Cours','Carrière · Cours','3 cours en cours, 3 h 15 cette semaine.',
+`${tabs(['En cours','Terminés','Notes'],0)}
+<div class="row f1"><div class="col f1">
+${[['Introduction aux bases de données relationnelles','IBM Data Engineering · cours 4 / 13 · Coursera',.3,'30 % · environ 9 h restantes','Quiz du module 2 · ven. 17/10',1],['Piscine PHP Symfony','École 42 · module 03 / 06 · Intra',.5,'Module 03 : ORM et CRUD','Évaluation · lun. 20/10',0],['Python for Data Engineering : ETL','IBM Data Engineering · cours 5 / 13 · Coursera',0,'Pas encore commencé','Débloqué après le cours 4',0]].map(([n,s,p,a,b,f])=>`<section class="mod${f?' focal':''}"><div class="row" style="align-items:center">${I('i-cours',f?'car':'t3')}<div class="f1"><div class="b" style="font-size:16px">${n}</div><div class="sm muted">${s}</div></div><button class="btn ${f?'btn-p':'btn-s'}">${p?'Reprendre':'Commencer'}</button></div>${ruler(10,p*10,'car')}<div class="row sm"><span class="f1 muted">${a}</span><span class="faint">${b}</span></div></section>`).join('')}
+<section class="mod f1"><p class="mh">Temps d'étude cette semaine<span class="r">objectif : 6 h</span></p><div class="row f1" style="align-items:flex-end;gap:10px">${[[60,'Lun'],[45,'Mar'],[90,'Mer'],[0,'Jeu'],[0,'Ven'],[0,'Sam'],[0,'Dim']].map(([v,d],k)=>`<div class="col f1" style="align-items:center;gap:4px;justify-content:flex-end">${v?`<span class="sm muted n">${v} min</span>`:''}<span style="width:28px;height:${Math.max(3,v*.6)}px;border-radius:2px 2px 0 0;background:var(--${v?'t3':'s3'})"></span><span class="sm ${k===2?'':'faint'}">${d}</span></div>`).join('')}</div></section>
+</div>
+<section class="mod" style="width:320px;flex:none"><p class="mh">Notes · bases relationnelles<span class="r">4 notes</span></p>
+${[['Clés primaires et étrangères','14/10','Une clé étrangère référence la clé primaire d\'une autre table : intégrité référentielle.'],['Normalisation (1NF → 3NF)','13/10','Une information à un seul endroit.'],['Types de jointures','13/10','INNER, LEFT, RIGHT, FULL ; attention aux NULL.'],['Modèle en étoile','11/10','Table de faits au centre, dimensions autour.']].map(([t,d,e])=>`<div style="padding:8px 0;border-bottom:1px solid var(--line)"><div class="row"><span class="b f1">${t}</span><span class="sm faint n">${d}</span></div><div class="sm muted">${e}</div></div>`).join('')}
+<div class="f1"></div><button class="btn btn-s">Nouvelle note</button></section></div>`),'Le cours en tête est le seul en surface surélevée ; « Reprendre » est l\'unique bouton principal.');
+
+// ---------- Habitudes ----------
+const H=[['Lecture 30 min','Tous les jours',[1,0,0,1,1,1,1],'done','5 j','record 21 j'],['1 h de SQL','Tous les jours',[1,1,1,1,1,1,0],'todo','12 j','record 12 j'],['Revue des offres','Lun–ven · repos le week-end',[1,1,'r','r',1,1,0],'todo','9 j','record 15 j'],['Séance calisthenics','Lun, mer, ven · en pause jusqu\'au 19 oct.',['r',1,'r','r','p','p','p'],'pause','8 j','série gelée']];
+add('Habitudes','Aujourd\'hui',app('Habitudes & objectifs','Habitudes & objectifs','Il reste 2 habitudes aujourd\'hui.',
+`${tabs(['Aujourd\'hui','Historique','Objectifs'],0)}
+<div class="row f1"><section class="mod f1"><p class="mh">${I('i-hab','hab')}Mercredi 15 octobre<span class="r n">1 / 3 faites</span></p>${ruler(3,1,'hab',6)}
+${H.map(([n,m,d,s,st,rec])=>`<div class="hrow">${chk(s)}<div class="f1"><div style="font-weight:500;${s==='todo'?'':'color:var(--t2)'}">${n}</div><div class="sm faint">${m}</div></div>${week(d)}<div style="width:90px;text-align:right"><div class="b n" style="${s==='pause'?'color:var(--t3);font-weight:500':''}">${st}</div><div class="sm faint">${rec}</div></div></div>`).join('')}
+<div class="f1"></div><div class="row sm faint" style="border-top:1px solid var(--line);padding-top:10px"><span class="f1">Plein = fait · creux = manqué · point = repos · tiret = pause. Les pauses ne cassent pas les séries.</span><button class="btn btn-s">Nouvelle habitude</button></div></section>
+<div class="col" style="width:300px"><section class="mod"><p class="mh">Jalons de série</p>${[['7 jours','Lecture 30 min',1],['14 jours','1 h de SQL · dans 2 jours',.86],['30 jours','Revue des offres · dans 21 jours',.3]].map(([a,b,p])=>`<div class="col" style="gap:4px"><div class="row"><span class="b f1">${a}</span><span class="sm faint n">${Math.round(p*100)} %</span></div>${ruler(1,p,'hab',6)}<span class="sm muted">${b}</span></div>`).join('')}</section>
+<section class="mod"><p class="mh">Pauses</p><div class="b">Congés · 13 → 19 oct.</div><div class="sm muted">Séance calisthenics gelée à 8 jours.</div><button class="btn btn-s" style="align-self:flex-start">Planifier une pause</button></section>
+<section class="mod"><p class="mh">Ce mois-ci</p><div class="big n">86 %</div><div class="sm muted">des jours prévus faits (hors pauses)</div></section></div></div>`),'Aucune XP pour les habitudes : seulement la série, les jalons et les trophées. Les jours de repos (week-end) sont planifiés, pas manqués.');
+
+const heat=()=>{let s='';const v=[0,1,2,3,4];for(let w=0;w<12;w++)for(let d=0;d<7;d++){const rest=(d>=5&&w%3!==0);const l=rest?'rest':'l'+((w*7+d*3)%5);s+=`<i class="${l==='l0'?'':l}"></i>`;}return s;};
+add('Habitudes','Historique',app('Habitudes & objectifs','Habitudes & objectifs','12 semaines : 81 % des jours prévus faits.',
+`${tabs(['Aujourd\'hui','Historique','Objectifs'],1)}
+<div class="row f1"><section class="mod f1"><p class="mh">${I('i-hab','hab')}Régularité · toutes les habitudes<span class="r">plus clair = plus d'habitudes faites</span></p>
+<div class="row" style="gap:16px"><div class="col sm faint" style="gap:4px;padding-top:2px;justify-content:space-around">${['L','M','M','J','V','S','D'].map(d=>`<span>${d}</span>`).join('')}</div><div class="heat f1" role="img" aria-label="Grille de 12 semaines">${heat()}</div></div>
+<div class="row sm faint" style="align-items:center"><span>S31</span><span class="f1"></span><span>Moins</span>${['','l1','l2','l3','l4'].map(c=>`<i style="width:12px;height:12px;border-radius:3px;display:inline-block;${c?'':'border:1px solid var(--line);background:var(--bg-0)'}" class="${c}"></i>`).join('').replaceAll('class="l','data-l="l')}<span>Plus</span><span style="margin-left:12px">S42</span></div>
+<p class="note" style="margin:0">Un seul arrêt de tabulation sur la grille ; le tableau ci-contre donne les mêmes chiffres.</p></section>
+<section class="mod" style="width:360px;flex:none"><p class="mh">Par habitude</p><table class="t" style="background:none"><thead><tr><th>Habitude</th><th class="r">Faits</th><th class="r">Record</th></tr></thead><tbody>
+<tr><td>Lecture 30 min</td><td class="r n">71 / 84</td><td class="r n">21 j</td></tr><tr><td>1 h de SQL</td><td class="r n">70 / 84</td><td class="r n">12 j</td></tr><tr><td>Revue des offres</td><td class="r n">52 / 60</td><td class="r n">15 j</td></tr><tr><td>Calisthenics</td><td class="r n">29 / 33</td><td class="r n">6 sem.</td></tr></tbody></table>
+<p class="note" style="margin:0">Les jours de pause et de repos ne comptent ni pour ni contre.</p></section></div>`),'Heatmap mono-teinte (turquoise), plus clair = plus fort, avec tableau équivalent pour l\'accessibilité.');
+document.head.insertAdjacentHTML('beforeend','<style>[data-l="l1"]{background:var(--hab-d)}[data-l="l2"]{background:oklch(0.50 0.08 190)}[data-l="l3"]{background:oklch(0.66 0.10 190)}[data-l="l4"]{background:var(--hab)}</style>');
+
+add('Habitudes','Objectifs',app('Habitudes & objectifs','Habitudes & objectifs','3 objectifs actifs, 1 atteint ce mois-ci.',
+`${tabs(['Aujourd\'hui','Historique','Objectifs'],2)}
+<div class="row" style="flex-wrap:wrap">${[['20 h de SQL en octobre','Mensuel · lié à « 1 h de SQL »',14,20,'h','6 h restantes, 16 jours',0],['Lire 12 livres en 2026','Annuel',9,12,'livres','en avance de 0,5 livre',0],['Courir 10 km sans pause','Étapes',3,5,'étapes','prochaine : 8 km',0],['10 tractions d\'affilée','Atteint le 04/10',10,10,'tractions','trophée « Hercule » débloqué',1]].map(([n,t,v,m,u,s,done])=>`<section class="mod" style="width:calc(50% - 6px)"><div class="row" style="align-items:center"><span class="b f1" style="font-size:16px">${n}</span>${done?'<span class="pill" style="color:var(--ok)"><span>Atteint</span></span>':''}</div><span class="sm faint">${t}</span><div class="row" style="align-items:baseline;gap:6px"><span class="big n">${v}</span><span class="muted n">/ ${m} ${u}</span></div>${ruler(10,v/m*10,done?'ok':'hab')}<span class="sm muted">${s}</span></section>`).join('')}</div>
+<div class="empty"><span class="b">Un objectif découpé en étapes avance mieux.</span><span class="sm muted">Donne-lui une échéance et relie-le à une habitude si possible.</span><button class="btn btn-p">Nouvel objectif</button></div>`),'Un objectif atteint utilise la couleur « succès », pas l\'or : l\'or reste réservé à la Carrière.');
+
+// ---------- Loisirs ----------
+const C=[['FF','#1','Fantastic Four #1','nov. 1961',1],['FF','#2','Fantastic Four #2','janv. 1962',1],['FF','#3','Fantastic Four #3','mars 1962',1],['FF','#4','Fantastic Four #4','mai 1962',1],['FF','#5','Fantastic Four #5','juil. 1962',0,'next'],['JIM','#83','Journey into Mystery #83','août 1962 · 1re apparition de Thor',0],['AF','#15','Amazing Fantasy #15','août 1962 · 1re apparition de Spider-Man',0],['FF','#6','Fantastic Four #6','sept. 1962',0]];
+add('Loisirs','Comics',app('Comics','Loisirs · Comics','Prochain : Fantastic Four #5 (1962).',
+`<div class="row" style="align-items:center"><span class="chip on">Ordre de parution <small>depuis 1961</small></span><span class="chip">Par série</span><span class="chip">Lus <small>4</small></span><span class="f1"></span><div class="field" style="width:260px">${I('i-search','',16)}Chercher un numéro…</div><button class="btn btn-s">Ajouter un numéro</button></div>
+<div class="row f1"><section class="mod f1" style="gap:0;padding:6px 18px">
+${C.map(([a,b,n,d,read,nx])=>`<div class="row" style="align-items:center;padding:8px 0;border-bottom:1px solid var(--line)${nx?';background:var(--s2);margin:0 -18px;padding:8px 18px':''}"><div class="cover${read?' read':''}" style="width:30px;height:44px;font-size:9px">${a}<small style="font-size:9px">${b}</small></div><div class="f1"><div style="font-weight:${nx?600:500};${read?'color:var(--t2)':''}">${n}</div><div class="sm faint">${d}</div></div>${read?`<span class="sm muted row" style="gap:6px;align-items:center">${I('i-check','ok',14)}Lu</span>`:nx?'<button class="btn btn-p">Marquer comme lu</button>':'<span class="sm faint">À lire</span>'}</div>`).join('')}
+</section>
+<div class="col" style="width:300px"><section class="mod"><p class="mh">${I('i-loi','loi')}Âge d'argent<span class="r n">4 / 120</span></p>${ruler(12,.4,'loi',6)}<span class="sm muted">Ordre chronologique global depuis Fantastic Four #1 (1961).</span></section>
+<section class="mod"><p class="mh">Trophées de collection</p>${[['Âge d\'argent','Premier comic de 1962',1],['Quatuor','FF #1 à #10 · 4 / 10',0],['Toile','Lire Amazing Fantasy #15',0]].map(([n,d,ok])=>`<div class="row" style="align-items:center"><svg viewBox="0 0 44 48" width="32" height="35" aria-hidden="true"><use href="#g-hex" fill="${ok?'var(--loi-d)':'none'}" stroke="${ok?'var(--loi)':'var(--line-strong)'}" stroke-width="2" ${ok?'':'stroke-dasharray="4 3"'}/></svg><div class="f1"><div class="b" style="${ok?'':'color:var(--t2)'}">${n}</div><div class="sm faint">${d}</div></div></div>`).join('')}<span class="note">Pas d'XP pour les loisirs : juste des trophées.</span></section></div></div>`),'Ordre de lecture chronologique global (pas par série) ; la ligne « prochain » est la seule mise en avant.');
+
+add('Loisirs','Jeux vidéo',app('Jeux vidéo','Loisirs · Jeux vidéo','En cours : Assassin\'s Creed IV Black Flag Resynced.',
+`<div class="row" style="align-items:center"><span class="chip on">Assassin's Creed <small>14</small></span><span class="chip">Mass Effect <small>4</small></span><span class="chip">The Witcher <small>3</small></span><span class="f1"></span><button class="btn btn-s">Ajouter un jeu</button></div>
+<section class="mod focal"><div class="row" style="align-items:center;gap:16px"><div class="cover game" style="width:64px;height:92px;font-size:14px">AC IV<small>BLACK FLAG</small></div><div class="f1 col" style="gap:6px"><span class="k">En cours · ordre chronologique de l'histoire</span><span style="font:700 24px/1.15 var(--display);letter-spacing:-.02em">Assassin's Creed IV Black Flag Resynced</span><span class="muted">Commencé le 28/09 · 22 h de jeu · séquence 6 sur 13</span>${ruler(13,6,'loi',8)}</div><div class="col" style="gap:8px"><button class="btn btn-p">Terminé</button><button class="btn btn-q">Mettre en pause</button></div></div></section>
+<section class="mod f1" style="gap:0;padding:6px 18px"><div class="row sm faint" style="padding:8px 0;border-bottom:1px solid var(--line)"><span style="width:50px">Ordre</span><span class="f1">Jeu</span><span style="width:120px">Époque</span><span style="width:110px">Statut</span><span style="width:70px;text-align:right">Temps</span></div>
+${[['1','Assassin\'s Creed Odyssey','431 av. J.-C.','Terminé','96 h'],['2','Assassin\'s Creed Origins','49 av. J.-C.','Terminé','58 h'],['3','Assassin\'s Creed Mirage','861','Terminé','21 h'],['4','Assassin\'s Creed Valhalla','873','Abandonné','34 h'],['5','Assassin\'s Creed Shadows','1579','Pas commencé','—'],['8','Assassin\'s Creed IV Black Flag Resynced','1715','En cours','22 h'],['9','Assassin\'s Creed Rogue','1752','Ensuite','—']].map(([o,n,e,s,t])=>`<div class="row" style="align-items:center;padding:9px 0;border-bottom:1px solid var(--line)${s==='En cours'?';background:var(--s2);margin:0 -18px;padding:9px 18px':''}"><span class="n faint" style="width:50px">${o}</span><span class="f1" style="font-weight:500;${s==='Terminé'?'color:var(--t2)':''}">${n}</span><span class="sm muted n" style="width:120px">${e}</span><span style="width:110px" class="sm ${s==='En cours'?'b':s==='Terminé'?'muted':'faint'}">${s}</span><span class="sm muted n" style="width:70px;text-align:right">${t}</span></div>`).join('')}</section>`),'Les jeux se rangent par franchise, dans l\'ordre de l\'histoire ; « Ensuite » est proposé automatiquement.');
+
+// ---------- Finances ----------
+add('Finances','Mois',app('Finances','Finances','Octobre : +412,30 € de solde au 15.',
+`${tabs(['Mois','Transactions','Import'],0)}
+<div class="row" style="align-items:center"><button class="btn btn-q">‹</button><span class="b" style="width:110px;text-align:center">Octobre 2026</span><button class="btn btn-q" disabled style="opacity:.55">›</button><span class="f1"></span><button class="btn btn-s">Importer un CSV</button><button class="btn btn-p">Ajouter une dépense</button></div>
+<div class="row">${[['Revenus','1 500,00 €','alternance + aides'],['Dépenses','1 087,70 €','72,5 % des revenus'],['Solde','+412,30 €','au 15 octobre'],['Épargne','150,00 €','virement du 05/10']].map(([k,v,s],i)=>`<section class="mod f1" style="gap:4px"><span class="k">${k}</span><span class="big n" style="${i===2?'color:var(--fin)':''}">${v}</span><span class="sm muted">${s}</span></section>`).join('')}</div>
+<div class="row f1"><section class="mod f1"><p class="mh">${I('i-fin','fin')}Dépenses par catégorie<span class="r">triées</span></p>${[['Logement','520,00 €',.48],['Alimentation','214,30 €',.2],['Transports','86,40 €',.08],['Abonnements','64,97 €',.06],['Loisirs','122,03 €',.11],['Divers','80,00 €',.07]].sort((a,b)=>b[2]-a[2]).map(([l,v,p])=>`<div class="row" style="align-items:center"><span style="width:110px" class="muted">${l}</span>${bar(p/.48,'t3')}<span class="b n" style="width:90px;text-align:right">${v}</span></div>`).join('')}</section>
+<section class="mod f1"><p class="mh">Solde fin de mois · 6 derniers mois</p><svg viewBox="0 0 440 180" style="width:100%;height:auto;flex:1" role="img" aria-label="Courbe du solde"><g stroke="var(--line)" stroke-width="1"><line x1="0" y1="150" x2="440" y2="150"/><line x1="0" y1="90" x2="440" y2="90" stroke-dasharray="3 4"/><line x1="0" y1="30" x2="440" y2="30" stroke-dasharray="3 4"/></g><polyline fill="none" stroke="var(--fin)" stroke-width="2.5" stroke-linejoin="round" points="20,120 100,96 180,132 260,84 340,108 420,62"/>${[[20,120],[100,96],[180,132],[260,84],[340,108],[420,62]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="4" fill="var(--s1)" stroke="var(--fin)" stroke-width="2"/>`).join('')}<g font-size="12" fill="var(--t3)" font-family="IBM Plex Sans">${['mai','juin','juil.','août','sept.','oct.'].map((m,i)=>`<text x="${20+i*80}" y="172" text-anchor="middle">${m}</text>`).join('')}<text x="420" y="50" text-anchor="end" fill="var(--t1)" font-weight="600">+412 €</text></g></svg></section></div>`),'Couleur lavande pour les finances ; montants en chiffres tabulaires ; pas de camembert, barres triées.');
+
+add('Finances','Transactions',app('Finances','Finances','42 transactions en octobre, 3 sans catégorie.',
+`${tabs(['Mois','Transactions','Import'],1)}
+<div class="row" style="align-items:center"><div class="field" style="width:260px">${I('i-search','',16)}Chercher un libellé…</div><span class="chip on">Toutes <small>42</small></span><span class="chip">Dépenses <small>36</small></span><span class="chip">Revenus <small>6</small></span><span class="chip">Sans catégorie <small>3</small></span><span class="f1"></span><button class="btn btn-p">Ajouter</button></div>
+<table class="t n"><thead><tr><th>Date</th><th>Libellé</th><th>Catégorie</th><th>Source</th><th class="r">Montant</th></tr></thead><tbody>
+${[['15/10','Carrefour City','Alimentation','Import CSV','−23,40 €'],['14/10','Navigo · octobre','Transports','Import CSV','−86,40 €'],['13/10','Spotify','Abonnements','Import CSV','−11,99 €'],['12/10','Fnac · comics Marvel','Loisirs','Saisie','−34,90 €'],['10/10','PAYPAL *STEAM','À classer','Import CSV','−19,99 €',1],['08/10','Virement · salaire alternance','Revenus','Import CSV','+1 220,00 €'],['05/10','Virement vers Livret A','Épargne','Import CSV','−150,00 €'],['05/10','Loyer','Logement','Import CSV','−520,00 €'],['03/10','CAF · APL','Revenus','Import CSV','+280,00 €'],['02/10','Boulangerie','Alimentation','Saisie','−4,60 €']].map(([d,l,c,s,m,x])=>`<tr><td class="faint" style="font-weight:400">${d}</td><td style="color:var(--t1)">${l}</td><td>${x?'<span class="pill" style="color:var(--warn)"><span>À classer</span></span>':c}</td><td class="sm faint">${s}</td><td class="r" style="color:${m.startsWith('+')?'var(--fin)':'var(--t1)'};font-weight:600">${m}</td></tr>`).join('')}
+</tbody></table><div class="row sm faint"><span class="f1">10 sur 42 · plus récentes d'abord</span><button class="btn btn-q">Voir les suivantes</button></div>`),'Une transaction sans catégorie est signalée en orange « alerte » ; les revenus sont en lavande, jamais en vert/rouge opposés.');
+
+add('Finances','Import CSV',app('Finances','Finances','Importer le relevé d\'octobre.',
+`${tabs(['Mois','Transactions','Import'],2)}
+<div class="row f1"><div class="col f1">
+<section class="mod"><p class="mh">${I('i-up','fin')}Étape 2 sur 3 · Associer les colonnes<span class="r">releve-octobre.csv · 48 lignes</span></p>
+<div class="row">${[['Date','Date opération'],['Libellé','Libellé'],['Montant','Montant (EUR)'],['Catégorie','— ignorer —']].map(([a,b])=>`<div class="f1"><span class="lbl">${a}</span><div class="field filled">${b}<span class="f1"></span>▾</div></div>`).join('')}</div>
+<div class="row sm" style="align-items:center;gap:16px"><span class="muted">Séparateur : point-virgule</span><span class="muted">Format de date : JJ/MM/AAAA</span><span class="muted">Décimales : virgule</span></div></section>
+<section class="mod f1"><p class="mh">Aperçu des 5 premières lignes</p><table class="t n" style="background:var(--bg)"><thead><tr><th>Date</th><th>Libellé</th><th class="r">Montant</th><th>Résultat</th></tr></thead><tbody>
+<tr><td>15/10/2026</td><td>CARREFOUR CITY PARIS</td><td class="r">−23,40</td><td class="sm" style="color:var(--ok)">Nouvelle</td></tr>
+<tr><td>14/10/2026</td><td>NAVIGO OCT</td><td class="r">−86,40</td><td class="sm" style="color:var(--ok)">Nouvelle</td></tr>
+<tr><td>13/10/2026</td><td>SPOTIFY</td><td class="r">−11,99</td><td class="sm faint">Doublon, ignorée</td></tr>
+<tr><td>12/10/2026</td><td>FNAC PARIS</td><td class="r">−34,90</td><td class="sm faint">Déjà saisie à la main, fusionnée</td></tr>
+<tr><td>32/10/2026</td><td>PAYPAL *STEAM</td><td class="r">−19,99</td><td class="sm" style="color:var(--err)">Date invalide</td></tr></tbody></table>
+<div class="err">${I('i-x','err',16)}<div><div class="b">1 ligne ne peut pas être importée (ligne 5 : date « 32/10/2026 »).</div><div class="sm muted">Corrige-la dans le fichier ou ignore-la ; ce message reste affiché jusqu'à ce que tu choisisses.</div></div></div>
+<div class="row" style="justify-content:flex-end"><button class="btn btn-q">Retour</button><button class="btn btn-s">Ignorer la ligne 5</button><button class="btn btn-p">Importer 45 transactions</button></div></section></div>
+<div class="col" style="width:300px"><section class="mod"><p class="mh">Progression</p>${[['1. Choisir le fichier','fait',1],['2. Associer les colonnes','en cours',0],['3. Vérifier et importer','',0]].map(([a,b,d])=>`<div class="row" style="align-items:center">${d?`<span class="chk done" style="width:20px;height:20px">${I('i-check')}</span>`:`<span class="chk" style="width:20px;height:20px${b?';border-color:var(--t1)':''}"></span>`}<span class="f1 ${b==='en cours'?'b':d?'muted':'faint'}">${a}</span></div>`).join('')}</section>
+<section class="mod"><p class="mh">Confidentialité</p><span class="sm muted">Le fichier est lu puis supprimé : seules les transactions restent, dans ta base. Aucun identifiant bancaire n'est stocké.</span></section></div></div>`),'Erreur persistante dans la page (jamais en toast), doublons détectés, aucune donnée bancaire sensible conservée (RGPD).');
+
+// ---------- Hors app ----------
+S.push({grp:'Hors application',name:'Connexion',note:'Seul ton compte GitHub est autorisé (liste blanche par identifiant). Message d\'erreur affiché après un refus.',html:`<div class="app solo"><main style="display:grid;place-items:center;background:var(--bg-0)"><div class="col" style="width:400px;gap:20px;align-items:stretch"><div class="row" style="align-items:center;gap:12px">${I('i-car','car',32)}<span style="font:750 30px/1 var(--display);letter-spacing:-.02em">Hushyboard</span></div><section class="mod" style="padding:24px;gap:14px"><span style="font:700 24px/1.15 var(--display);letter-spacing:-.02em">Connexion</span><span class="muted">Espace personnel, accès réservé.</span><div class="err">${I('i-x','err',16)}<div><div class="b">Accès réservé.</div><div class="sm muted">Ce compte GitHub n'est pas autorisé.</div></div></div><button class="btn btn-p" style="height:44px">${I('i-gh','',18)}Continuer avec GitHub</button></section><div class="row sm faint" style="justify-content:center;gap:16px"><a href="#" style="color:var(--t2)">Mentions légales</a><span>Aucun cookie publicitaire</span></div></div></main></div>`});
+S.push({grp:'Hors application',name:'Mentions légales',note:'Page publique, accessible sans connexion (exclue du proxy d\'authentification).',html:app('','Hushyboard','Mentions légales et données personnelles',`<div class="legal mod f1" style="background:none;padding:0"><h3>Éditeur</h3><p>Site personnel non commercial édité par Alexis Carpentier. Contact : par le formulaire GitHub du dépôt.</p><h3>Hébergement</h3><p>Application hébergée par Vercel Inc. (région Francfort, fra1) ; base de données hébergée par Neon (AWS eu-central-1, Francfort).</p><h3>Données personnelles (RGPD)</h3><p>Seul l'éditeur utilise l'application. Les données (candidatures, habitudes, loisirs, finances) servent uniquement à son usage personnel et restent dans l'Union européenne.</p><p>Tu peux exporter ou supprimer l'ensemble de tes données depuis Paramètres → Données.</p><h3>Cookies</h3><p>Un seul cookie technique de session, nécessaire à la connexion. Aucun cookie de mesure d'audience ni publicitaire : aucun bandeau n'est donc requis.</p></div>`)});
+
+// ---------- États superposés ----------
+const homeLite=`<div class="row f1">${['Carrière','Habitudes du jour','Candidatures'].map((n,i)=>`<section class="mod f1${i===0?' focal':''}"><p class="mh">${n}</p></section>`).join('')}</div><div class="row f1">${['Loisirs','Vitrine'].map(n=>`<section class="mod f1"><p class="mh">${n}</p></section>`).join('')}</div>`;
+S.push({grp:'États',name:'Palette ⌘K',note:'Modale (décision porte 3) : voile, focus piégé, Échap ou clic sur le voile pour fermer. Recherche insensible aux accents.',html:app('Accueil','Mercredi 15 octobre','Il reste 2 habitudes et 1 offre à trier.',homeLite,`<div class="scrim"></div><div class="sheet pal" role="dialog" aria-modal="true" aria-label="Palette de commandes"><div class="pal-in">${I('i-search','t3',18)}<span>dép<span style="border-left:2px solid var(--t1);margin-left:1px"></span></span><span class="f1"></span><kbd>Échap</kbd></div><div class="pal-g">Finances</div><ul><li class="on">${I('i-plus','fin')}Ajouter une dépense<span class="h">↵</span></li><li>${I('i-up','fin')}Importer un relevé CSV</li><li>${I('i-fin','fin')}Voir les dépenses d'octobre</li></ul><div class="pal-f"><span>↑ ↓ choisir</span><span>↵ valider</span><span>Échap fermer</span></div></div>`)});
+S.push({grp:'États',name:'Panneau de détail',note:'Panneau latéral non modal : la liste reste utilisable derrière. Le changement de statut est annulable.',html:app('Recherches pro','Carrière · Recherches pro','20 candidatures, 2 entretiens en cours.',`${tabs(['Candidatures','Veille','Analyses'],0)}<table class="t" style="width:560px"><thead><tr><th>Entreprise</th><th>Statut</th><th>Envoyée</th></tr></thead><tbody>${[['Groupe Bel','Envoyée','15/10',1],['Qonto','Entretien technique','02/10'],['Doctolib','Entretien RH','30/09'],['Back Market','En attente','26/09'],['Alan','Refusée','22/09'],['BlaBlaCar','Sans réponse','19/09']].map(([a,b,c,s])=>`<tr class="${s?'sel':''}"><td>${a}</td><td>${b}</td><td class="n">${c}</td></tr>`).join('')}</tbody></table>`,`<aside class="sheet panel" aria-label="Détail de la candidature"><div class="row"><div class="f1"><div style="font:600 20px/1.2 var(--ui)">Stagiaire Data Engineer</div><div class="sm muted">Groupe Bel · Suresnes</div></div><button class="btn btn-q" aria-label="Fermer">${I('i-x','',14)}</button></div><span class="pill" style="color:var(--t2);align-self:flex-start"><span>Envoyée</span></span><dl class="dl n"><dt>Contrat</dt><dd>Stage 6 mois, dès janvier 2027</dd><dt>Source</dt><dd>Welcome to the Jungle</dd><dt>CV envoyé</dt><dd>CV Data Engineer (11/10)</dd><dt>Relance</dt><dd>29 octobre</dd></dl><ol class="tl n"><li>Offre repérée<div class="sm faint">15/10 · veille</div></li><li class="now">Candidature envoyée<div class="sm faint">15/10 · +15 XP</div></li><li>Relance prévue<div class="sm faint">29/10</div></li></ol><div class="f1"></div><div class="row"><button class="btn btn-s">Passer en entretien RH</button><button class="btn btn-q">Modifier</button><span class="f1"></span><button class="btn btn-q" style="color:var(--err)">Supprimer</button></div></aside>`)});
+S.push({grp:'États',name:'Montée de niveau',note:'Seule célébration forte : crans allumés un à un, médaille qui pivote, éclats d\'or une seule fois, puis ce toast persistant (role=status, sans prise de focus).',html:app('Accueil','Mercredi 15 octobre','Il reste 1 habitude et aucune offre à trier.',homeLite,`<div class="sheet toast" role="status"><svg viewBox="0 0 44 48" width="52" height="56" aria-hidden="true"><use href="#g-hex" fill="var(--car-d)" stroke="var(--car)" stroke-width="2"/><text x="22" y="31" text-anchor="middle" font-family="Bricolage Grotesque, sans-serif" font-weight="800" font-size="20" fill="var(--car)">5</text></svg><div><div class="k" style="color:var(--car)">Niveau 5 atteint</div><div style="font:750 20px/1.15 var(--display);letter-spacing:-.02em;margin:2px 0">Argonaute</div><p class="sm muted" style="margin:0 0 10px">Tu embarques sur l'Argo. Prochain titre : Héros, à 650 XP.</p><div class="row" style="gap:6px"><button class="btn btn-s" style="height:32px">Voir la progression</button><button class="btn btn-q" style="height:32px">Fermer</button></div></div></div>`)});
+S.push({grp:'États',name:'Suppression',note:'La seule vraie modale de l\'app, réservée à la suppression ; le bouton destructif n\'est pas le focus par défaut.',html:app('Recherches pro','Carrière · Recherches pro','20 candidatures, 2 entretiens en cours.',`${tabs(['Candidatures','Veille','Analyses'],0)}<section class="mod f1"></section>`,`<div class="scrim"></div><div class="sheet dialog" role="alertdialog" aria-modal="true" aria-labelledby="dt"><div id="dt" style="font:600 20px/1.2 var(--ui)">Supprimer la candidature Groupe Bel ?</div><p class="muted" style="margin:0">L'historique (3 étapes) et la note associée seront supprimés. Les 15 XP gagnés restent acquis.</p><div class="row" style="justify-content:flex-end"><button class="btn btn-s">Annuler</button><button class="btn btn-dp">Supprimer</button></div></div>`)});
+
+// ---------- Rendu ----------
+const picker=document.getElementById('picker'), mock=document.getElementById('mock'), note=document.getElementById('note');
+let grp='';
+S.forEach((s,i)=>{if(s.grp!==grp){grp=s.grp;picker.insertAdjacentHTML('beforeend',`<span class="grp">${grp}</span>`);} const b=document.createElement('button'); b.type='button'; b.textContent=s.name; b.setAttribute('aria-pressed','false'); b.onclick=()=>show(i); picker.appendChild(b);});
+function show(i){[...picker.querySelectorAll('button')].forEach((b,k)=>b.setAttribute('aria-pressed',String(k===i))); mock.innerHTML=S[i].html; note.textContent=S[i].note||''; mock.querySelectorAll('a[href="#"]').forEach(a=>a.addEventListener('click',e=>e.preventDefault()));}
+show(0);
+</script>

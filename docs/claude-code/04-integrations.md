@@ -1,0 +1,99 @@
+# 04 · Integrations
+
+## Environment variables
+
+Add every variable to `.env.example` with a placeholder value. Also validate them all in `lib/env.ts`: a Zod schema, parsed once and imported by the server code.
+
+| Variable                                                        | Used for                                                                                                                                                    | Where Alex gets it        |
+| --------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------- |
+| `DATABASE_URL`, `POSTGRES_*`                                    | DB (existing)                                                                                                                                               | —                         |
+| `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`                         | Auth (existing)                                                                                                                                             | —                         |
+| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET`, `ALLOWED_GITHUB_ID` | GitHub sign-in (existing)                                                                                                                                   | —                         |
+| `GEMINI_API_KEY`                                                | AI features                                                                                                                                                 | Google AI Studio          |
+| `GEMINI_MODEL`                                                  | Default `gemini-2.5-flash`. Check https://ai.google.dev/gemini-api/docs/models for the current best **free-tier Flash** model before hard-coding a default. | —                         |
+| `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`                      | Gmail OAuth                                                                                                                                                 | Google Cloud Console      |
+| `TOKEN_ENCRYPTION_KEY`                                          | AES-256-GCM key for OAuth tokens: 32 random bytes, base64                                                                                                   | `openssl rand -base64 32` |
+
+The Gmail callback URL is `${BETTER_AUTH_URL}/api/gmail/callback`. In development that is `http://localhost:3000/api/gmail/callback`; in production, `https://hushyboard.vercel.app/api/gmail/callback`.
+
+## Gemini (free tier)
+
+- **SDK**: `@google/genai`. Put a single wrapper in `lib/ai/gemini.ts`, exposing `generateJson<T>(feature, prompt, zodSchema, files?)` and `generateText(feature, prompt)`. Every call:
+  - goes through `requireUser()` at the caller and logs an `AiUsage` row;
+  - uses structured output (`responseMimeType: 'application/json'` + `responseJsonSchema` built from the Zod schema with `z.toJSONSchema`), then validates the response with the same Zod schema;
+  - sets `export const maxDuration = 60` on the route or action that calls it;
+  - maps a 429 or quota error to a persistent French error: « Limite gratuite de l'IA atteinte. Réessaie dans une minute. »
+- **Free-tier privacy**: Google may use content sent on the free tier to improve its products. **Never send** finance data, habits, or mails that do not match an application. This is stated on `/legal`.
+- Prompts live in `lib/ai/prompts/*.ts`. Instructions are in English and the output must be French. Features:
+
+| Feature         | Input                                                                                                          | Output (Zod)                                                                                                                                                                                            |
+| --------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `cv-import`     | Alex's CV PDF (inline `application/pdf`, base64, never stored)                                                 | `ResumeContent`                                                                                                                                                                                         |
+| `offer-extract` | pasted offer text + URL                                                                                        | `{ title, company, location, contractType, remotePolicy, requiredSkills[], summary }`                                                                                                                   |
+| `cv-analysis`   | offer + base `ResumeContent` + skills with computed levels                                                     | `{ score (0–100), strengths[], gaps[], changes[] }`                                                                                                                                                     |
+| `cv-adapt`      | offer + base `ResumeContent` + analysis                                                                        | `ResumeContent`. **Rewrite and reorder only. Never invent** an experience, project, diploma, date or skill. Level-0 skills may only appear if a tier is started, labelled « en cours d'apprentissage ». |
+| `cover-letter`  | offer + adapted `ResumeContent` + style guide                                                                  | plain text, 180–250 words                                                                                                                                                                               |
+| `mail-classify` | sender, subject, plain-text body (truncated to 4,000 characters) + the matched application (company, position) | `{ classification: INTERVIEW \| REJECTION \| OTHER, confidence, reason }`                                                                                                                               |
+
+### Alex's writing style (`lib/ai/style-guide.ts`, used by `cover-letter`)
+
+Put this guide in the prompt verbatim. It was drawn from Alex's real professional emails.
+
+```
+Write as Alexis Carpentier, in French.
+- Opening: "Bonjour," on its own line. Formal "vous" throughout.
+- Polite and direct, never stiff or servile. No marketing clichés ("passionné", "dynamique",
+  "rigoureux et motivé", "relever de nouveaux défis"), no bullet points, no emojis.
+- Concrete facts and numbers over adjectives: school (École 42 Paris, tronc commun terminé),
+  named projects (Transcendance: plateforme web multijoueur en équipe), technologies actually known.
+- Recurring turns of phrase he uses: "Je tiens à…", "je me permets de…",
+  "Cela m'aiderait sincèrement à…", "Je me forme en continu sur…", "Je suis disponible dès maintenant".
+- Medium-length sentences, 4 to 5 short paragraphs: why this company/role, what he has done,
+  what he is learning now (honest about level), availability, polite closing.
+- Closing: "Bien cordialement,\nAlexis Carpentier".
+- Spelling and grammar must be perfect (he sometimes writes "j'ai vu passer" — always correct it).
+```
+
+## Gmail API
+
+- **Separate OAuth, not Better Auth.** Sign-in stays GitHub-only, because `validateUserInfo` rejects every other provider. Gmail is a _connection_:
+  - `app/api/gmail/connect/route.ts` redirects to Google with `access_type=offline`, `prompt=consent`, scope `https://www.googleapis.com/auth/gmail.modify`, and a `state` value stored in an httpOnly cookie;
+  - `app/api/gmail/callback/route.ts` checks `state`, exchanges the code, reads the profile email, stores the **encrypted** refresh token in `GmailConnection`, then redirects to `/mail`;
+  - « Déconnecter Gmail » revokes the token and deletes the row.
+- **Packages**: `@googleapis/gmail` + `google-auth-library` (the lighter alternative to `googleapis`). Wrap them in `lib/gmail/client.ts` with `getGmail(userId)`. When it throws `invalid_grant`, set `lastErrorAt` and show the « Connexion Gmail expirée » banner.
+- **Calls used**:
+  - **Labels**: `users.labels.list`, `users.labels.create` (colors must come from Gmail's fixed palette: textColor/backgroundColor pairs listed in the API reference).
+  - **List**: `users.messages.list` with `labelIds`, `q`, `pageToken` and `maxResults: 25`. Then fetch each message with `format: 'metadata'` and `metadataHeaders` set to `From, To, Subject, Date, List-Unsubscribe, List-Unsubscribe-Post`, in parallel (limit 10 at a time).
+  - **Read**: `users.messages.get format: 'full'`. Decode the parts (base64url) and prefer `text/html`. Sanitize with `sanitize-html` and render in `<iframe sandbox srcdoc>` (no `allow-scripts`). Block remote images by default through a CSP `<meta>` inside `srcdoc` (`img-src data:`); « Afficher les images » re-renders with `img-src https:`.
+  - **Mark read / file**: `users.messages.modify` (`removeLabelIds: ['UNREAD']`; « Ranger dans » = `addLabelIds: [label]`, `removeLabelIds: ['INBOX']`). Undo reverses the modify.
+  - **Unsubscribe**:
+    1. Parse the headers in `lib/gmail/unsubscribe.ts` (a pure function, unit-tested with real header samples: `<mailto:…>, <https://…>`, a single URL, `mailto:` with a subject, malformed input).
+    2. When `List-Unsubscribe-Post: List-Unsubscribe=One-Click` is present with an https URL, the server POSTs `List-Unsubscribe=One-Click`.
+    3. Otherwise, for a `mailto:`, send through `users.messages.send` (raw RFC 2822, base64url).
+    4. Otherwise, return the URL so the client opens it in a new tab.
+    5. Then offer to archive the sender's old mails: `messages.list q=from:<address>` + `messages.batchModify`.
+  - **Unread count** for the sidebar: `users.labels.get('INBOX').messagesUnread`, cached 60 s (`unstable_cache` or a `'use cache'` function with `cacheLife`, following Next 16 docs).
+- **Recruiter-reply detection** (`lib/gmail/match.ts`):
+  1. Normalize the company names of the user's applications, both kinds (lowercase, strip accents, legal suffixes and spaces).
+  2. For each message in the list, compare the sender's domain and display name.
+  3. On a match with no existing `MailMatch`, call `mail-classify` (at most 5 per page load, to protect the free quota), then store a `MailMatch`.
+  4. The reader shows the banner when `classification ≠ OTHER` and `decision` is null. Accepting runs the same server action as a status change on the application.
+- **Consent screen mode**: start in **Testing** (Alex added as test user). In Testing mode Google expires refresh tokens after 7 days, so expect a weekly « Reconnecter ». If that gets annoying, Alex can switch the app to **In production**: an unverified app stays usable for its owner after a warning screen. Handle both cases cleanly.
+- Mail content is never written to the database or to logs.
+
+## PDF generation
+
+- **Library**: `@react-pdf/renderer`, server-side in route handlers:
+  - `app/api/resume/[resumeId]/pdf/route.ts`: CV, filename `CV-Alexis-Carpentier-<company>.pdf`;
+  - `app/api/job-offers/[offerId]/letter/pdf/route.ts`: cover letter.
+- **Runtime**: `nodejs`, `requireUser()` first, `Content-Disposition: attachment`.
+- **Fonts**: register IBM Plex Sans (400/500/600) and Bricolage Grotesque (700) as local TTF files in `public/fonts/` (OFL licence, from Google Fonts).
+- **CV template**: A4, one page when possible:
+  - header: name, title, contact, GitHub;
+  - left column: skills by group, languages;
+  - main column: summary, projects, experience, education;
+  - colors: ivory paper with graphite text and a gold accent rule (a print version of the brand, not dark mode).
+
+## Other packages allowed
+
+`zod` (v4), `vitest` (+ `@vitest/coverage-v8` optional), `sanitize-html`, `@react-pdf/renderer`, `@google/genai`, `@googleapis/gmail`, `google-auth-library`, `cmdk` (palette), `papaparse` (CSV). Ask before adding anything else heavier than about 50 kB.

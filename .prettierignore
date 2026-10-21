@@ -2,3 +2,5 @@ generated/
 .claude/
 skills-lock.json
 package-lock.json
+# Design mockups (generated HTML, kept as-is)
+docs/claude-code/mockups

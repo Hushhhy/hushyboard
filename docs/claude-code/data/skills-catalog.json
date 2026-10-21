@@ -1,0 +1,1923 @@
+{
+  "assessedAt": "2026-10-22",
+  "categories": {
+    "WEB_FRONT": "Web front",
+    "BACKEND_DATA": "Back-end et bases de données",
+    "DATA_ENGINEERING": "Data engineering",
+    "SYSTEM_TOOLS": "Système et outils de dev"
+  },
+  "skills": [
+    {
+      "slug": "html",
+      "name": "HTML",
+      "category": "WEB_FRONT",
+      "position": 0,
+      "computedLevel": 5,
+      "tiers": [
+        {
+          "level": 1,
+          "title": "Les bases",
+          "notions": [
+            {
+              "label": "Balises de base",
+              "known": true
+            },
+            {
+              "label": "Liens",
+              "known": true
+            },
+            {
+              "label": "Images",
+              "known": true
+            },
+            {
+              "label": "Listes",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "title": "Formulaires et tableaux",
+          "notions": [
+            {
+              "label": "Formulaires (input, label, select)",
+              "known": true
+            },
+            {
+              "label": "Tableaux",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "title": "Sémantique",
+          "notions": [
+            {
+              "label": "Balises sémantiques (header, main, nav, section)",
+              "known": true
+            },
+            {
+              "label": "Attributs alt et aria-label",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "title": "Accessibilité et SEO",
+          "notions": [
+            {
+              "label": "Navigation au clavier",
+              "known": true
+            },
+            {
+              "label": "Compatibilité lecteur d'écran",
+              "known": true
+            },
+            {
+              "label": "Balises meta pour le SEO",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "title": "Niveau senior",
+          "notions": [
+            {
+              "label": "Audits d'accessibilité",
+              "known": true
+            },
+            {
+              "label": "Performance de chargement",
+              "known": true
+            },
+            {
+              "label": "Web Components",
+              "known": true
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "css",
+      "name": "CSS",
+      "category": "WEB_FRONT",
+      "position": 1,
+      "computedLevel": 3,
+      "tiers": [
+        {
+          "level": 1,
+          "title": "Les bases",
+          "notions": [
+            {
+              "label": "Sélecteurs",
+              "known": true
+            },
+            {
+              "label": "Couleurs et polices",
+              "known": true
+            },
+            {
+              "label": "Box model (marges, paddings)",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "title": "Mise en page",
+          "notions": [
+            {
+              "label": "Flexbox",
+              "known": true
+            },
+            {
+              "label": "Positionnement (relative, absolute, fixed)",
+              "known": true
+            },
+            {
+              "label": "Pseudo-classes (:hover…)",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "title": "Responsive",
+          "notions": [
+            {
+              "label": "Grid",
+              "known": true
+            },
+            {
+              "label": "Media queries (@media)",
+              "known": true
+            },
+            {
+              "label": "Variables CSS",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "title": "Avancé",
+          "notions": [
+            {
+              "label": "Animations et transitions",
+              "known": false
+            },
+            {
+              "label": "@layer",
+              "known": false
+            },
+            {
+              "label": "Spécificité maîtrisée",
+              "known": false
+            },
+            {
+              "label": "Container queries",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "title": "Niveau senior",
+          "notions": [
+            {
+              "label": "Architecture CSS d'un grand projet",
+              "known": false
+            },
+            {
+              "label": "Design system",
+              "known": false
+            },
+            {
+              "label": "Performance du rendu",
+              "known": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "javascript",
+      "name": "JavaScript",
+      "category": "WEB_FRONT",
+      "position": 2,
+      "computedLevel": 1,
+      "tiers": [
+        {
+          "level": 1,
+          "title": "Les bases",
+          "notions": [
+            {
+              "label": "Variables (let, const) et types",
+              "known": true
+            },
+            {
+              "label": "Conditions et comparaisons (===, <, >=)",
+              "known": true
+            },
+            {
+              "label": "Fonctions et return",
+              "known": true
+            },
+            {
+              "label": "Boucles for et incrémentation",
+              "known": true
+            },
+            {
+              "label": "Concaténation de chaînes",
+              "known": true
+            },
+            {
+              "label": "Opérateurs && et ||",
+              "known": true
+            },
+            {
+              "label": "Math.random() et Math.floor()",
+              "known": true
+            },
+            {
+              "label": "console.log()",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "title": "Tableaux, objets et DOM",
+          "notions": [
+            {
+              "label": "Tableaux et index",
+              "known": true
+            },
+            {
+              "label": "length, push, pop, shift, unshift",
+              "known": true
+            },
+            {
+              "label": "Objets et méthodes",
+              "known": true
+            },
+            {
+              "label": "getElementById, querySelector",
+              "known": true
+            },
+            {
+              "label": "innerText et textContent",
+              "known": true
+            },
+            {
+              "label": "addEventListener et onclick",
+              "known": true
+            },
+            {
+              "label": "map, filter, reduce",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "title": "Asynchrone et modules",
+          "notions": [
+            {
+              "label": "Promesses",
+              "known": false
+            },
+            {
+              "label": "async / await",
+              "known": false
+            },
+            {
+              "label": "fetch",
+              "known": false
+            },
+            {
+              "label": "import / export",
+              "known": false
+            },
+            {
+              "label": "Déstructuration",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "title": "Fonctionnement interne",
+          "notions": [
+            {
+              "label": "Closures",
+              "known": false
+            },
+            {
+              "label": "this",
+              "known": false
+            },
+            {
+              "label": "Prototypes",
+              "known": false
+            },
+            {
+              "label": "Event loop",
+              "known": false
+            },
+            {
+              "label": "Gestion d'erreurs",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "title": "Niveau senior",
+          "notions": [
+            {
+              "label": "Performance",
+              "known": false
+            },
+            {
+              "label": "Gestion de la mémoire",
+              "known": false
+            },
+            {
+              "label": "Architecture d'une app",
+              "known": false
+            },
+            {
+              "label": "Outils de build",
+              "known": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "typescript",
+      "name": "TypeScript",
+      "category": "WEB_FRONT",
+      "position": 3,
+      "computedLevel": 0,
+      "tiers": [
+        {
+          "level": 1,
+          "title": "Les bases",
+          "notions": [
+            {
+              "label": "Types de base",
+              "known": false
+            },
+            {
+              "label": "Annotations de fonctions",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "title": "Modéliser",
+          "notions": [
+            {
+              "label": "Interfaces et type",
+              "known": false
+            },
+            {
+              "label": "Unions",
+              "known": false
+            },
+            {
+              "label": "Propriétés optionnelles",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "title": "Génériques",
+          "notions": [
+            {
+              "label": "Génériques",
+              "known": false
+            },
+            {
+              "label": "Record, Partial, Pick",
+              "known": false
+            },
+            {
+              "label": "Narrowing",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "title": "Types avancés",
+          "notions": [
+            {
+              "label": "Types conditionnels",
+              "known": false
+            },
+            {
+              "label": "infer",
+              "known": false
+            },
+            {
+              "label": "Types mappés",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "title": "Niveau senior",
+          "notions": [
+            {
+              "label": "Typer une librairie entière",
+              "known": false
+            },
+            {
+              "label": "Configuration avancée de tsconfig",
+              "known": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "react",
+      "name": "React",
+      "category": "WEB_FRONT",
+      "position": 4,
+      "computedLevel": 0,
+      "tiers": [
+        {
+          "level": 1,
+          "title": "Les bases",
+          "notions": [
+            {
+              "label": "Composants",
+              "known": false
+            },
+            {
+              "label": "Props",
+              "known": false
+            },
+            {
+              "label": "JSX",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "title": "État",
+          "notions": [
+            {
+              "label": "useState",
+              "known": false
+            },
+            {
+              "label": "Événements",
+              "known": false
+            },
+            {
+              "label": "Listes avec key",
+              "known": false
+            },
+            {
+              "label": "Rendu conditionnel",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "title": "Effets et formulaires",
+          "notions": [
+            {
+              "label": "useEffect",
+              "known": false
+            },
+            {
+              "label": "Formulaires contrôlés",
+              "known": false
+            },
+            {
+              "label": "Remonter l'état au parent",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "title": "Avancé",
+          "notions": [
+            {
+              "label": "Context",
+              "known": false
+            },
+            {
+              "label": "Hooks personnalisés",
+              "known": false
+            },
+            {
+              "label": "useMemo / useCallback",
+              "known": false
+            },
+            {
+              "label": "Performance du re-rendu",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "title": "Niveau senior",
+          "notions": [
+            {
+              "label": "Architecture d'une grosse app",
+              "known": false
+            },
+            {
+              "label": "Suspense",
+              "known": false
+            },
+            {
+              "label": "Tests de composants",
+              "known": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "nextjs",
+      "name": "Next.js",
+      "category": "WEB_FRONT",
+      "position": 5,
+      "computedLevel": 0,
+      "tiers": [
+        {
+          "level": 1,
+          "title": "Les bases",
+          "notions": [
+            {
+              "label": "Pages et routage par dossiers",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "title": "Structure",
+          "notions": [
+            {
+              "label": "Layouts",
+              "known": false
+            },
+            {
+              "label": "Link",
+              "known": false
+            },
+            {
+              "label": "Images et polices optimisées",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "title": "Serveur et client",
+          "notions": [
+            {
+              "label": "Composants serveur et client",
+              "known": false
+            },
+            {
+              "label": "Récupérer des données côté serveur",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "title": "Avancé",
+          "notions": [
+            {
+              "label": "Server Actions",
+              "known": false
+            },
+            {
+              "label": "Cache",
+              "known": false
+            },
+            {
+              "label": "Routes API",
+              "known": false
+            },
+            {
+              "label": "Middleware / proxy",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "title": "Niveau senior",
+          "notions": [
+            {
+              "label": "Streaming",
+              "known": false
+            },
+            {
+              "label": "Stratégies de rendu",
+              "known": false
+            },
+            {
+              "label": "Déploiement et optimisation en production",
+              "known": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "tailwind",
+      "name": "Tailwind CSS",
+      "category": "WEB_FRONT",
+      "position": 6,
+      "computedLevel": 3,
+      "tiers": [
+        {
+          "level": 1,
+          "title": "Les bases",
+          "notions": [
+            {
+              "label": "Classes utilitaires (couleurs, marges, texte)",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "title": "Mise en page",
+          "notions": [
+            {
+              "label": "Flex et grid en classes",
+              "known": true
+            },
+            {
+              "label": "Responsive (md:, lg:)",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "title": "États et thème",
+          "notions": [
+            {
+              "label": "États (hover:, focus:)",
+              "known": true
+            },
+            {
+              "label": "Thème personnalisé",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "title": "Avancé",
+          "notions": [
+            {
+              "label": "@theme",
+              "known": false
+            },
+            {
+              "label": "Variantes personnalisées",
+              "known": false
+            },
+            {
+              "label": "Composants réutilisables",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "title": "Niveau senior",
+          "notions": [
+            {
+              "label": "Design system complet sur Tailwind",
+              "known": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "sql",
+      "name": "SQL / PostgreSQL",
+      "category": "BACKEND_DATA",
+      "position": 7,
+      "computedLevel": 3,
+      "tiers": [
+        {
+          "level": 1,
+          "title": "Les bases",
+          "notions": [
+            {
+              "label": "SELECT, WHERE, ORDER BY",
+              "known": true
+            },
+            {
+              "label": "INSERT, UPDATE, DELETE",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "title": "Agrégats et jointures",
+          "notions": [
+            {
+              "label": "JOIN (inner, left)",
+              "known": true
+            },
+            {
+              "label": "GROUP BY",
+              "known": true
+            },
+            {
+              "label": "COUNT, SUM, AVG",
+              "known": true
+            },
+            {
+              "label": "HAVING",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "title": "Schéma",
+          "notions": [
+            {
+              "label": "Sous-requêtes",
+              "known": true
+            },
+            {
+              "label": "CREATE TABLE, clés primaires et étrangères",
+              "known": true
+            },
+            {
+              "label": "Contraintes",
+              "known": true
+            },
+            {
+              "label": "Index simples",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "title": "Avancé",
+          "notions": [
+            {
+              "label": "Fonctions de fenêtrage (OVER, ROW_NUMBER)",
+              "known": false
+            },
+            {
+              "label": "CTE (WITH)",
+              "known": false
+            },
+            {
+              "label": "Transactions",
+              "known": false
+            },
+            {
+              "label": "Normalisation",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "title": "Niveau senior",
+          "notions": [
+            {
+              "label": "Plans d'exécution (EXPLAIN)",
+              "known": false
+            },
+            {
+              "label": "Optimisation",
+              "known": false
+            },
+            {
+              "label": "Réplication",
+              "known": false
+            },
+            {
+              "label": "Partitionnement",
+              "known": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "nodejs",
+      "name": "Node.js",
+      "category": "BACKEND_DATA",
+      "position": 8,
+      "computedLevel": 1,
+      "tiers": [
+        {
+          "level": 1,
+          "title": "Les bases",
+          "notions": [
+            {
+              "label": "Lancer un script",
+              "known": true
+            },
+            {
+              "label": "npm install",
+              "known": true
+            },
+            {
+              "label": "require / import",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "title": "Serveur et fichiers",
+          "notions": [
+            {
+              "label": "Serveur HTTP simple",
+              "known": false
+            },
+            {
+              "label": "Lire et écrire des fichiers",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "title": "Express",
+          "notions": [
+            {
+              "label": "Routes",
+              "known": false
+            },
+            {
+              "label": "Middleware",
+              "known": false
+            },
+            {
+              "label": "Variables d'environnement",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "title": "API complète",
+          "notions": [
+            {
+              "label": "API REST",
+              "known": false
+            },
+            {
+              "label": "Authentification",
+              "known": false
+            },
+            {
+              "label": "Connexion à une base de données",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "title": "Niveau senior",
+          "notions": [
+            {
+              "label": "Performance",
+              "known": false
+            },
+            {
+              "label": "Streams",
+              "known": false
+            },
+            {
+              "label": "Workers",
+              "known": false
+            },
+            {
+              "label": "Architecture de services",
+              "known": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "php-symfony",
+      "name": "PHP / Symfony",
+      "category": "BACKEND_DATA",
+      "position": 9,
+      "computedLevel": 0,
+      "tiers": [
+        {
+          "level": 1,
+          "title": "Les bases",
+          "notions": [
+            {
+              "label": "Syntaxe PHP",
+              "known": false
+            },
+            {
+              "label": "Variables et tableaux",
+              "known": false
+            },
+            {
+              "label": "Fonctions",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "title": "Objet et formulaires",
+          "notions": [
+            {
+              "label": "Classes et objets en PHP",
+              "known": false
+            },
+            {
+              "label": "Formulaires HTML traités en PHP",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "title": "Symfony",
+          "notions": [
+            {
+              "label": "Routes",
+              "known": false
+            },
+            {
+              "label": "Contrôleurs",
+              "known": false
+            },
+            {
+              "label": "Twig",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "title": "Doctrine et sécurité",
+          "notions": [
+            {
+              "label": "Entités, relations, migrations",
+              "known": false
+            },
+            {
+              "label": "Formulaires Symfony",
+              "known": false
+            },
+            {
+              "label": "Sécurité",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "title": "Niveau senior",
+          "notions": [
+            {
+              "label": "Services et injection de dépendances",
+              "known": false
+            },
+            {
+              "label": "Tests",
+              "known": false
+            },
+            {
+              "label": "Performance",
+              "known": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "prisma",
+      "name": "Prisma",
+      "category": "BACKEND_DATA",
+      "position": 10,
+      "computedLevel": 0,
+      "tiers": [
+        {
+          "level": 1,
+          "title": "Les bases",
+          "notions": [
+            {
+              "label": "Écrire un modèle simple",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "title": "Relations",
+          "notions": [
+            {
+              "label": "Relations",
+              "known": false
+            },
+            {
+              "label": "enum",
+              "known": false
+            },
+            {
+              "label": "Migrations",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "title": "Requêtes",
+          "notions": [
+            {
+              "label": "findMany",
+              "known": false
+            },
+            {
+              "label": "include",
+              "known": false
+            },
+            {
+              "label": "where",
+              "known": false
+            },
+            {
+              "label": "create, update",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "title": "Avancé",
+          "notions": [
+            {
+              "label": "groupBy",
+              "known": false
+            },
+            {
+              "label": "Agrégats",
+              "known": false
+            },
+            {
+              "label": "Transactions",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "title": "Niveau senior",
+          "notions": [
+            {
+              "label": "Optimisation des requêtes",
+              "known": false
+            },
+            {
+              "label": "Schémas complexes",
+              "known": false
+            },
+            {
+              "label": "Multi-bases",
+              "known": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "python",
+      "name": "Python",
+      "category": "DATA_ENGINEERING",
+      "position": 11,
+      "computedLevel": 3,
+      "tiers": [
+        {
+          "level": 1,
+          "title": "Les bases",
+          "notions": [
+            {
+              "label": "Variables, conditions, boucles",
+              "known": true
+            },
+            {
+              "label": "Fonctions",
+              "known": true
+            },
+            {
+              "label": "Listes et dictionnaires",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "title": "Structurer",
+          "notions": [
+            {
+              "label": "Compréhensions de liste",
+              "known": true
+            },
+            {
+              "label": "Fichiers (open, with)",
+              "known": true
+            },
+            {
+              "label": "Modules et import",
+              "known": true
+            },
+            {
+              "label": "try / except",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "title": "Objet et environnement",
+          "notions": [
+            {
+              "label": "Classes (__init__, méthodes, héritage)",
+              "known": true
+            },
+            {
+              "label": "Environnements virtuels",
+              "known": true
+            },
+            {
+              "label": "pip",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "title": "Avancé",
+          "notions": [
+            {
+              "label": "Décorateurs",
+              "known": false
+            },
+            {
+              "label": "Générateurs (yield)",
+              "known": false
+            },
+            {
+              "label": "Typage (typing)",
+              "known": false
+            },
+            {
+              "label": "Tests (pytest)",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "title": "Niveau senior",
+          "notions": [
+            {
+              "label": "asyncio",
+              "known": false
+            },
+            {
+              "label": "Métaclasses",
+              "known": false
+            },
+            {
+              "label": "Packaging",
+              "known": false
+            },
+            {
+              "label": "Profilage",
+              "known": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "pandas",
+      "name": "pandas / Jupyter",
+      "category": "DATA_ENGINEERING",
+      "position": 12,
+      "computedLevel": 1,
+      "tiers": [
+        {
+          "level": 1,
+          "title": "Les bases",
+          "notions": [
+            {
+              "label": "Lire un CSV",
+              "known": true
+            },
+            {
+              "label": "head()",
+              "known": true
+            },
+            {
+              "label": "Sélectionner des colonnes",
+              "known": true
+            },
+            {
+              "label": "Filtrer des lignes",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "title": "Transformer",
+          "notions": [
+            {
+              "label": "groupby",
+              "known": false
+            },
+            {
+              "label": "merge",
+              "known": false
+            },
+            {
+              "label": "Valeurs manquantes (fillna, dropna)",
+              "known": false
+            },
+            {
+              "label": "Trier",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "title": "Nettoyer et visualiser",
+          "notions": [
+            {
+              "label": "Nettoyage complet d'un jeu de données",
+              "known": false
+            },
+            {
+              "label": "apply",
+              "known": false
+            },
+            {
+              "label": "Dates",
+              "known": false
+            },
+            {
+              "label": "Graphiques (matplotlib, seaborn)",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "title": "Pipelines",
+          "notions": [
+            {
+              "label": "Pipelines ETL propres",
+              "known": false
+            },
+            {
+              "label": "Gros volumes",
+              "known": false
+            },
+            {
+              "label": "Optimisation des types",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "title": "Niveau senior",
+          "notions": [
+            {
+              "label": "Orchestration (Airflow)",
+              "known": false
+            },
+            {
+              "label": "Tests de données",
+              "known": false
+            },
+            {
+              "label": "Passage en production",
+              "known": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "c",
+      "name": "C",
+      "category": "SYSTEM_TOOLS",
+      "position": 13,
+      "computedLevel": 4,
+      "tiers": [
+        {
+          "level": 1,
+          "title": "Les bases",
+          "notions": [
+            {
+              "label": "Variables, boucles, fonctions",
+              "known": true
+            },
+            {
+              "label": "printf / write",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "title": "Mémoire",
+          "notions": [
+            {
+              "label": "Pointeurs",
+              "known": true
+            },
+            {
+              "label": "Tableaux et chaînes",
+              "known": true
+            },
+            {
+              "label": "malloc / free",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "title": "Structures",
+          "notions": [
+            {
+              "label": "Structures",
+              "known": true
+            },
+            {
+              "label": "Listes chaînées",
+              "known": true
+            },
+            {
+              "label": "Makefile",
+              "known": true
+            },
+            {
+              "label": "Compilation séparée",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "title": "Système",
+          "notions": [
+            {
+              "label": "fork, exec, pipe",
+              "known": true
+            },
+            {
+              "label": "Signaux",
+              "known": true
+            },
+            {
+              "label": "Descripteurs de fichiers",
+              "known": true
+            },
+            {
+              "label": "Threads et mutex",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "title": "Niveau senior",
+          "notions": [
+            {
+              "label": "Valgrind et fuites mémoire",
+              "known": false
+            },
+            {
+              "label": "Optimisation",
+              "known": false
+            },
+            {
+              "label": "Sockets et réseau",
+              "known": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "cpp",
+      "name": "C++",
+      "category": "SYSTEM_TOOLS",
+      "position": 14,
+      "computedLevel": 1,
+      "tiers": [
+        {
+          "level": 1,
+          "title": "Les bases",
+          "notions": [
+            {
+              "label": "Classes",
+              "known": true
+            },
+            {
+              "label": "Constructeurs et destructeurs",
+              "known": true
+            },
+            {
+              "label": "iostream",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "title": "Forme canonique",
+          "notions": [
+            {
+              "label": "Références",
+              "known": false
+            },
+            {
+              "label": "Surcharge d'opérateurs",
+              "known": false
+            },
+            {
+              "label": "Forme canonique de Coplien",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "title": "Héritage",
+          "notions": [
+            {
+              "label": "Héritage",
+              "known": false
+            },
+            {
+              "label": "Polymorphisme",
+              "known": false
+            },
+            {
+              "label": "Classes abstraites",
+              "known": false
+            },
+            {
+              "label": "Exceptions",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "title": "STL",
+          "notions": [
+            {
+              "label": "Templates",
+              "known": false
+            },
+            {
+              "label": "Conteneurs (vector, map)",
+              "known": false
+            },
+            {
+              "label": "Itérateurs",
+              "known": false
+            },
+            {
+              "label": "Algorithmes",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "title": "Niveau senior",
+          "notions": [
+            {
+              "label": "Smart pointers",
+              "known": false
+            },
+            {
+              "label": "Move semantics",
+              "known": false
+            },
+            {
+              "label": "Lambdas",
+              "known": false
+            },
+            {
+              "label": "Métaprogrammation",
+              "known": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "git",
+      "name": "Git",
+      "category": "SYSTEM_TOOLS",
+      "position": 15,
+      "computedLevel": 1,
+      "tiers": [
+        {
+          "level": 1,
+          "title": "Les bases",
+          "notions": [
+            {
+              "label": "clone, add, commit",
+              "known": true
+            },
+            {
+              "label": "push, pull",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "title": "Branches",
+          "notions": [
+            {
+              "label": "Branches",
+              "known": true
+            },
+            {
+              "label": "merge",
+              "known": false
+            },
+            {
+              "label": "Résoudre un conflit simple",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "title": "Collaboration",
+          "notions": [
+            {
+              "label": "rebase",
+              "known": false
+            },
+            {
+              "label": "stash",
+              "known": false
+            },
+            {
+              "label": ".gitignore",
+              "known": true
+            },
+            {
+              "label": "Pull requests sur GitHub",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "title": "Avancé",
+          "notions": [
+            {
+              "label": "rebase -i",
+              "known": false
+            },
+            {
+              "label": "cherry-pick",
+              "known": false
+            },
+            {
+              "label": "reflog",
+              "known": false
+            },
+            {
+              "label": "Workflow d'équipe (Git Flow)",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "title": "Niveau senior",
+          "notions": [
+            {
+              "label": "Hooks",
+              "known": false
+            },
+            {
+              "label": "CI/CD (GitHub Actions)",
+              "known": false
+            },
+            {
+              "label": "Monorepos",
+              "known": false
+            },
+            {
+              "label": "Réécriture d'historique",
+              "known": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "docker",
+      "name": "Docker",
+      "category": "SYSTEM_TOOLS",
+      "position": 16,
+      "computedLevel": 1,
+      "tiers": [
+        {
+          "level": 1,
+          "title": "Les bases",
+          "notions": [
+            {
+              "label": "docker run",
+              "known": true
+            },
+            {
+              "label": "docker ps",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "title": "Images",
+          "notions": [
+            {
+              "label": "Dockerfile simple",
+              "known": false
+            },
+            {
+              "label": "docker build",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "title": "Compose",
+          "notions": [
+            {
+              "label": "docker compose multi-services",
+              "known": false
+            },
+            {
+              "label": "Volumes",
+              "known": false
+            },
+            {
+              "label": "Réseaux",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "title": "Avancé",
+          "notions": [
+            {
+              "label": "Images multi-étapes",
+              "known": false
+            },
+            {
+              "label": "Optimisation",
+              "known": false
+            },
+            {
+              "label": "Variables d'environnement et secrets",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "title": "Niveau senior",
+          "notions": [
+            {
+              "label": "Kubernetes",
+              "known": false
+            },
+            {
+              "label": "Déploiement en production",
+              "known": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "slug": "linux-bash",
+      "name": "Linux / Bash",
+      "category": "SYSTEM_TOOLS",
+      "position": 17,
+      "computedLevel": 3,
+      "tiers": [
+        {
+          "level": 1,
+          "title": "Les bases",
+          "notions": [
+            {
+              "label": "cd, ls",
+              "known": true
+            },
+            {
+              "label": "cp, mv, rm",
+              "known": true
+            },
+            {
+              "label": "cat",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 2,
+          "title": "Outils",
+          "notions": [
+            {
+              "label": "chmod",
+              "known": true
+            },
+            {
+              "label": "grep",
+              "known": true
+            },
+            {
+              "label": "Redirections et pipes",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 3,
+          "title": "Scripts",
+          "notions": [
+            {
+              "label": "Scripts Bash (variables, conditions, boucles)",
+              "known": true
+            },
+            {
+              "label": "ssh",
+              "known": true
+            },
+            {
+              "label": "Variables d'environnement",
+              "known": true
+            }
+          ]
+        },
+        {
+          "level": 4,
+          "title": "Administration",
+          "notions": [
+            {
+              "label": "sed / awk",
+              "known": false
+            },
+            {
+              "label": "Processus",
+              "known": false
+            },
+            {
+              "label": "cron",
+              "known": false
+            },
+            {
+              "label": "Administration système de base",
+              "known": false
+            }
+          ]
+        },
+        {
+          "level": 5,
+          "title": "Niveau senior",
+          "notions": [
+            {
+              "label": "Administration serveur",
+              "known": false
+            },
+            {
+              "label": "Sécurité",
+              "known": false
+            },
+            {
+              "label": "Automatisation avancée",
+              "known": false
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "tools": [
+    {
+      "name": "VS Code",
+      "status": "USING"
+    },
+    {
+      "name": "GitHub Desktop",
+      "status": "USING"
+    },
+    {
+      "name": "Claude",
+      "status": "USING"
+    },
+    {
+      "name": "Claude Code",
+      "status": "USING"
+    },
+    {
+      "name": "GitHub Copilot",
+      "status": "USING"
+    },
+    {
+      "name": "Figma",
+      "status": "USING"
+    },
+    {
+      "name": "Obsidian",
+      "status": "USING"
+    },
+    {
+      "name": "Notion",
+      "status": "USING"
+    },
+    {
+      "name": "pgAdmin",
+      "status": "USING"
+    },
+    {
+      "name": "phpMyAdmin",
+      "status": "USING"
+    },
+    {
+      "name": "Vercel",
+      "status": "USING"
+    },
+    {
+      "name": "Neon",
+      "status": "USING"
+    },
+    {
+      "name": "Suite Office",
+      "status": "USING"
+    },
+    {
+      "name": "Suite Adobe",
+      "status": "USING"
+    },
+    {
+      "name": "Suite Google",
+      "status": "USING"
+    }
+  ]
+}
