@@ -3,7 +3,7 @@ import { bricolage, plex } from './fonts';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'HushyBoard',
+  title: 'Hushyboard',
   description: 'Personal life dashboard',
 };
 

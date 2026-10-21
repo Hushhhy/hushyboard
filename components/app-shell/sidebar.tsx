@@ -9,6 +9,7 @@ import {
   HabitsIcon,
   HomeIcon,
   LeisureIcon,
+  MailIcon,
   ProfileIcon,
   ResumeIcon,
   SearchIcon,
@@ -39,11 +40,12 @@ export function Sidebar() {
     <aside className="sticky top-0 flex h-dvh w-61 shrink-0 flex-col gap-0.5 border-r border-line-subtle bg-surface-sunken px-3 pt-5 pb-4">
       <p className="flex items-center gap-2.5 px-2.5 pb-4.5 font-display text-display-20">
         <CareerIcon className="size-5.5 text-career" />
-        HushyBoard
+        Hushyboard
       </p>
 
       <nav aria-label="Navigation principale" className="flex flex-col gap-0.5">
         <NavLink href="/" icon={<HomeIcon />} label="Accueil" />
+        <NavLink href="/mail" icon={<MailIcon />} label="Mails" />
 
         <GroupLabel
           icon={<CareerIcon className="size-3.5" />}
@@ -59,7 +61,7 @@ export function Sidebar() {
         />
         <NavLink href="/career/courses" icon={<CourseIcon />} label="Cours" />
         <NavLink href="/career/job-search" icon={<SearchIcon />} label="Recherches pro" />
-        <NavLink href="/career/analytics" icon={<AnalyticsIcon />} label="Analyses" />
+        <NavLink href="/career/progress" icon={<AnalyticsIcon />} label="Progression" />
 
         <div className="h-3" />
         <NavLink
