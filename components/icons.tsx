@@ -96,3 +96,17 @@ export const SignOutIcon = createIcon(
   </>
 );
 export const CheckIcon = createIcon(<path d="m5 10.5 3.2 3 6.8-7" />);
+export const PlusIcon = createIcon(<path d="M10 4.5v11M4.5 10h11" />);
+export const CloseIcon = createIcon(<path d="m5 5 10 10M15 5 5 15" />);
+export const ChevronLeftIcon = createIcon(<path d="M12 4.5 6.5 10l5.5 5.5" />);
+export const ChevronRightIcon = createIcon(<path d="M8 4.5 13.5 10 8 15.5" />);
+export const PauseIcon = createIcon(<path d="M7.5 5v10M12.5 5v10" />);
+export const LockIcon = createIcon(
+  <>
+    <rect x="4.5" y="9" width="11" height="8" rx="1.6" />
+    <path d="M7 9V6.8a3 3 0 0 1 6 0V9" />
+  </>
+);
+export const UploadIcon = createIcon(
+  <path d="M10 13V4M6.6 7.4 10 4l3.4 3.4M4 13.5v2a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-2" />
+);

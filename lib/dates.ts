@@ -52,3 +52,45 @@ export function formatLongDate(now: Date): string {
 export function formatMonth(now: Date): string {
   return monthFormatter.format(now);
 }
+
+// Months are passed around as "YYYY-MM" keys (URL ?month=2026-10, month picker).
+const MONTH_KEY = /^(\d{4})-(0[1-9]|1[0-2])$/;
+
+const monthYearFormatter = new Intl.DateTimeFormat('fr-FR', {
+  timeZone: 'UTC',
+  month: 'long',
+  year: 'numeric',
+});
+const monthNameFormatter = new Intl.DateTimeFormat('fr-FR', { timeZone: 'UTC', month: 'long' });
+
+// "2026-10" for the current month in Paris.
+export function monthKeyInParis(now: Date): string {
+  return ymdFormatter.format(now).slice(0, 7);
+}
+
+export function isMonthKey(value: string): boolean {
+  return MONTH_KEY.test(value);
+}
+
+// "2026-10" + 3 → "2027-01"; "2026-01" − 1 → "2025-12".
+export function shiftMonthKey(key: string, delta: number): string {
+  const [year, month] = key.split('-').map(Number);
+  const date = new Date(Date.UTC(year, month - 1 + delta, 1));
+  return date.toISOString().slice(0, 7);
+}
+
+// Start of the month and start of the next one (end excluded), as UTC midnights.
+export function monthKeyRange(key: string): { start: Date; end: Date } {
+  const start = new Date(`${key}-01T00:00:00.000Z`);
+  return { start, end: new Date(`${shiftMonthKey(key, 1)}-01T00:00:00.000Z`) };
+}
+
+// "octobre 2026"
+export function formatMonthKey(key: string): string {
+  return monthYearFormatter.format(new Date(`${key}-01T00:00:00.000Z`));
+}
+
+// "septembre" (used in "Mois précédent : septembre")
+export function formatMonthKeyName(key: string): string {
+  return monthNameFormatter.format(new Date(`${key}-01T00:00:00.000Z`));
+}
