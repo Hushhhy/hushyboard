@@ -9,8 +9,11 @@ import {
   AI_INVALID_MESSAGE,
   AI_QUOTA_MESSAGE,
   AiError,
+  FEATURE_TIERS,
+  modelChain,
   parseJsonAnswer,
   toAiError,
+  withFallback,
   withRetry,
 } from './gemini';
 
@@ -115,5 +118,64 @@ describe('withRetry', () => {
       }, [0, 0])
     ).rejects.toThrow('quota');
     expect(calls).toBe(1);
+  });
+});
+
+describe('modelChain', () => {
+  const models = { main: 'flash', lite: 'flash-lite' };
+
+  it('tries the main model first, then the lite one, for complex tasks', () => {
+    expect(modelChain('notion-sheet', models)).toEqual(['flash', 'flash-lite']);
+    expect(modelChain('cv-adapt', models)).toEqual(['flash', 'flash-lite']);
+  });
+
+  it('uses only the lite model for simple tasks', () => {
+    expect(modelChain('reference-entry', models)).toEqual(['flash-lite']);
+    expect(modelChain('mail-classify', models)).toEqual(['flash-lite']);
+  });
+
+  it('calls a model once when both variables name the same one', () => {
+    expect(modelChain('notion-sheet', { main: 'same', lite: 'same' })).toEqual(['same']);
+  });
+
+  it('gives every feature a tier', () => {
+    expect(Object.values(FEATURE_TIERS).every((tier) => tier === 'main' || tier === 'lite')).toBe(
+      true
+    );
+  });
+});
+
+describe('withFallback', () => {
+  it('moves to the next model when the first one is out of quota', async () => {
+    const tried: string[] = [];
+    const { result, model } = await withFallback(['flash', 'flash-lite'], async (name) => {
+      tried.push(name);
+      if (name === 'flash') throw new ApiError({ message: 'quota PerDay', status: 429 });
+      return 'ok';
+    });
+    expect({ result, model, tried }).toEqual({
+      result: 'ok',
+      model: 'flash-lite',
+      tried: ['flash', 'flash-lite'],
+    });
+  });
+
+  it('does not switch model on other errors', async () => {
+    const tried: string[] = [];
+    await expect(
+      withFallback(['flash', 'flash-lite'], async (name) => {
+        tried.push(name);
+        throw new ApiError({ message: 'bad request', status: 400 });
+      })
+    ).rejects.toThrow('bad request');
+    expect(tried).toEqual(['flash']);
+  });
+
+  it('throws the quota error when every model is out of quota', async () => {
+    await expect(
+      withFallback(['flash', 'flash-lite'], async () => {
+        throw new ApiError({ message: 'quota PerDay', status: 429 });
+      })
+    ).rejects.toThrow('quota');
   });
 });

@@ -12,8 +12,11 @@ const envSchema = z.object({
   ALLOWED_GITHUB_ID: z.string().regex(/^\d+$/),
   // Google AI Studio key (free tier). Content sent on the free tier may be used by Google.
   GEMINI_API_KEY: z.string().min(20),
-  // A free-tier Flash model, see https://ai.google.dev/gemini-api/docs/models
+  // Free-tier models, see https://ai.google.dev/gemini-api/docs/models and the rate limits
+  // in AI Studio. Main: complex tasks (about 20 requests a day). Lite: simple tasks, and
+  // the fallback when the main model is out of quota (about 500 a day). Swap them freely.
   GEMINI_MODEL: z.string().min(1).default('gemini-3.8-flash'),
+  GEMINI_MODEL_LITE: z.string().min(1).default('gemini-3.5-flash-lite'),
   // Fine-grained token, read-only (Metadata + Contents), to list and read Alex's repos.
   // Optional: without it, only /career/projects shows how to create one.
   GITHUB_TOKEN: z.string().min(20).optional(),

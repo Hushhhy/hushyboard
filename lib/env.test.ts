@@ -24,8 +24,9 @@ describe('parseEnv', () => {
     expect(() => parseEnv({ ...valid, BETTER_AUTH_SECRET: 'short' })).not.toThrow(/short/);
   });
 
-  it('defaults the Gemini model to a free-tier Flash model', () => {
+  it('defaults the Gemini models to free-tier Flash and Flash Lite', () => {
     expect(parseEnv(valid).GEMINI_MODEL).toBe('gemini-3.8-flash');
+    expect(parseEnv(valid).GEMINI_MODEL_LITE).toBe('gemini-3.5-flash-lite');
   });
 
   it('rejects a non-numeric GitHub id', () => {

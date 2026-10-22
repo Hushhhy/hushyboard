@@ -1,4 +1,4 @@
-import { ApiError, GoogleGenAI, type Part } from '@google/genai';
+import { ApiError, GoogleGenAI, type GenerateContentResponse, type Part } from '@google/genai';
 import type { z } from 'zod';
 import { env } from '@/lib/env';
 import { prisma } from '@/lib/prisma';
@@ -20,6 +20,34 @@ export type AiFeature =
   | 'reference-list'
   | 'reference-entry';
 
+// Two free-tier models. "main" (GEMINI_MODEL) for reasoning and writing that Alex rereads;
+// "lite" (GEMINI_MODEL_LITE) for extraction, classification and short descriptions.
+export type ModelTier = 'main' | 'lite';
+
+export const FEATURE_TIERS: Record<AiFeature, ModelTier> = {
+  'cv-import': 'main',
+  'cv-analysis': 'main',
+  'cv-adapt': 'main',
+  'cover-letter': 'main',
+  'skill-roadmap': 'main',
+  'notion-sheet': 'main',
+  // Created once and defines the whole list.
+  'reference-list': 'main',
+  'reference-entry': 'lite',
+  'offer-extract': 'lite',
+  'mail-classify': 'lite',
+};
+
+// Models to try, in order: a main task falls back to the lite model when the main one is
+// out of quota; a lite task uses only the lite model (its quota is large).
+export function modelChain(
+  feature: AiFeature,
+  models: { main: string; lite: string } = { main: env.GEMINI_MODEL, lite: env.GEMINI_MODEL_LITE }
+): string[] {
+  if (FEATURE_TIERS[feature] === 'lite' || models.main === models.lite) return [models.lite];
+  return [models.main, models.lite];
+}
+
 // French message shown persistently (never as a toast).
 export class AiError extends Error {
   constructor(message: string) {
@@ -39,12 +67,18 @@ export const AI_FAILURE_MESSAGE =
 export const AI_INVALID_MESSAGE =
   'La réponse de l’IA était incomplète. Réessaie, ou remplis les champs à la main.';
 
+export function isQuotaError(error: unknown): boolean {
+  const status = error instanceof ApiError ? error.status : undefined;
+  const message = error instanceof Error ? error.message : '';
+  return status === 429 || /RESOURCE_EXHAUSTED|quota|rate limit/i.test(message);
+}
+
 // Maps any SDK or network error to a French message for Alex.
 export function toAiError(error: unknown): AiError {
   if (error instanceof AiError) return error;
   const status = error instanceof ApiError ? error.status : undefined;
   const message = error instanceof Error ? error.message : '';
-  if (status === 429 || /RESOURCE_EXHAUSTED|quota|rate limit/i.test(message)) {
+  if (isQuotaError(error)) {
     return new AiError(/PerDay/.test(message) ? AI_DAILY_QUOTA_MESSAGE : AI_QUOTA_MESSAGE);
   }
   if (status === 503 || /UNAVAILABLE|overloaded|high demand/i.test(message)) {
@@ -76,6 +110,21 @@ export async function withRetry<T>(
   }
 }
 
+// Tries each model of the chain; moves to the next one only when a model is out of quota.
+export async function withFallback<T>(
+  models: string[],
+  call: (model: string) => Promise<T>
+): Promise<{ result: T; model: string }> {
+  for (let index = 0; ; index += 1) {
+    const model = models[index];
+    try {
+      return { result: await withRetry(() => call(model)), model };
+    } catch (error) {
+      if (index >= models.length - 1 || !isQuotaError(error)) throw error;
+    }
+  }
+}
+
 // A file sent inline (base64), e.g. the CV PDF. Never stored.
 export type InlineFile = { mimeType: string; data: Buffer };
 
@@ -88,13 +137,14 @@ function getClient(): GoogleGenAI {
 async function logUsage(
   userId: string,
   feature: AiFeature,
-  usage: { promptTokenCount?: number; candidatesTokenCount?: number } | undefined
+  model: string,
+  usage: GenerateContentResponse['usageMetadata']
 ) {
   await prisma.aiUsage.create({
     data: {
       userId,
       feature,
-      model: env.GEMINI_MODEL,
+      model,
       inputTokens: usage?.promptTokenCount ?? null,
       outputTokens: usage?.candidatesTokenCount ?? null,
     },
@@ -120,9 +170,9 @@ export async function generateJson<T>(
 ): Promise<T> {
   let raw: string | undefined;
   try {
-    const response = await withRetry(() =>
+    const { result: response, model } = await withFallback(modelChain(feature), (model) =>
       getClient().models.generateContent({
-        model: env.GEMINI_MODEL,
+        model,
         contents: contents(prompt, files),
         config: {
           responseMimeType: 'application/json',
@@ -131,7 +181,7 @@ export async function generateJson<T>(
         },
       })
     );
-    await logUsage(userId, feature, response.usageMetadata);
+    await logUsage(userId, feature, model, response.usageMetadata);
     raw = response.text;
   } catch (error) {
     throw toAiError(error);
@@ -146,14 +196,14 @@ export async function generateText(
   prompt: string
 ): Promise<string> {
   try {
-    const response = await withRetry(() =>
+    const { result: response, model } = await withFallback(modelChain(feature), (model) =>
       getClient().models.generateContent({
-        model: env.GEMINI_MODEL,
+        model,
         contents: contents(prompt, []),
         config: { temperature: 0.6 },
       })
     );
-    await logUsage(userId, feature, response.usageMetadata);
+    await logUsage(userId, feature, model, response.usageMetadata);
     const text = response.text?.trim();
     if (!text) throw new AiError(AI_INVALID_MESSAGE);
     return text;
