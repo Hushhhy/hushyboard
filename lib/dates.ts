@@ -94,3 +94,15 @@ export function formatMonthKey(key: string): string {
 export function formatMonthKeyName(key: string): string {
   return monthNameFormatter.format(new Date(`${key}-01T00:00:00.000Z`));
 }
+
+const shortDateFormatter = new Intl.DateTimeFormat('fr-FR', {
+  timeZone: TIME_ZONE,
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+});
+
+// "22 oct. 2026"
+export function formatShortDate(date: Date): string {
+  return shortDateFormatter.format(date);
+}
