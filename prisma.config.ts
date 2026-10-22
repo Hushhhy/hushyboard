@@ -7,6 +7,8 @@ export default defineConfig({
   schema: 'prisma/schema.prisma',
   migrations: {
     path: 'prisma/migrations',
+    // Node runs TypeScript directly (type stripping, Node 22.18+).
+    seed: 'node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON prisma/seed.ts',
   },
   datasource: {
     url: process.env.DATABASE_URL_UNPOOLED ?? process.env.DATABASE_URL,
