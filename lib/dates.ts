@@ -144,3 +144,14 @@ export function formatRelativeTime(date: Date, now: Date): string {
   }
   return formatRelativeDay(date, now);
 }
+
+const dayMonthFormatter = new Intl.DateTimeFormat('fr-FR', {
+  timeZone: TIME_ZONE,
+  day: '2-digit',
+  month: '2-digit',
+});
+
+// "15/10" (tables)
+export function formatDayMonth(date: Date): string {
+  return dayMonthFormatter.format(date);
+}

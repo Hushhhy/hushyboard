@@ -229,3 +229,14 @@ export function describeStats(total: number, responses: number, medianDelay: num
 export function countWords(text: string): number {
   return text.split(/\s+/).filter(Boolean).length;
 }
+
+// "https://www.qonto.com/careers" → "qonto.com/careers" (shown under a company name).
+export function displayUrl(url: string): string {
+  try {
+    const parsed = new URL(url);
+    const path = parsed.pathname.replace(/\/$/, '');
+    return `${parsed.hostname.replace(/^www\./, '')}${path}`;
+  } catch {
+    return url;
+  }
+}

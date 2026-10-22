@@ -17,6 +17,8 @@ import {
 } from '@/components/icons';
 import { AccountMenu, AccountMenuPlaceholder } from './account-menu';
 import { NavLink } from './nav-link';
+import { countOffersToSort } from '@/lib/job-search-data';
+import { requireUser } from '@/lib/session';
 
 function GroupLabel({
   icon,
@@ -33,6 +35,19 @@ function GroupLabel({
       {label}
     </p>
   );
+}
+
+const JOB_SEARCH_LINK = {
+  href: '/career/job-search',
+  icon: <SearchIcon />,
+  label: 'Recherches pro',
+};
+
+// « Recherches pro » with the number of offers to sort (read per request).
+async function JobSearchNavLink() {
+  const user = await requireUser();
+  const count = await countOffersToSort(user.id);
+  return <NavLink {...JOB_SEARCH_LINK} count={count} />;
 }
 
 // Server component: the navigation is the same for every page, only NavLink needs the browser.
@@ -62,7 +77,9 @@ export function Sidebar() {
           label="Certifications"
         />
         <NavLink href="/career/courses" icon={<CourseIcon />} label="Cours" />
-        <NavLink href="/career/job-search" icon={<SearchIcon />} label="Recherches pro" />
+        <Suspense fallback={<NavLink {...JOB_SEARCH_LINK} />}>
+          <JobSearchNavLink />
+        </Suspense>
         <NavLink href="/career/progress" icon={<AnalyticsIcon />} label="Progression" />
 
         <div className="h-3" />

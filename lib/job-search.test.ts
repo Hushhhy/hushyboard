@@ -5,6 +5,7 @@ import {
   describeSpontaneous,
   describeStats,
   describeWatch,
+  displayUrl,
   followUpDate,
   isFollowUpDue,
   isoWeek,
@@ -153,5 +154,13 @@ describe('page titles', () => {
 
   it('counts words of a letter', () => {
     expect(countWords('Bonjour,\n\nJe vous  écris.')).toBe(4);
+  });
+});
+
+describe('displayUrl', () => {
+  it('shortens a careers page link', () => {
+    expect(displayUrl('https://www.qonto.com/careers/')).toBe('qonto.com/careers');
+    expect(displayUrl('https://alan.com')).toBe('alan.com');
+    expect(displayUrl('not a url')).toBe('not a url');
   });
 });
