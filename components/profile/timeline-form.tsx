@@ -5,10 +5,16 @@ import type { TimelineEntry } from '@/generated/prisma/client';
 import { saveTimelineEntry } from '@/app/(app)/career/profile/actions';
 import { Button } from '@/components/ui/button';
 import { ErrorState } from '@/components/ui/error-state';
-import { TextField } from '@/components/ui/text-field';
+import { SelectField, TextField } from '@/components/ui/text-field';
 import { EMPTY_FORM_STATE } from '@/lib/forms';
 
-export function TimelineForm({ entry }: { entry: TimelineEntry | null }) {
+export function TimelineForm({
+  entry,
+  projects,
+}: {
+  entry: TimelineEntry | null;
+  projects: { id: string; name: string }[];
+}) {
   const [state, formAction, isPending] = useActionState(saveTimelineEntry, EMPTY_FORM_STATE);
   const value = (name: 'period' | 'title' | 'place') => state.values?.[name] ?? entry?.[name] ?? '';
 
@@ -37,6 +43,17 @@ export function TimelineForm({ entry }: { entry: TimelineEntry | null }) {
         defaultValue={value('place')}
         error={state.fieldErrors?.place}
       />
+      {projects.length > 0 ? (
+        <SelectField
+          name="projectId"
+          label="Projet GitHub lié (facultatif)"
+          options={[
+            { value: '', label: 'Aucun' },
+            ...projects.map((project) => ({ value: project.id, label: project.name })),
+          ]}
+          defaultValue={state.values?.projectId ?? entry?.projectId ?? ''}
+        />
+      ) : null}
       <label className="flex items-center gap-2 text-body-14">
         <input
           type="checkbox"

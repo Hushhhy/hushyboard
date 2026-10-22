@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { TimelineEntry } from '@/generated/prisma/client';
+import { projectSlug } from '@/lib/github/helpers';
 import { deleteTimelineEntry } from '@/app/(app)/career/profile/actions';
 import { CourseIcon, PencilIcon, PlusIcon } from '@/components/icons';
 import { buttonClasses } from '@/components/ui/button';
@@ -8,7 +9,17 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { SidePanel } from '@/components/ui/side-panel';
 import { TimelineForm } from './timeline-form';
 
-export function TimelineCard({ entries }: { entries: TimelineEntry[] }) {
+type Entry = TimelineEntry & {
+  project: { name: string; fullName: string; isExternal: boolean } | null;
+};
+
+export function TimelineCard({
+  entries,
+  projects,
+}: {
+  entries: Entry[];
+  projects: { id: string; name: string }[];
+}) {
   return (
     <section
       aria-labelledby="timeline-title"
@@ -36,7 +47,16 @@ export function TimelineCard({ entries }: { entries: TimelineEntry[] }) {
               />
               <div className="min-w-0 flex-1">
                 <p className="text-body-14 font-medium">
-                  {entry.title}
+                  {entry.project ? (
+                    <Link
+                      href={`/career/projects/${projectSlug(entry.project)}`}
+                      className="underline decoration-line-strong underline-offset-3 hover:decoration-current"
+                    >
+                      {entry.title}
+                    </Link>
+                  ) : (
+                    entry.title
+                  )}
                   {entry.isCurrent ? <span className="sr-only"> (en cours)</span> : null}
                 </p>
                 <p className="text-caption-12 text-fg-3">
@@ -52,7 +72,7 @@ export function TimelineCard({ entries }: { entries: TimelineEntry[] }) {
                 <PencilIcon className="size-4" />
               </Link>
               <SidePanel name={`timeline-${entry.id}`} title="Modifier l'étape">
-                <TimelineForm entry={entry} />
+                <TimelineForm entry={entry} projects={projects} />
                 <div className="mt-auto border-t border-line-subtle pt-3">
                   <DeleteDialog
                     title={`Supprimer « ${entry.title} » ?`}
@@ -75,7 +95,7 @@ export function TimelineCard({ entries }: { entries: TimelineEntry[] }) {
         Ajouter une étape
       </Link>
       <SidePanel name="timeline-new" title="Ajouter une étape">
-        <TimelineForm entry={null} />
+        <TimelineForm entry={null} projects={projects} />
       </SidePanel>
     </section>
   );

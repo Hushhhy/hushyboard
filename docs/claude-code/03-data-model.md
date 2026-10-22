@@ -30,7 +30,7 @@ model Skill {
   name        String
   category    SkillCategory
   position    Int               @default(0)
-  projects    String[]          // free labels shown on the sub-page, e.g. "Transcendance"
+  projects    Project[]
   tiers       SkillTier[]
   assessments SkillAssessment[]
   courses     Course[]
@@ -62,6 +62,12 @@ model SkillNotion {
   label     String
   position  Int       @default(0)
   checkedAt DateTime?
+  // Cheat sheet ("fiche mémo"), generated on first open, editable
+  sheet            Json?     // NotionSheet: { summary, syntax: {lang, code}, example: {lang, code}, pitfalls[], docUrl? }
+  sheetGeneratedAt DateTime?
+  sheetEditedAt    DateTime?
+  notes            String?   // "Mes notes", written by Alex
+  references       ReferenceEntry[]
 
   @@index([tierId, position])
   @@map("skill_notions")
@@ -126,7 +132,111 @@ model TimelineEntry {
 }
 ```
 
-Add the reverse relations on `User` (`skills`, `tools`, `profileInfo`, `timelineEntries`), on `Course` (`skills Skill[]`) and on `Certification` (`skills Skill[]`). These are implicit many-to-many relations.
+## Skill reference lists (phase 2)
+
+```prisma
+enum ReferenceKind {
+  ELEMENT      // HTML tag
+  ATTRIBUTE
+  PROPERTY     // CSS property
+  AT_RULE      // @media, @keyframes
+  SELECTOR     // pseudo-classes, pseudo-elements
+  FUNCTION
+  METHOD
+  OBJECT       // JS built-in object / DOM interface
+  KEYWORD
+  TYPE
+  COMMAND      // git, bash, docker, sql statements
+  CLASS        // Tailwind utility
+  HOOK
+  OTHER
+}
+
+enum ReferenceSource {
+  MDN          // @mdn/browser-compat-data
+  AI
+  MANUAL
+}
+
+/// One entry of a skill's reference list (a CSS property, an HTML tag, a Git command…).
+model ReferenceEntry {
+  id          String          @id @default(cuid())
+  skillId     String
+  skill       Skill           @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  name        String          // "justify-content", "<dialog>", "Array.prototype.map", "git rebase"
+  kind        ReferenceKind
+  group       String          // French category label: "Mise en page", "Formulaires", "Tableaux"…
+  summary     String?         // one line, French
+  details     Json?           // ReferenceDetails: { description, syntax?, values[]?, example?, equivalents? }
+  detailsGeneratedAt DateTime?
+  detailsEditedAt    DateTime?
+  docUrl      String?
+  source      ReferenceSource
+  isCommon    Boolean         @default(false)
+  isDeprecated Boolean        @default(false)
+  hidden      Boolean         @default(false)
+  knownAt     DateTime?       // "Je connais"
+  favorite    Boolean         @default(false)
+  notions     SkillNotion[]
+
+  @@unique([skillId, kind, name])
+  @@index([skillId, group])
+  @@map("reference_entries")
+}
+```
+
+`Skill` gets `references ReferenceEntry[]` and `referenceSyncedAt DateTime?`. Zod schemas `NotionSheet` and `ReferenceDetails` live in `lib/skills/schemas.ts`.
+
+## Projects (phase 2b)
+
+```prisma
+enum ProjectCategory {
+  SCHOOL_42
+  PERSONAL
+  TEAM
+}
+
+/// A GitHub repository, as a snapshot refreshed on sync, plus Alex's own annotations.
+/// Code, READMEs and commits are always fetched live from GitHub and never stored.
+model Project {
+  id             String          @id @default(cuid())
+  userId         String
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  githubId       BigInt          // repository id from the GitHub API
+  fullName       String          // "Hushhhy/hushyboard"
+  name           String
+  description    String?
+  url            String
+  homepage       String?
+  defaultBranch  String
+  isPrivate      Boolean
+  isFork         Boolean         @default(false)
+  isArchived     Boolean         @default(false)
+  isExternal     Boolean         @default(false) // public repo of someone else, added by URL
+  topics         String[]
+  languages      Json            // { "TypeScript": 82.1, "CSS": 14.0 } in percent
+  stars          Int             @default(0)
+  pushedAt       DateTime?
+  deletedOnGithubAt DateTime?
+  syncedAt       DateTime
+  // Alex's annotations
+  category       ProjectCategory @default(PERSONAL)
+  role           String?         // "Mon rôle et ce que j'ai fait"
+  pinned         Boolean         @default(false)
+  hidden         Boolean         @default(false)
+  featuredOnCv   Boolean         @default(false)
+  skills         Skill[]
+  timelineEntries TimelineEntry[]
+
+  @@unique([userId, githubId])
+  @@index([userId, pinned, pushedAt])
+  @@map("projects")
+}
+```
+
+`TimelineEntry` gets an optional `projectId` (relation, `onDelete: SetNull`). The seed does not create projects; the first sync does.
+
+Add the reverse relations on `User` (`skills`, `tools`, `profileInfo`, `timelineEntries`, `projects`), on `Course` (`skills Skill[]`) and on `Certification` (`skills Skill[]`). These are implicit many-to-many relations.
 
 **Seed**: `prisma/seed.ts` reads `docs/claude-code/data/skills-catalog.json` and upserts for the allowed user:
 
@@ -214,7 +324,7 @@ model AiUsage {
   id           String   @id @default(cuid())
   userId       String
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  feature      String   // "offer-extract" | "cv-import" | "cv-analysis" | "cv-adapt" | "cover-letter" | "mail-classify"
+  feature      String   // "offer-extract" | "cv-import" | "cv-analysis" | "cv-adapt" | "cover-letter" | "mail-classify" | "project-skills" | "skill-roadmap" | "notion-sheet" | "reference-list" | "reference-entry"
   model        String
   inputTokens  Int?
   outputTokens Int?

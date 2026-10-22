@@ -42,14 +42,23 @@ export type SkillSummary = {
 
 // Everything /career/profile shows, read in parallel.
 export async function getProfileData(userId: string) {
-  const [profile, tools, timeline, skills] = await Promise.all([
+  const [profile, tools, timeline, skills, projects] = await Promise.all([
     prisma.profileInfo.findUnique({ where: { userId } }),
     prisma.tool.findMany({ where: { userId }, orderBy: [{ position: 'asc' }, { name: 'asc' }] }),
-    prisma.timelineEntry.findMany({ where: { userId }, orderBy: { position: 'asc' } }),
+    prisma.timelineEntry.findMany({
+      where: { userId },
+      orderBy: { position: 'asc' },
+      include: { project: { select: { name: true, fullName: true, isExternal: true } } },
+    }),
     prisma.skill.findMany({
       where: { userId },
       orderBy: { position: 'asc' },
       include: tiersInclude,
+    }),
+    prisma.project.findMany({
+      where: { userId, hidden: false },
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
     }),
   ]);
 
@@ -71,7 +80,7 @@ export async function getProfileData(userId: string) {
     }))
   );
 
-  return { profile, tools, timeline, skills: summaries, objectives };
+  return { profile, tools, timeline, skills: summaries, objectives, projects };
 }
 
 export type ProfileData = Awaited<ReturnType<typeof getProfileData>>;
@@ -85,6 +94,11 @@ export async function getSkillPageData(userId: string, slug: string) {
       assessments: { orderBy: { assessedAt: 'desc' } },
       courses: { select: { id: true, title: true }, orderBy: { title: 'asc' } },
       certifications: { select: { id: true, name: true }, orderBy: { name: 'asc' } },
+      projects: {
+        where: { hidden: false },
+        select: { id: true, name: true, fullName: true, isExternal: true },
+        orderBy: { name: 'asc' },
+      },
     },
   });
   if (!skill) return null;

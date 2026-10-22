@@ -7,7 +7,7 @@ Layout source of truth: Figma frames and HTML mockups listed in `02-design.md`. 
 
 - **Auth**: GitHub OAuth via Better Auth, allowlist `ALLOWED_GITHUB_ID` (done). `/login` (neural background, done), `/legal` public; everything else behind `proxy.ts` + `requireUser()`.
 - **App shell** (done in `app/(app)/layout.tsx`, update it): sidebar 244 px.
-  Order: Accueil `/` · **Mails `/mail` (unread count)** · group _Carrière_: Profil `/career/profile`, CV `/career/resume`, Certifications `/career/certifications`, Cours `/career/courses`, Recherches pro `/career/job-search` (count = offers to sort), Analyses `/career/analytics` · Habitudes & objectifs `/habits` · group _Loisirs_: Jeux vidéo `/leisure/games` · Finances `/finance` · account block (avatar, name, sign out).
+  Order: Accueil `/` · **Mails `/mail` (unread count)** · group _Carrière_: Profil `/career/profile`, **Projets `/career/projects`**, CV `/career/resume`, Certifications `/career/certifications`, Cours `/career/courses`, Recherches pro `/career/job-search` (count = offers to sort), Progression `/career/progress` · Habitudes & objectifs `/habits` · group _Loisirs_: Jeux vidéo `/leisure/games` · Finances `/finance` · account block (avatar, name, sign out).
   **No Comics anywhere** (dropped).
 - **Top bar** on every page: uppercase breadcrumb label + one-sentence summary title (computed, e.g. « 7 sites carrière suivis, 2 relances à faire. ») + ⌘K trigger.
 - **⌘K / Ctrl+K palette** (phase 9): modal with scrim; commands « Cocher <habitude> », « Ajouter une dépense », « Ajouter une offre », « Aller à <page> ». Accent-insensitive search. `cmdk` library allowed.
@@ -48,22 +48,128 @@ Two columns.
 
 **Right**
 
-1. _Compétences techniques_: 4 groups in a 2-column grid — « Web front », « Data engineering » (left), « Back-end et bases de données », « Système et outils de dev » (right). Each row = link to the sub-page: name · 5-segment ruler · « 3 / 5 » (« 1+ / 5 » when the next tier is started) · chevron. Level 0 rows are dimmed (fg-3). Header meta: « niveau sur 5 · 5 = dev senior · clique pour le détail ». Footnote: « Le niveau = dernier palier dont toutes les notions sont cochées. Un cran pâle et le « + » indiquent un palier commencé. »
-2. _Prochains objectifs_: up to 5 rows, computed: for each skill with level ≥ 1 or a started tier, the first unchecked notions of the current tier (« map, filter, reduce » · « termine le palier 2 »); then level-0 skills relevant to the current search (full stack: TypeScript, React, Next.js, Node.js) with their tier-1 notions. Order: started tiers first, then by category relevance to full stack.
+1. _Compétences techniques_: 4 groups in a 2-column grid — « Web front », « Data engineering » (left), « Back-end et bases de données », « Système et outils de dev » (right). Each row = link to the sub-page: name · 5-segment ruler · « 3 / 5 » (« 1+ / 5 » when the next tier is started) · chevron. Level 0 rows are dimmed (fg-3). Header meta: « niveau sur 5 · 5 = dev senior · clique pour le détail ». Footnote: « Le niveau = dernier niveau dont toutes les notions de la roadmap sont cochées. Un cran pâle et le « + » indiquent un niveau commencé. »
+2. _Prochains objectifs_: up to 5 rows, computed: for each skill with level ≥ 1 or a started tier, the first unchecked notions of the current tier (« map, filter, reduce » · « termine le niveau 2 »); then level-0 skills relevant to the current search (full stack: TypeScript, React, Next.js, Node.js) with their tier-1 notions. Order: started tiers first, then by category relevance to full stack.
 
-- Add/edit skills: « Ajouter une compétence » (name, category) creates 5 empty tiers to fill.
+- Add/edit skills: « Ajouter une compétence » (name, category) creates 5 empty milestones; « Générer la roadmap » asks Gemini (`skill-roadmap`) for a first list of notions per level (junior → senior), which Alex can edit.
 
 ### Skill level computation (pure function, unit-tested)
 
 `level = highest n such that every notion of tiers 1..n is checked` (0 if tier 1 incomplete). `started = level < 5 && some notion of tier level+1 is checked`. Ruler: `level` full segments, +1 pale segment (`career-deep`) if `started`.
 
-## Career · Profil · sub-page `/career/profile/[skillSlug]` (Figma `v2 · Carrière · Profil · JavaScript` 32:715)
+## Career · Profil · skill page `/career/profile/[skillSlug]` (HTML mockup `screens-v2.html`, screens « Roadmap + fiche notion » and « Référence (ex. CSS) »)
 
-- Breadcrumb « Carrière · Profil · JavaScript », title e.g. « JavaScript · niveau 1, palier 2 presque terminé » (computed: « presque terminé » when ≤ 1 notion left).
-- Left: « Retour au profil » link; level card (big number medal, « Niveau 1 sur 5 », tier title of the current level « Bases acquises », « Palier 2 : 6 notions sur 7 », 5-segment ruler, « Prochain objectif » box listing the remaining notions of the current tier, « Dernière évaluation : 22 oct. 2026 », buttons « Me réévaluer » (primary) and « Historique » (quiet)). Card « Lié à JavaScript »: linked courses, projects, certifications (+ « Lier un cours »).
-- Right: card « Paliers et notions » — 5 tier sections. Status chip: « Acquis » (all checked, success), « En cours » (some checked, career, section highlighted `surface-raised`), « À découvrir » (none). Tiers 1..level+2 expanded with checkboxes (habit checkbox style); further tiers collapsed (show the notions as one caption line, expand on click). Checking a notion is optimistic, saved with a server action, undoable.
-- « Me réévaluer »: guided mode that walks tier by tier (« Sais-tu faire ça sans aide, sans tutoriel et sans IA ? » Oui / Non per notion), then saves a `SkillAssessment` snapshot (date, level, started). « Historique » lists snapshots (date + level) — a line chart is optional.
-- Edit mode (pencil): rename tiers, add/remove/reorder notions.
+**Replaces the « tiers » layout of Figma 32:715.** The tiers stay in the data as **level milestones (1 to 5)**, but the page shows one continuous roadmap of notions.
+
+**Header**:
+
+- breadcrumb « Carrière · Profil · JavaScript »;
+- computed title, e.g. « JavaScript · niveau 1, plus qu'une notion avant le niveau 2 » or « …, 3 notions avant le niveau 3 »;
+- « ← Profil », a small level medal, « Niveau 1 sur 5 », « 14 notions sur 34 · évalué le 22 oct. », the 5-segment ruler, « Historique » (quiet), « Me réévaluer » (secondary).
+
+**Tabs** (URLs): « Roadmap » `/career/profile/[skill]` · « Référence · N entrées » `/career/profile/[skill]/reference`.
+
+### Tab « Roadmap »
+
+- **Left (380 px)**: a vertical roadmap.
+  - Each milestone header: number badge, « Niveau 2 · Tableaux, objets et DOM », « 6 / 7 ». The badge is gold when complete.
+  - Then its notions **one by one**, in order, as nodes on a vertical line:
+    - known: gold dot;
+    - **next**: the first unknown notion of the lowest incomplete level, highlighted `surface-raised`, gold ring, tag « prochaine »;
+    - to learn: hollow dot.
+  - Milestones up to `level + 2` are expanded. Later ones are collapsed into one caption line; click to expand.
+  - Clicking a node selects it, sets the URL `?notion=<id>` and opens its sheet on the right.
+  - The next notion is selected by default.
+- **Right: the notion sheet (« fiche mémo »)**, a quick reminder to reread when Alex needs a notion in a project:
+  - label « Niveau 2 · notion 7 sur 7 », the notion title, and a checkbox « Je sais faire » that toggles the known state (optimistic, undoable);
+  - **Résumé**: 2 to 3 sentences in plain French;
+  - **Syntaxe**: a code block;
+  - **Exemple concret**: a realistic code block, ideally tied to Alex's world (expenses, applications, habits);
+  - **Pièges**: 2 to 4 bullets;
+  - **Mes notes**: free text Alex writes, saved on blur;
+  - footer: « Fiche générée par l'IA, relue le … » (or « modifiée par toi le … »), « Voir aussi » (links to related reference entries), « MDN » or the official doc link, « Modifier la fiche ».
+- **Sheet content**:
+  - generated **on first open** by Gemini (`notion-sheet`), then stored and editable;
+  - « Modifier la fiche » opens an edit mode with a Markdown field per section and a code field per block;
+  - « Régénérer » (in the edit mode) asks for confirmation if Alex has edited the sheet;
+  - code blocks are highlighted server-side with `shiki`, in the skill's language (C, Python, SQL, Bash, CSS, HTML, TS, JS…).
+  - Loading state in the panel: « Préparation de la fiche… ».
+- **Edit the roadmap** (pencil on the left column): rename milestones, add, remove and reorder notions (drag and drop or up/down buttons), move a notion to another level.
+- **« Me réévaluer »**: guided mode, notion by notion in roadmap order (« Sais-tu faire ça sans aide, sans tutoriel et sans IA ? » Oui / Non). It stops at the first level with 2 or more « Non » after that level. At the end it saves a `SkillAssessment`. « Historique » lists the snapshots (date and level; a line chart is optional).
+- **Level computation**: unchanged (see above). The milestones are the tiers.
+
+### Tab « Référence »
+
+A complete, searchable reference list for the language: CSS properties, HTML elements and attributes, JS built-in methods and DOM APIs, Python built-ins and standard modules, SQL commands and functions, Git commands, Bash commands, Docker commands and Dockerfile instructions, Tailwind classes, TypeScript utility types, React hooks and APIs, Next.js functions and file conventions, C standard library functions, C++ STL…
+
+- **Left (440 px)**:
+  - a search field (matches the name or description, accent-insensitive);
+  - filter chips: « Toutes », « Courantes » (default), « Non connues », « Favoris »; deprecated entries are hidden unless « Afficher les obsolètes »;
+  - entries grouped by category (for CSS: Mise en page, Boîte, Texte, Couleurs et fonds, Bordures, Animations, …) with « known / total » per group;
+  - row = checkbox « je connais » · name in mono · one-line description.
+- **Right**: entry detail:
+  - kind and group (« Propriété CSS · Mise en page »), the name in mono, a checkbox « Je connais », a star for favourite;
+  - **Description**;
+  - **Syntaxe** or **Valeurs courantes** (value chips);
+  - **Exemple**;
+  - optional **En Tailwind** (for CSS) or other equivalents;
+  - footer: « Notion liée : Flexbox (CSS niveau 2) » (link back to the roadmap), the source (« Liste : MDN · description : IA »), the official doc link.
+  - Details are generated on first open by Gemini (`reference-entry`) and stored; Alex can edit them.
+- **Header counts**: « 103 propriétés connues sur 520 ». They also feed the skill page title on the Référence tab. They **don't** change the level: the level is driven only by the roadmap notions.
+- **Where the lists come from**: see `04-integrations.md` → « Reference lists ». The short version:
+  - official open data for the web (HTML, CSS, JS, DOM) from `@mdn/browser-compat-data`;
+  - a Gemini-generated list for the other skills, created once with « Générer la référence » and editable (« Ajouter une entrée », hide or delete);
+  - « Mettre à jour la liste » re-imports and keeps Alex's known, favourite and notes flags.
+
+## Career · Projets `/career/projects` (HTML mockup `screens-v2.html`, screens « Liste des projets », « Projet · README », « Projet · Code »)
+
+Automatic list of Alex's GitHub repositories, to show his work and feed his CV. **No XP.**
+
+### List `/career/projects`
+
+- Title, computed: « 12 dépôts GitHub, 2 épinglés, synchronisés il y a 4 min. »
+- Filter chips with counts: « Tous », « Épinglés », « Projets 42 », « Perso », « Masqués ». Search by name, description or topic. Sort by last push, pinned first.
+- Buttons: « Synchroniser » (secondary), « Ajouter un dépôt » (quiet). The second one adds a **public repo owned by someone else**, by URL, for team projects hosted on a teammate's account (for example Transcendance).
+- Grid of 3 columns of cards. Each card shows:
+  - repo name, a pin icon when pinned, and a « Public » / « Privé » badge;
+  - description (2 lines), a language bar with the top 3 languages in %, linked-skill tags, « Modifié il y a … » and stars when > 0.
+    Click opens the detail page. Forks and archived repos are hidden by default (under « Masqués »).
+- Automatic sync:
+  - on page load when the last sync is older than 1 hour, plus the button;
+  - new repos appear on their own; repos deleted on GitHub are flagged « Supprimé de GitHub » and kept until Alex removes them.
+- Empty state: « Aucun dépôt trouvé. Vérifie le jeton GitHub dans les réglages. » When the token is missing, show a persistent error with the steps.
+
+### Detail `/career/projects/[repo]` (tabs = URLs)
+
+- Header:
+  - breadcrumb « Carrière · Projets · <repo> » and the description as title;
+  - « ← Projets », the visibility badge, stars, default branch and last push;
+  - « Épingler » / « Désépingler » (quiet), « Ouvrir sur GitHub » (secondary).
+- « README » `/career/projects/[repo]`: README rendered as on GitHub, sanitized. Relative links and images point to GitHub. Right column:
+  - **Langages** (bar + list with %);
+  - **Compétences liées** (chips): suggested from languages and topics through a mapping (TypeScript → TypeScript, Dockerfile → Docker, …), editable in « Fiche projet »;
+  - **Sur le CV**: checkbox « Mis en avant sur le CV ».
+    No README: « Ce dépôt n'a pas de README. »
+- « Code » `/career/projects/[repo]/code?path=…`: read-only browser. File tree on the left (folders collapsible, current file highlighted, « main · 48 fichiers »). File view on the right:
+  - path, language, line count, « Copier », « Voir sur GitHub »;
+  - line numbers and server-side syntax highlighting.
+    Edge cases:
+  - files > 1 MB or binary: « Fichier trop volumineux ou binaire. » + link to GitHub;
+  - images: rendered;
+  - Markdown: rendered;
+  - truncated trees (huge repos): message + link.
+- « Commits » `/career/projects/[repo]/commits`: the last 30 commits (message, short SHA, date, author) with links to GitHub.
+- « Fiche projet » `/career/projects/[repo]/details`: editable Hushyboard-only info:
+  - category: « Projet 42 » / « Perso » / « Équipe », defaulting from the topic `42` or the name;
+  - « Mon rôle et ce que j'ai fait », free text (used by the CV);
+  - linked skills (multi-select of the user's skills);
+  - « Mis en avant sur le CV », « Épingler », « Masquer ».
+
+### Links with the rest of the app
+
+- **Skill sub-page**: « Lié à <skill> » lists the projects linked to that skill. This replaces the free `projects` labels.
+- **CV and offers**: projects marked « Mis en avant sur le CV » (name, description, languages, role text) are given to `cv-import` review, `cv-analysis`, `cv-adapt` and `cover-letter` as **true facts** they may use. The AI picks the projects most relevant to each offer. Private-repo code and READMEs are never sent to the AI; only those metadata and the role text are.
+- **Profile timeline**: an entry can link to a project.
 
 ## Career · CV `/career/resume` (Figma v1 `Carrière · CV` 15:923)
 
@@ -112,7 +218,9 @@ List/board of applications with status pills (7 statuses + new `FOLLOWED_UP` « 
 
 Funnel and response rates by status, by source, by contract, per week; spontaneous vs offer-based split.
 
-## Career · Analyses `/career/analytics` (Figma v1 13:1062 « Progression »)
+## Career · Progression `/career/progress` (Figma v1 13:1062, PNG `v1-career-progress.png`)
+
+Nav label « Progression » (renamed from « Analyses » to avoid confusion with the job-search « Analyses » tab).
 
 XP over time, level history, XP by reason, skill level history from `SkillAssessment`.
 
@@ -154,4 +262,4 @@ Trophy catalog in code (`lib/trophies.ts`): key, area, name (mythology flavour a
 
 ## Legal `/legal`
 
-Public page (mockup « Mentions légales »). Add processors: Google (Gmail API for mail reading/labels; **Gemini API free tier — content sent to it may be used by Google to improve its products**, so only CV, offers and recruiter mails are sent, never bank data), Vercel, Neon, GitHub. Data retention and deletion: « Supprimer toutes mes données » in profile settings deletes all rows of the user.
+Public page (mockup « Mentions légales »). Add processors: Google (Gmail API for mail reading/labels; **Gemini API free tier — content sent to it may be used by Google to improve its products**, so only skill and notion names, CV, featured projects, offers and recruiter mails are sent, never bank data or personal notes), Vercel, Neon, GitHub. Data retention and deletion: « Supprimer toutes mes données » in profile settings deletes all rows of the user.

@@ -4,7 +4,7 @@
 
 Hushyboard is the private life dashboard of Alexis Carpentier, called Alex below. It covers four areas:
 
-- **Career**, the only area that earns XP: profile and skills, CV, certifications, courses, job search, mails.
+- **Career**, the only area that earns XP: profile and skills, GitHub projects, CV, certifications, courses, job search, mails.
 - **Habits and goals.**
 - **Leisure**: video games only.
 - **Finances.**

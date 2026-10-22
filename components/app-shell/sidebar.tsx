@@ -3,6 +3,7 @@ import {
   AnalyticsIcon,
   CareerIcon,
   CertificationIcon,
+  CodeIcon,
   CourseIcon,
   FinanceIcon,
   GamesIcon,
@@ -53,6 +54,7 @@ export function Sidebar() {
           colorClass="text-career"
         />
         <NavLink href="/career/profile" icon={<ProfileIcon />} label="Profil" />
+        <NavLink href="/career/projects" icon={<CodeIcon />} label="Projets" />
         <NavLink href="/career/resume" icon={<ResumeIcon />} label="CV" />
         <NavLink
           href="/career/certifications"

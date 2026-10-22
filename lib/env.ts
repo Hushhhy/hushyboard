@@ -14,6 +14,9 @@ const envSchema = z.object({
   GEMINI_API_KEY: z.string().min(20),
   // A free-tier Flash model, see https://ai.google.dev/gemini-api/docs/models
   GEMINI_MODEL: z.string().min(1).default('gemini-3.8-flash'),
+  // Fine-grained token, read-only (Metadata + Contents), to list and read Alex's repos.
+  // Optional: without it, only /career/projects shows how to create one.
+  GITHUB_TOKEN: z.string().min(20).optional(),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 });
 
