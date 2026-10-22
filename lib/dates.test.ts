@@ -6,6 +6,7 @@ import {
   formatMonthKey,
   formatMonthKeyName,
   formatRelativeDay,
+  formatRelativeTime,
   formatShortDate,
   isMonthKey,
   isoWeekdayInParis,
@@ -156,5 +157,16 @@ describe('relative days', () => {
     expect(formatRelativeDay(new Date('2026-10-21T08:00:00Z'), now)).toBe('hier');
     expect(formatRelativeDay(new Date('2026-10-18T08:00:00Z'), now)).toBe('il y a 4 jours');
     expect(formatRelativeDay(new Date('2026-08-01T08:00:00Z'), now)).toBe('le 1 août 2026');
+  });
+});
+
+describe('formatRelativeTime', () => {
+  const now = new Date('2026-10-22T10:00:00Z');
+
+  it('uses minutes, then hours within the same Paris day, then days', () => {
+    expect(formatRelativeTime(new Date('2026-10-22T09:59:40Z'), now)).toBe('à l’instant');
+    expect(formatRelativeTime(new Date('2026-10-22T09:56:00Z'), now)).toBe('il y a 4 min');
+    expect(formatRelativeTime(new Date('2026-10-22T07:30:00Z'), now)).toBe('il y a 2 h');
+    expect(formatRelativeTime(new Date('2026-10-21T20:00:00Z'), now)).toBe('hier');
   });
 });
