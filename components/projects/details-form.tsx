@@ -7,7 +7,8 @@ import { Button } from '@/components/ui/button';
 import { ErrorState } from '@/components/ui/error-state';
 import { SelectField } from '@/components/ui/text-field';
 import { EMPTY_FORM_STATE } from '@/lib/forms';
-import { PROJECT_CATEGORY_LABELS, type ProjectItem } from '@/lib/projects-data';
+import { PROJECT_CATEGORY_LABELS } from '@/lib/github/helpers';
+import type { ProjectItem } from '@/lib/projects-data';
 
 const CATEGORY_OPTIONS = Object.entries(PROJECT_CATEGORY_LABELS).map(([value, label]) => ({
   value,

@@ -1,13 +1,6 @@
-import type { ProjectCategory } from '@/generated/prisma/client';
 import type { LanguageShare } from '@/lib/github/helpers';
 import { parseProjectSlug } from '@/lib/github/helpers';
 import { prisma } from '@/lib/prisma';
-
-export const PROJECT_CATEGORY_LABELS: Record<ProjectCategory, string> = {
-  SCHOOL_42: 'Projet 42',
-  PERSONAL: 'Perso',
-  TEAM: 'Équipe',
-};
 
 export type ProjectFilter = 'all' | 'pinned' | 'school' | 'personal' | 'hidden';
 

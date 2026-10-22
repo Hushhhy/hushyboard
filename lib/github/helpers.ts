@@ -1,6 +1,12 @@
 import type { ProjectCategory } from '@/generated/prisma/client';
 
-// Pure helpers for GitHub projects (unit-tested, no network).
+// Pure helpers for GitHub projects (unit-tested, no network). Safe to import from the browser.
+
+export const PROJECT_CATEGORY_LABELS: Record<ProjectCategory, string> = {
+  SCHOOL_42: 'Projet 42',
+  PERSONAL: 'Perso',
+  TEAM: 'Équipe',
+};
 
 export type LanguageShare = { name: string; percent: number };
 
