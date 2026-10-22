@@ -11,6 +11,7 @@ const STATUSES = {
   OFFER: { label: 'Offre', colorClass: 'text-career', shape: 'hexagon' },
   REJECTED: { label: 'Refusée', colorClass: 'text-danger', shape: 'cross' },
   NO_RESPONSE: { label: 'Sans réponse', colorClass: 'text-fg-3', shape: 'dotted' },
+  FOLLOWED_UP: { label: 'Relancée', colorClass: 'text-warning', shape: 'loop' },
 } as const satisfies Record<
   ApplicationStatus,
   { label: string; colorClass: string; shape: string }
@@ -26,6 +27,7 @@ const SHAPES: Record<Shape, ReactNode> = {
   hexagon: <path d="M6 1.5 9.9 3.75v4.5L6 10.5 2.1 8.25v-4.5z" fill="currentColor" />,
   cross: <path d="m3 3 6 6M9 3 3 9" fill="none" />,
   dotted: <circle cx="6" cy="6" r="3.8" fill="none" strokeDasharray="1.6 1.6" />,
+  loop: <path d="M9.5 4.5H4a2 2 0 0 0 0 4h3.5M7.5 2.5l2 2-2 2" fill="none" />,
 };
 
 export function statusLabel(status: ApplicationStatus): string {

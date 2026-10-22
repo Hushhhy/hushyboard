@@ -171,7 +171,19 @@ export async function generateJson<T>(
   schema: z.ZodType<T>,
   files: InlineFile[] = []
 ): Promise<T> {
+  return (await generateJsonWithModel(userId, feature, prompt, schema, files)).data;
+}
+
+// Same, plus the model that answered (shown under generated content).
+export async function generateJsonWithModel<T>(
+  userId: string,
+  feature: AiFeature,
+  prompt: string,
+  schema: z.ZodType<T>,
+  files: InlineFile[] = []
+): Promise<{ data: T; model: string }> {
   let raw: string | undefined;
+  let usedModel: string;
   try {
     const { result: response, model } = await withFallback(modelChain(feature), (model) =>
       getClient().models.generateContent({
@@ -186,10 +198,11 @@ export async function generateJson<T>(
     );
     await logUsage(userId, feature, model, response.usageMetadata);
     raw = response.text;
+    usedModel = model;
   } catch (error) {
     throw toAiError(error);
   }
-  return parseJsonAnswer(raw, schema);
+  return { data: parseJsonAnswer(raw, schema), model: usedModel };
 }
 
 // Free text (cover letter).
@@ -198,6 +211,14 @@ export async function generateText(
   feature: AiFeature,
   prompt: string
 ): Promise<string> {
+  return (await generateTextWithModel(userId, feature, prompt)).text;
+}
+
+export async function generateTextWithModel(
+  userId: string,
+  feature: AiFeature,
+  prompt: string
+): Promise<{ text: string; model: string }> {
   try {
     const { result: response, model } = await withFallback(modelChain(feature), (model) =>
       getClient().models.generateContent({
@@ -209,7 +230,7 @@ export async function generateText(
     await logUsage(userId, feature, model, response.usageMetadata);
     const text = response.text?.trim();
     if (!text) throw new AiError(AI_INVALID_MESSAGE);
-    return text;
+    return { text, model };
   } catch (error) {
     throw toAiError(error);
   }

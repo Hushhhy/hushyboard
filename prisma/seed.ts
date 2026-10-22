@@ -39,6 +39,16 @@ const TIMELINE = [
   },
 ];
 
+const WATCH_KEYWORDS = [
+  'développeur full stack',
+  'fullstack',
+  'React',
+  'Node.js',
+  'TypeScript',
+  'alternance',
+  'junior',
+];
+
 // The evaluation day, at noon in Paris.
 const assessedAt = new Date(`${catalog.assessedAt}T12:00:00+02:00`);
 
@@ -79,6 +89,21 @@ async function main() {
       return;
     }
     const userId = account.userId;
+
+    // Watch keywords (full-stack search), only while the watch is untouched: once Alex has
+    // a keyword, a source or an offer, his own choices are never overwritten.
+    const [keywords, sources, offers] = await Promise.all([
+      prisma.watchKeyword.count({ where: { userId } }),
+      prisma.watchSource.count({ where: { userId } }),
+      prisma.jobOffer.count({ where: { userId } }),
+    ]);
+    if (keywords + sources + offers === 0) {
+      await prisma.watchKeyword.createMany({
+        data: WATCH_KEYWORDS.map((label) => ({ userId, label })),
+        skipDuplicates: true,
+      });
+      console.log(`Seeded ${WATCH_KEYWORDS.length} watch keywords.`);
+    }
 
     if (await prisma.profileInfo.findUnique({ where: { userId } })) {
       console.log('Seed skipped: the profile already exists.');
