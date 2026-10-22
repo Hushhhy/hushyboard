@@ -76,7 +76,7 @@ export async function SkillView({ params, searchParams }: SkillViewProps) {
             {tiers.map((tier) => (
               <TierEditor key={tier.id} tier={tier} />
             ))}
-            <SkillSettings skillId={skill.id} skillName={skill.name} projects={skill.projects} />
+            <SkillSettings skillId={skill.id} skillName={skill.name} />
           </section>
         ) : (
           <TiersCard skillSlug={skill.slug} tiers={tiers} />

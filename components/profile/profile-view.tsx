@@ -28,7 +28,7 @@ export async function ProfileView() {
         <div className="flex flex-col gap-3">
           <IdentityCard name={user.name} profile={data.profile} />
           <ToolsCard tools={data.tools} />
-          <TimelineCard entries={data.timeline} />
+          <TimelineCard entries={data.timeline} projects={data.projects} />
         </div>
         <div className="flex flex-col gap-3">
           <SkillsCard skills={data.skills} />

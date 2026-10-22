@@ -122,6 +122,7 @@ const timelineSchema = z.object({
   title: requiredText('Donne un intitulé.', 160),
   place: z.string().trim().max(120),
   isCurrent: z.literal('on').optional(),
+  projectId: z.string().optional(),
 });
 
 export async function saveTimelineEntry(_: FormState, formData: FormData): Promise<FormState> {
@@ -130,8 +131,21 @@ export async function saveTimelineEntry(_: FormState, formData: FormData): Promi
   const parsed = timelineSchema.safeParse(values);
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error), values };
 
-  const { id, period, title, place, isCurrent } = parsed.data;
-  const data = { period, title, place: place || null, isCurrent: isCurrent === 'on' };
+  const { id, period, title, place, isCurrent, projectId } = parsed.data;
+  // Only one of Alex's own projects can be linked.
+  const project = projectId
+    ? await prisma.project.findFirst({
+        where: { id: projectId, userId: user.id },
+        select: { id: true },
+      })
+    : null;
+  const data = {
+    period,
+    title,
+    place: place || null,
+    isCurrent: isCurrent === 'on',
+    projectId: project?.id ?? null,
+  };
 
   if (id) {
     const updated = await prisma.timelineEntry.updateMany({
@@ -306,20 +320,6 @@ export async function saveTier(
   ]);
   revalidateProfile();
   return {};
-}
-
-export async function saveSkillProjects(skillId: string, projects: string): Promise<void> {
-  const user = await requireUser();
-  const skill = await ownedSkill(user.id, skillId);
-  const list = z
-    .string()
-    .max(400)
-    .parse(projects)
-    .split(',')
-    .map((project) => project.trim())
-    .filter(Boolean);
-  await prisma.skill.update({ where: { id: skill.id }, data: { projects: list } });
-  revalidateProfile();
 }
 
 export async function setSkillCourses(skillId: string, courseIds: string[]): Promise<void> {

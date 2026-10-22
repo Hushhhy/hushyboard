@@ -1,12 +1,14 @@
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { CourseIcon, PlusIcon } from '@/components/icons';
 import { buttonClasses } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { SidePanel } from '@/components/ui/side-panel';
+import { projectSlug } from '@/lib/github/helpers';
 import type { SkillPageData } from '@/lib/profile-data';
 import { CourseLinkForm } from './course-link-form';
 
-function LinkedRow({ label, value }: { label: string; value: string }) {
+function LinkedRow({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="flex flex-col gap-0.5">
       <dt className="text-caption-12 text-fg-3">{label}</dt>
@@ -38,7 +40,29 @@ export function LinkedCard({ data }: { data: SkillPageData }) {
         />
         <LinkedRow
           label="Projets"
-          value={skill.projects.length > 0 ? skill.projects.join(' · ') : '—'}
+          value={
+            skill.projects.length > 0 || skill.projectLabels.length > 0 ? (
+              <span className="flex flex-wrap gap-x-2">
+                {skill.projects.map((project) => (
+                  <Link
+                    key={project.id}
+                    href={`/career/projects/${projectSlug(project)}`}
+                    className="underline decoration-line-strong underline-offset-3 hover:decoration-current"
+                  >
+                    {project.name}
+                  </Link>
+                ))}
+                {/* Free labels typed before GitHub projects existed (phase 2). */}
+                {skill.projectLabels.map((label) => (
+                  <span key={label} className="text-fg-2">
+                    {label}
+                  </span>
+                ))}
+              </span>
+            ) : (
+              '—'
+            )
+          }
         />
         <LinkedRow
           label="Certifications"
