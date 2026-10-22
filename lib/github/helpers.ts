@@ -21,6 +21,7 @@ export function languagesToPercent(bytes: Record<string, number>): LanguageShare
 }
 
 // Projects of the 42 curriculum, recognised by name when the repo has no "42" topic.
+// Written with underscores: names are compared with "-" and "_" treated the same.
 export const KNOWN_42_PROJECTS = [
   'libft',
   'get_next_line',
@@ -31,7 +32,7 @@ export const KNOWN_42_PROJECTS = [
   'minitalk',
   'so_long',
   'fdf',
-  'fract-ol',
+  'fract_ol',
   'fractol',
   'philosophers',
   'philo',
@@ -39,22 +40,20 @@ export const KNOWN_42_PROJECTS = [
   'cub3d',
   'minirt',
   'netpractice',
-  'cpp-modules',
   'cpp_modules',
   'inception',
+  'inception_of_things',
   'webserv',
   'ft_irc',
   'ft_transcendence',
   'transcendence',
-  'python-for-data-science',
+  'python_for_data_science',
   'piscine',
 ];
 
+// "42-Minishell", "cpp-modules-42" → "minishell", "cpp_modules".
 function normalizeName(name: string): string {
-  return name
-    .toLowerCase()
-    .replace(/^42[-_]?/, '')
-    .replace(/[-_]?42$/, '');
+  return name.toLowerCase().replace(/-/g, '_').replace(/^42_?/, '').replace(/_?42$/, '');
 }
 
 // Default category, only used on first insert: Alex's choice is never overwritten afterwards.
@@ -69,7 +68,7 @@ export function guessCategory(
       ['42', '42school', '42-school', 'ecole42', '42born2code'].includes(topic)
     ) ||
     KNOWN_42_PROJECTS.some(
-      (project) => normalized === project || normalized.startsWith(`${project}-`)
+      (project) => normalized === project || normalized.startsWith(`${project}_`)
     );
   if (is42) return 'SCHOOL_42';
   return isExternal ? 'TEAM' : 'PERSONAL';

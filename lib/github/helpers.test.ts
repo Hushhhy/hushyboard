@@ -38,6 +38,9 @@ describe('guessCategory', () => {
     expect(guessCategory('42-libft', [], false)).toBe('SCHOOL_42');
     expect(guessCategory('ft_transcendence', [], true)).toBe('SCHOOL_42');
     expect(guessCategory('cpp-modules', [], false)).toBe('SCHOOL_42');
+    expect(guessCategory('inception_of_things', [], false)).toBe('SCHOOL_42');
+    expect(guessCategory('Piscine-Python-for-Data-Science', [], false)).toBe('SCHOOL_42');
+    expect(guessCategory('minishell-42', [], false)).toBe('SCHOOL_42');
   });
 
   it('defaults to personal, or team for someone else’s repo', () => {
