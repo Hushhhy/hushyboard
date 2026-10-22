@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest';
 import catalog from '../docs/claude-code/data/skills-catalog.json';
 import {
   computeSkillLevel,
+  describeReference,
   describeSkillLevel,
   formatSkillLevel,
   lowerFirst,
   nextObjectives,
+  shouldStopAssessment,
   slugifySkillName,
   tierStatus,
   type ObjectiveSkill,
@@ -104,25 +106,47 @@ describe('computeSkillLevel edge cases', () => {
 });
 
 describe('describeSkillLevel', () => {
-  it('says "presque terminé" when one notion is left', () => {
+  it('says "plus qu’une notion" when one notion is left before the next level', () => {
     expect(describeSkillLevel('JavaScript', computeSkillLevel(bySlug('javascript').tiers))).toBe(
-      'JavaScript · niveau 1, palier 2 presque terminé'
+      'JavaScript · niveau 1, plus qu’une notion avant le niveau 2'
     );
   });
 
-  it('says "commencé" when more notions are left', () => {
+  it('counts the notions left before the next level', () => {
     expect(describeSkillLevel('Git', computeSkillLevel(bySlug('git').tiers))).toBe(
-      'Git · niveau 1, palier 2 commencé'
+      'Git · niveau 1, 2 notions avant le niveau 2'
+    );
+    expect(describeSkillLevel('CSS', computeSkillLevel(bySlug('css').tiers))).toBe(
+      'CSS · niveau 3, 4 notions avant le niveau 4'
     );
   });
 
-  it('handles a plain level and the top level', () => {
-    expect(describeSkillLevel('CSS', computeSkillLevel(bySlug('css').tiers))).toBe(
-      'CSS · niveau 3'
-    );
+  it('handles the top level', () => {
     expect(describeSkillLevel('HTML', computeSkillLevel(bySlug('html').tiers))).toBe(
       'HTML · niveau 5 sur 5'
     );
+  });
+});
+
+describe('describeReference', () => {
+  it('uses the noun of the skill', () => {
+    expect(describeReference('CSS', 'css', 3, 103, 520)).toBe(
+      'CSS · niveau 3, 103 propriétés connues sur 520'
+    );
+    expect(describeReference('HTML', 'html', 5, 40, 160)).toBe(
+      'HTML · niveau 5, 40 éléments connus sur 160'
+    );
+    expect(describeReference('SQL', 'sql', 3, 12, 90)).toBe(
+      'SQL · niveau 3, 12 entrées connues sur 90'
+    );
+  });
+});
+
+describe('shouldStopAssessment', () => {
+  it('stops after a level with 2 « Non » or more', () => {
+    expect(shouldStopAssessment([true, true, false])).toBe(false);
+    expect(shouldStopAssessment([true, false, false])).toBe(true);
+    expect(shouldStopAssessment([])).toBe(false);
   });
 });
 

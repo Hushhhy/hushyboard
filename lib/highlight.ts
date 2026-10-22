@@ -5,7 +5,7 @@ import {
   type Highlighter,
 } from 'shiki';
 
-// Server-side syntax highlighting. Colours are CSS variables (--shiki-*), mapped to the
+// Server-side syntax highlighting (code view, notion sheets). Colours are CSS variables (--shiki-*), mapped to the
 // design tokens in app/globals.css, so the code view follows the theme without raw colours.
 const theme = createCssVariablesTheme({ name: 'hushyboard', variablePrefix: '--shiki-' });
 

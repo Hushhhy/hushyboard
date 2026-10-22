@@ -599,21 +599,23 @@ enum SkillCategory {
 
 /// A language, framework or tool Alex learns, with 5 tiers of notions (5 = senior developer).
 model Skill {
-  id             String            @id @default(cuid())
-  userId         String
-  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
-  slug           String
-  name           String
-  category       SkillCategory
-  position       Int               @default(0)
-  projectLabels  String[]          @map("projects") // legacy free labels (phase 2), replaced by the Project relation
-  projects       Project[]
-  tiers          SkillTier[]
-  assessments    SkillAssessment[]
-  courses        Course[]
-  certifications Certification[]
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
+  id                String            @id @default(cuid())
+  userId            String
+  user              User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slug              String
+  name              String
+  category          SkillCategory
+  position          Int               @default(0)
+  projectLabels     String[]          @map("projects") // legacy free labels (phase 2), replaced by the Project relation
+  projects          Project[]
+  tiers             SkillTier[]
+  references        ReferenceEntry[]
+  referenceSyncedAt DateTime? // last import or generation of the reference list
+  assessments       SkillAssessment[]
+  courses           Course[]
+  certifications    Certification[]
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
 
   @@unique([userId, slug])
   @@map("skills")
@@ -633,12 +635,18 @@ model SkillTier {
 
 /// A notion is "known" when checkedAt is set. The level is computed, never stored.
 model SkillNotion {
-  id        String    @id @default(cuid())
-  tierId    String
-  tier      SkillTier @relation(fields: [tierId], references: [id], onDelete: Cascade)
-  label     String
-  position  Int       @default(0)
-  checkedAt DateTime?
+  id               String           @id @default(cuid())
+  tierId           String
+  tier             SkillTier        @relation(fields: [tierId], references: [id], onDelete: Cascade)
+  label            String
+  position         Int              @default(0)
+  checkedAt        DateTime?
+  // Cheat sheet ("fiche mémo"), generated on first open, editable
+  sheet            Json? // NotionSheet (lib/skills/schemas.ts)
+  sheetGeneratedAt DateTime?
+  sheetEditedAt    DateTime?
+  notes            String? // "Mes notes", written by Alex
+  references       ReferenceEntry[]
 
   @@index([tierId, position])
   @@map("skill_notions")
@@ -770,4 +778,59 @@ model Project {
   @@unique([userId, githubId])
   @@index([userId, pinned, pushedAt])
   @@map("projects")
+}
+
+// =============================================================================
+// SKILL REFERENCE LISTS
+// The complete list of a language (CSS properties, HTML tags, Git commands…).
+// "Je connais" never changes the level: only the roadmap notions do.
+// =============================================================================
+
+enum ReferenceKind {
+  ELEMENT // HTML tag
+  ATTRIBUTE
+  PROPERTY // CSS property
+  AT_RULE // @media, @keyframes
+  SELECTOR // pseudo-classes, pseudo-elements
+  FUNCTION
+  METHOD
+  OBJECT // JS built-in object, DOM interface
+  KEYWORD
+  TYPE
+  COMMAND // git, bash, docker, sql statements
+  CLASS // Tailwind utility
+  HOOK
+  OTHER
+}
+
+enum ReferenceSource {
+  MDN // @mdn/browser-compat-data
+  AI
+  MANUAL
+}
+
+/// One entry of a skill's reference list (a CSS property, an HTML tag, a Git command…).
+model ReferenceEntry {
+  id                 String          @id @default(cuid())
+  skillId            String
+  skill              Skill           @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  name               String // "justify-content", "<dialog>", "Array.prototype.map", "git rebase"
+  kind               ReferenceKind
+  group              String // French category label: "Mise en page", "Formulaires", "Tableaux"…
+  summary            String? // one line, French
+  details            Json? // ReferenceDetails (lib/skills/schemas.ts)
+  detailsGeneratedAt DateTime?
+  detailsEditedAt    DateTime?
+  docUrl             String?
+  source             ReferenceSource
+  isCommon           Boolean         @default(false)
+  isDeprecated       Boolean         @default(false)
+  hidden             Boolean         @default(false)
+  knownAt            DateTime? // "Je connais"
+  favorite           Boolean         @default(false)
+  notions            SkillNotion[]
+
+  @@unique([skillId, kind, name])
+  @@index([skillId, group])
+  @@map("reference_entries")
 }

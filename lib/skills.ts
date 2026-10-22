@@ -54,15 +54,51 @@ export function formatSkillLevel({
   return `${level}${started ? '+' : ''} / ${MAX_SKILL_LEVEL}`;
 }
 
-// Page title of a skill: "JavaScript · niveau 1, palier 2 presque terminé".
+// Page title of a skill (« Roadmap » tab):
+// "JavaScript · niveau 1, plus qu'une notion avant le niveau 2", "…, 3 notions avant le niveau 3".
 export function describeSkillLevel(name: string, skill: SkillLevel): string {
-  const { level, started, remaining, currentTier } = skill;
+  const { level, remaining, currentTier } = skill;
   if (!currentTier) return `${name} · niveau ${MAX_SKILL_LEVEL} sur ${MAX_SKILL_LEVEL}`;
   const next = currentTier.level;
-  if (started && remaining.length <= 1)
-    return `${name} · niveau ${level}, palier ${next} presque terminé`;
-  if (started) return `${name} · niveau ${level}, palier ${next} commencé`;
-  return `${name} · niveau ${level}`;
+  if (remaining.length === 0) return `${name} · niveau ${level}`;
+  if (remaining.length === 1) {
+    return `${name} · niveau ${level}, plus qu’une notion avant le niveau ${next}`;
+  }
+  return `${name} · niveau ${level}, ${remaining.length} notions avant le niveau ${next}`;
+}
+
+// Title on the « Référence » tab: "CSS · niveau 3, 103 propriétés connues sur 520".
+// The noun and its agreement depend on what the list holds.
+const REFERENCE_NOUNS: Record<string, { noun: string; known: string }> = {
+  css: { noun: 'propriétés', known: 'connues' },
+  html: { noun: 'éléments', known: 'connus' },
+  javascript: { noun: 'méthodes et objets', known: 'connus' },
+  git: { noun: 'commandes', known: 'connues' },
+  docker: { noun: 'commandes', known: 'connues' },
+  'linux-bash': { noun: 'commandes', known: 'connues' },
+};
+const DEFAULT_NOUN = { noun: 'entrées', known: 'connues' };
+
+export function referenceNoun(slug: string): string {
+  return (REFERENCE_NOUNS[slug] ?? DEFAULT_NOUN).noun;
+}
+
+export function describeReference(
+  name: string,
+  slug: string,
+  level: number,
+  known: number,
+  total: number
+): string {
+  const { noun, known: agreement } = REFERENCE_NOUNS[slug] ?? DEFAULT_NOUN;
+  return `${name} · niveau ${level}, ${known} ${noun} ${agreement} sur ${total}`;
+}
+
+// Guided re-evaluation, level by level: it stops after the first level with 2 « Non » or more.
+export const STOP_AFTER_NO = 2;
+
+export function shouldStopAssessment(answers: boolean[]): boolean {
+  return answers.filter((known) => !known).length >= STOP_AFTER_NO;
 }
 
 // Status of one tier, shown as a chip on the skill page.

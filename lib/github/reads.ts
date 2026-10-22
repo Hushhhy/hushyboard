@@ -1,7 +1,7 @@
 import { cacheLife, cacheTag } from 'next/cache';
 import { GithubError, githubJson, githubRequest } from './client';
 import { isBinary, isImagePath, languageForPath } from './helpers';
-import { highlightCode } from './highlight';
+import { highlightCode } from '@/lib/highlight';
 import { sanitizeReadme } from './readme';
 
 // Live reads from GitHub, cached for about an hour per repository ("project:<fullName>").
