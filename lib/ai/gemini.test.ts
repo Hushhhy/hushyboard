@@ -260,3 +260,22 @@ describe('withFallback memory and deadline', () => {
     expect(tried).toEqual(['a:25000', 'b:25000', 'c:7000']);
   });
 });
+
+describe('withFallback and overloaded models', () => {
+  beforeEach(() => {
+    resetSkippedModels();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  it('moves to the next model when one stays overloaded after the retry', async () => {
+    const tried: string[] = [];
+    const { model } = await withFallback(['flash', 'lite'], async (name) => {
+      tried.push(name);
+      if (name === 'flash') throw new ApiError({ message: 'busy', status: 503 });
+      return 'ok';
+    });
+    expect(model).toBe('lite');
+    // The overloaded model is retried once (withRetry), then the next one answers.
+    expect(tried).toEqual(['flash', 'flash', 'lite']);
+  });
+});

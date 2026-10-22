@@ -160,13 +160,17 @@ export async function withFallback<T>(
       const timeoutMs = Math.min(ATTEMPT_TIMEOUT_MS, left);
       return { result: await withRetry(() => call(model, timeoutMs)), model };
     } catch (error) {
-      const moveOn = isQuotaError(error) || isTimeout(error);
-      if (moveOn) skippedUntil.set(model, now() + SKIP_MS);
+      // Out of quota, too slow, or still overloaded after the retry: another model may answer.
+      const exhausted = isQuotaError(error) || isTimeout(error);
+      const moveOn = exhausted || isRetryable(error);
+      if (exhausted) skippedUntil.set(model, now() + SKIP_MS);
       const last = index >= chain.length - 1;
       const outOfTime = CHAIN_DEADLINE_MS - (now() - start) < MIN_ATTEMPT_MS;
       // Server log only (model and reason, never content), to follow the free quotas.
+      const status = error instanceof ApiError ? ` ${error.status}` : '';
+      const reason = isTimeout(error) ? 'timeout' : isQuotaError(error) ? 'quota' : 'error';
       console.warn(
-        `[gemini] ${model} failed (${isTimeout(error) ? 'timeout' : isQuotaError(error) ? 'quota' : 'error'})${moveOn && !last && !outOfTime ? ', trying the next model' : ''}`
+        `[gemini] ${model} failed (${reason}${status})${moveOn && !last && !outOfTime ? ', trying the next model' : ''}`
       );
       if (!moveOn || last || outOfTime) throw error;
     }
