@@ -255,6 +255,8 @@ model Certification {
   plannedFor    DateTime?
   obtainedAt    DateTime?
   credentialUrl String?
+  // Picture of the certificate or badge: read from the credential page (og:image) or pasted by Alex.
+  imageUrl      String?
   costCents     Int?
   courses       Course[]
   skills        Skill[]
