@@ -10,6 +10,7 @@ import {
   AI_QUOTA_MESSAGE,
   AiError,
   FEATURE_TIERS,
+  isTimeout,
   modelChain,
   parseJsonAnswer,
   toAiError,
@@ -180,5 +181,23 @@ describe('withFallback', () => {
         throw new ApiError({ message: 'quota PerDay', status: 429 });
       })
     ).rejects.toThrow('quota');
+  });
+});
+
+describe('withFallback and slow models', () => {
+  it('moves to the next model when one times out', async () => {
+    const tried: string[] = [];
+    const { model } = await withFallback(['flash', 'flash-lite'], async (name) => {
+      tried.push(name);
+      if (name === 'flash') throw new DOMException('The operation timed out.', 'TimeoutError');
+      return 'ok';
+    });
+    expect(model).toBe('flash-lite');
+    expect(tried).toEqual(['flash', 'flash-lite']);
+  });
+
+  it('says the AI is busy after a timeout', () => {
+    expect(toAiError(new DOMException('aborted', 'TimeoutError')).message).toBe(AI_BUSY_MESSAGE);
+    expect(isTimeout(new Error('bad request'))).toBe(false);
   });
 });

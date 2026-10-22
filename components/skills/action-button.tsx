@@ -32,8 +32,12 @@ export function ActionButton({
           onClick={() => {
             setError(null);
             startTransition(async () => {
-              const result = await action();
-              if (result?.error) setError(result.error);
+              try {
+                const result = await action();
+                if (result?.error) setError(result.error);
+              } catch {
+                setError('La requête n’a pas abouti (réseau ou délai dépassé). Réessaie.');
+              }
             });
           }}
         >

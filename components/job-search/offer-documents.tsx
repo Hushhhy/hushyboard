@@ -167,3 +167,44 @@ export function CoverLetterEditor({
     </div>
   );
 }
+
+// « Rédiger la lettre »: the adapted CV first, then the letter, as two requests so each stays
+// well within the time limit of a server function.
+export function WriteLetterButton({ offerId }: { offerId: string }) {
+  const [step, setStep] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  return (
+    <div className="flex flex-col gap-2">
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
+          pending={isPending}
+          onClick={() => {
+            setError(null);
+            startTransition(async () => {
+              try {
+                setStep('Adaptation du CV…');
+                const adapted = await prepareAdaptedResume(offerId);
+                if (adapted.error) return setError(adapted.error);
+                setStep('Rédaction de la lettre…');
+                const letter = await generateCoverLetter(offerId);
+                if (letter.error) setError(letter.error);
+              } catch {
+                setError('La requête n’a pas abouti (réseau ou délai dépassé). Réessaie.');
+              } finally {
+                setStep('');
+              }
+            });
+          }}
+        >
+          Rédiger la lettre
+        </Button>
+        <span role="status" className="text-caption-12 text-fg-3">
+          {step}
+        </span>
+      </div>
+      {error ? <ErrorState title={error} announce /> : null}
+    </div>
+  );
+}

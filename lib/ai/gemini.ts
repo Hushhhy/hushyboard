@@ -76,6 +76,19 @@ export function isQuotaError(error: unknown): boolean {
   return status === 429 || /RESOURCE_EXHAUSTED|quota|rate limit/i.test(message);
 }
 
+// A model over its quota sometimes hangs instead of answering 429: each attempt gets a time
+// limit, so a slow model gives way to the next one well within the 60 s of a Vercel function.
+export const ATTEMPT_TIMEOUT_MS = 20_000;
+
+export function isTimeout(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    (error.name === 'TimeoutError' ||
+      error.name === 'AbortError' ||
+      /aborted|timed? ?out/i.test(error.message))
+  );
+}
+
 // Maps any SDK or network error to a French message for Alex.
 export function toAiError(error: unknown): AiError {
   if (error instanceof AiError) return error;
@@ -84,7 +97,7 @@ export function toAiError(error: unknown): AiError {
   if (isQuotaError(error)) {
     return new AiError(/PerDay/.test(message) ? AI_DAILY_QUOTA_MESSAGE : AI_QUOTA_MESSAGE);
   }
-  if (status === 503 || /UNAVAILABLE|overloaded|high demand/i.test(message)) {
+  if (status === 503 || isTimeout(error) || /UNAVAILABLE|overloaded|high demand/i.test(message)) {
     return new AiError(AI_BUSY_MESSAGE);
   }
   return new AiError(AI_FAILURE_MESSAGE);
@@ -113,7 +126,7 @@ export async function withRetry<T>(
   }
 }
 
-// Tries each model of the chain; moves to the next one only when a model is out of quota.
+// Tries each model of the chain; moves to the next one when a model is out of quota or too slow.
 export async function withFallback<T>(
   models: string[],
   call: (model: string) => Promise<T>
@@ -123,7 +136,7 @@ export async function withFallback<T>(
     try {
       return { result: await withRetry(() => call(model)), model };
     } catch (error) {
-      if (index >= models.length - 1 || !isQuotaError(error)) throw error;
+      if (index >= models.length - 1 || !(isQuotaError(error) || isTimeout(error))) throw error;
     }
   }
 }
@@ -193,6 +206,7 @@ export async function generateJsonWithModel<T>(
           responseMimeType: 'application/json',
           responseJsonSchema: toGeminiSchema(schema),
           temperature: 0.2,
+          abortSignal: AbortSignal.timeout(ATTEMPT_TIMEOUT_MS),
         },
       })
     );
@@ -224,7 +238,7 @@ export async function generateTextWithModel(
       getClient().models.generateContent({
         model,
         contents: contents(prompt, []),
-        config: { temperature: 0.6 },
+        config: { temperature: 0.6, abortSignal: AbortSignal.timeout(ATTEMPT_TIMEOUT_MS) },
       })
     );
     await logUsage(userId, feature, model, response.usageMetadata);

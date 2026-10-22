@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { analyzeOffer, generateCoverLetter } from '@/app/(app)/career/job-search/offer-actions';
+import { analyzeOffer } from '@/app/(app)/career/job-search/offer-actions';
 import { PageHeader } from '@/components/app-shell/page-header';
 import {
   CheckIcon,
@@ -23,7 +23,7 @@ import { getBaseResume, getOffer, getResumeChoices } from '@/lib/job-search-data
 import { CONTRACT_LABELS, parseStoredAnalysis } from '@/lib/job-search-schemas';
 import { requireUser } from '@/lib/session';
 import { JobSearchTabs } from './job-search-tabs';
-import { AdaptedResumeButton, CoverLetterEditor } from './offer-documents';
+import { AdaptedResumeButton, CoverLetterEditor, WriteLetterButton } from './offer-documents';
 import { ApplyForm, DismissOfferButton } from './offer-actions-buttons';
 
 // Offer detail: the offer, the analysis of Alex's CV against it, the adapted CV and the letter.
@@ -249,12 +249,7 @@ export async function OfferView({ params }: { params: Promise<{ offerId: string 
               title="Pas encore de lettre."
               description="Elle part de ton CV adapté à cette offre, sans rien inventer : 180 à 250 mots, vouvoiement, signée « Alexis Carpentier »."
             >
-              <ActionButton
-                action={generateCoverLetter.bind(null, offer.id, false)}
-                pendingHint="Adaptation du CV puis rédaction, jusqu’à 30 s…"
-              >
-                Rédiger la lettre
-              </ActionButton>
+              <WriteLetterButton offerId={offer.id} />
             </EmptyState>
           )}
         </ModuleCard>
