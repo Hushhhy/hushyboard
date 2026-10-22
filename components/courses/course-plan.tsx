@@ -1,6 +1,7 @@
 'use client';
 
 import { useId, useOptimistic, useState, useTransition } from 'react';
+import Link from 'next/link';
 import type { CourseItemKind } from '@/generated/prisma/client';
 import { updateCourseItem } from '@/app/(app)/career/courses/actions';
 import { levelUpReward } from '@/components/rewards/use-form-done';
@@ -9,8 +10,12 @@ import { HabitCheckbox } from '@/components/ui/checkbox';
 import { Tag, type ChipTone } from '@/components/ui/chip';
 import { ErrorState } from '@/components/ui/error-state';
 import { UndoStatus } from '@/components/ui/undo-status';
-import { COURSE_ITEM_LABELS, computeProgress, QUIZ_PASS_SCORE } from '@/lib/course-progress';
-import { CourseNotes, type RenderedNote } from './course-notes';
+import {
+  COURSE_ITEM_LABELS,
+  computeProgress,
+  itemPath,
+  QUIZ_PASS_SCORE,
+} from '@/lib/course-progress';
 
 export type PlanItem = {
   id: string;
@@ -18,7 +23,7 @@ export type PlanItem = {
   title: string;
   done: boolean;
   score: number | null;
-  notes: RenderedNote[];
+  noteCount: number;
 };
 
 export type PlanModule = { id: string; title: string; items: PlanItem[] };
@@ -38,7 +43,8 @@ const XP_HINT: Record<CourseItemKind, string> = {
 type Change = { itemId: string; done?: boolean; score?: number | null };
 
 // The plan of a course: modules, then their parts, quizzes and solo projects.
-// Checking is instant (optimistic), saved on the server and undoable; notes sit under each item.
+// Checking is instant (optimistic), saved on the server and undoable; each item opens its
+// own page with its notes.
 export function CoursePlan({ courseId, modules }: { courseId: string; modules: PlanModule[] }) {
   const { announce } = useRewards();
   const [, startTransition] = useTransition();
@@ -154,7 +160,6 @@ function PlanItemRow({
   onToggle: (done: boolean) => void;
   onScore: (score: number | null) => void;
 }) {
-  const [showNotes, setShowNotes] = useState(item.notes.length > 0);
   const scoreId = useId();
   const tone = KIND_TONES[item.kind];
   const quizBelowPass =
@@ -170,20 +175,27 @@ function PlanItemRow({
   return (
     <div className="flex flex-col">
       <div className="flex flex-wrap items-center gap-x-2">
+        {/* The checkbox is named for screen readers; the visible title is a link to the item page. */}
         <HabitCheckbox
-          className="min-w-0 flex-1"
+          className="shrink-0 px-1"
           checked={item.done}
           onChange={(event) => onToggle(event.target.checked)}
-          label={
-            <span className="flex flex-wrap items-center gap-2">
-              {tone ? <Tag tone={tone}>{COURSE_ITEM_LABELS[item.kind]}</Tag> : null}
-              <span className={item.done ? 'text-fg-2' : ''}>{item.title}</span>
-              {XP_HINT[item.kind] ? (
-                <span className="text-caption-12 font-normal text-fg-3">{XP_HINT[item.kind]}</span>
-              ) : null}
-            </span>
-          }
+          label={<span className="sr-only">Fait : {item.title}</span>}
         />
+        <span className="flex min-w-0 flex-1 flex-wrap items-center gap-2 py-1">
+          {tone ? <Tag tone={tone}>{COURSE_ITEM_LABELS[item.kind]}</Tag> : null}
+          <Link
+            href={itemPath(courseId, item.id)}
+            className={`text-body-14 font-medium underline decoration-transparent underline-offset-3 hover:decoration-current ${
+              item.done ? 'text-fg-2' : 'text-fg-1'
+            }`}
+          >
+            {item.title}
+          </Link>
+          {XP_HINT[item.kind] ? (
+            <span className="text-caption-12 text-fg-3">{XP_HINT[item.kind]}</span>
+          ) : null}
+        </span>
         {item.kind === 'QUIZ' ? (
           <span className="flex items-center gap-1.5">
             <label htmlFor={scoreId} className="text-caption-12 text-fg-2">
@@ -206,25 +218,19 @@ function PlanItemRow({
             </span>
           </span>
         ) : null}
-        <button
-          type="button"
-          aria-expanded={showNotes}
-          onClick={() => setShowNotes((open) => !open)}
-          className="h-8 rounded-control px-2 text-caption-12 font-semibold text-fg-2 hover:text-fg-1"
+        <Link
+          href={itemPath(courseId, item.id)}
+          className="flex h-8 items-center rounded-control px-2 text-caption-12 font-semibold text-fg-2 hover:text-fg-1"
         >
-          Notes ({item.notes.length})
-        </button>
+          {item.noteCount} note{item.noteCount > 1 ? 's' : ''}
+          <span className="sr-only"> sur « {item.title} »</span>
+        </Link>
       </div>
       {quizBelowPass ? (
-        <p className="ml-11 text-caption-12 text-fg-2">
+        <p className="ml-9 text-caption-12 text-fg-2">
           Score sous {QUIZ_PASS_SCORE} % : pas d’XP pour l’instant. Repasse le quiz et mets à jour
           le score.
         </p>
-      ) : null}
-      {showNotes ? (
-        <div className="mt-1 mb-2 ml-11 border-l-2 border-line-subtle pl-3">
-          <CourseNotes courseId={courseId} itemId={item.id} notes={item.notes} compact />
-        </div>
       ) : null}
     </div>
   );
