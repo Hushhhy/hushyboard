@@ -376,3 +376,55 @@
     border-radius: var(--radius-control);
   }
 }
+
+/* --------------------------------------------------------------------------
+   5. CODE VIEW (GitHub projects): shiki css-variables theme mapped to the tokens
+   -------------------------------------------------------------------------- */
+@layer components {
+  .code-view {
+    --shiki-foreground: var(--color-fg-1);
+    --shiki-background: var(--color-surface-sunken);
+    --shiki-token-keyword: var(--color-info);
+    --shiki-token-string: var(--color-success);
+    --shiki-token-string-expression: var(--color-success);
+    --shiki-token-function: var(--color-career);
+    --shiki-token-constant: var(--color-finance);
+    --shiki-token-parameter: var(--color-fg-1);
+    --shiki-token-comment: var(--color-fg-3);
+    --shiki-token-punctuation: var(--color-fg-2);
+    --shiki-token-link: var(--color-leisure);
+    overflow: hidden;
+    border-radius: var(--radius-control);
+  }
+  .code-view pre {
+    overflow-x: auto;
+    padding: --spacing(3) 0;
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    counter-reset: line;
+  }
+  .code-view .line {
+    display: inline-block;
+    min-width: 100%;
+    padding-right: --spacing(4);
+  }
+  /* Line numbers, outside the copied text. */
+  .code-view .line::before {
+    counter-increment: line;
+    content: counter(line);
+    display: inline-block;
+    width: 3.5rem;
+    padding-right: --spacing(4);
+    text-align: right;
+    color: var(--color-fg-3);
+    user-select: none;
+  }
+  /* README: GitHub wraps badges and logos in centered paragraphs. */
+  .readme [align='center'] {
+    text-align: center;
+  }
+  .readme img {
+    display: inline-block;
+  }
+}

@@ -112,6 +112,18 @@ export const ToolsIcon = createIcon(
     <path d="M10 2.8v2.4M10 14.8v2.4M2.8 10h2.4M14.8 10h2.4M4.9 4.9l1.7 1.7M13.4 13.4l1.7 1.7M4.9 15.1l1.7-1.7M13.4 6.6l1.7-1.7" />
   </>
 );
+export const CodeIcon = createIcon(<path d="M7 6 3 10l4 4M13 6l4 4-4 4" />);
+export const StarIcon = createIcon(
+  <path d="m10 3 2.1 4.4 4.8.6-3.5 3.3.9 4.7L10 13.7 5.7 16l.9-4.7L3.1 8l4.8-.6z" />
+);
+export const FolderIcon = createIcon(<path d="M3 5.5h5l1.5 2H17v8H3z" />);
+export const FileIcon = createIcon(<path d="M5 2.8h6.5L15 6.3v10.9H5zM11.5 2.8v3.5H15" />);
+export const PinIcon = createIcon(<path d="M7 3h6l-1 5 3 3H5l3-3zM10 11v6" />);
+export const CopyIcon = createIcon(<path d="M7 7h9v9.5H7zM4 13V3.5h9" />);
+export const ExternalLinkIcon = createIcon(<path d="M11 4h5v5M16 4l-7.5 7.5M14 12v4H4V6h4" />);
+export const SyncIcon = createIcon(
+  <path d="M15.5 8A6 6 0 0 0 4.7 6.3M4.5 12a6 6 0 0 0 10.8 1.7M15.8 3.5V8h-4.5M4.2 16.5V12h4.5" />
+);
 export const PauseIcon = createIcon(<path d="M7.5 5v10M12.5 5v10" />);
 export const LockIcon = createIcon(
   <>
