@@ -1,17 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import {
+  daysBetweenInParis,
   formatLongDate,
   formatMonth,
   formatMonthKey,
   formatMonthKeyName,
+  formatRelativeDay,
   formatShortDate,
   isMonthKey,
   isoWeekdayInParis,
   monthKeyInParis,
   monthKeyRange,
   monthRangeInParis,
+  parseDateInput,
   shiftMonthKey,
   todayInParis,
+  toDateInputValue,
 } from './dates';
 
 describe('todayInParis', () => {
@@ -118,5 +122,39 @@ describe('formatShortDate', () => {
     expect(formatShortDate(new Date('2026-10-22T10:00:00Z'))).toBe('22 oct. 2026');
     // 23:30 UTC on 31 Dec = 1 Jan in Paris.
     expect(formatShortDate(new Date('2026-12-31T23:30:00Z'))).toBe('1 janv. 2027');
+  });
+});
+
+describe('date inputs', () => {
+  it('parses a calendar day', () => {
+    expect(parseDateInput('2026-10-22')?.toISOString()).toBe('2026-10-22T00:00:00.000Z');
+  });
+
+  it('rejects invalid days', () => {
+    for (const value of ['', '22/10/2026', '2026-02-30', '2026-13-01']) {
+      expect(parseDateInput(value)).toBeNull();
+    }
+  });
+
+  it('round-trips through the input value', () => {
+    expect(toDateInputValue(parseDateInput('2026-12-31'))).toBe('2026-12-31');
+    expect(toDateInputValue(null)).toBe('');
+  });
+});
+
+describe('relative days', () => {
+  const now = new Date('2026-10-22T10:00:00Z');
+
+  it('counts Paris calendar days, not 24-hour blocks', () => {
+    // 21 Oct 23:30 in Paris (21:30 UTC) is "yesterday" even if less than 24 h ago.
+    expect(daysBetweenInParis(new Date('2026-10-21T21:30:00Z'), now)).toBe(1);
+    expect(daysBetweenInParis(new Date('2026-10-22T00:30:00Z'), now)).toBe(0);
+  });
+
+  it('formats in French', () => {
+    expect(formatRelativeDay(new Date('2026-10-22T08:00:00Z'), now)).toBe('aujourd’hui');
+    expect(formatRelativeDay(new Date('2026-10-21T08:00:00Z'), now)).toBe('hier');
+    expect(formatRelativeDay(new Date('2026-10-18T08:00:00Z'), now)).toBe('il y a 4 jours');
+    expect(formatRelativeDay(new Date('2026-08-01T08:00:00Z'), now)).toBe('le 1 août 2026');
   });
 });

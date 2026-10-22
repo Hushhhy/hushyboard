@@ -59,3 +59,18 @@ export function getLevelInfo(totalXp: number): LevelInfo {
   const title = LEVEL_TITLES[Math.min(level, LEVEL_TITLES.length) - 1];
   return { level, title, xpIntoLevel: remaining, xpForLevel: xpToNextLevel(level) };
 }
+
+export type LevelUp = { level: number; title: string; nextTitle: string | null; xpToNext: number };
+
+// The level reached when the total goes from `before` to `after`, or null if the level did not change.
+export function detectLevelUp(before: number, after: number): LevelUp | null {
+  const previous = getLevelInfo(before);
+  const next = getLevelInfo(after);
+  if (next.level <= previous.level) return null;
+  return {
+    level: next.level,
+    title: next.title,
+    nextTitle: LEVEL_TITLES[next.level] ?? null,
+    xpToNext: next.xpForLevel - next.xpIntoLevel,
+  };
+}

@@ -106,3 +106,30 @@ const shortDateFormatter = new Intl.DateTimeFormat('fr-FR', {
 export function formatShortDate(date: Date): string {
   return shortDateFormatter.format(date);
 }
+
+// <input type="date"> value ("2026-10-22") → calendar day as a UTC midnight Date. Null if invalid.
+export function parseDateInput(value: string): Date | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const date = new Date(`${value}T00:00:00.000Z`);
+  return Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== value ? null : date;
+}
+
+// Date → value for <input type="date">, read as a Paris calendar day.
+export function toDateInputValue(date: Date | null | undefined): string {
+  return date ? ymdFormatter.format(date) : '';
+}
+
+// Whole days between two instants, counted on the Paris calendar (0 = same day).
+export function daysBetweenInParis(earlier: Date, later: Date): number {
+  const day = 24 * 60 * 60 * 1000;
+  return Math.round((todayInParis(later).getTime() - todayInParis(earlier).getTime()) / day);
+}
+
+// "aujourd'hui", "hier", "il y a 4 jours", then a short date after a month.
+export function formatRelativeDay(date: Date, now: Date): string {
+  const days = daysBetweenInParis(date, now);
+  if (days <= 0) return 'aujourd’hui';
+  if (days === 1) return 'hier';
+  if (days < 31) return `il y a ${days} jours`;
+  return `le ${formatShortDate(date)}`;
+}
