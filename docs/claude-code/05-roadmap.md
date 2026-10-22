@@ -31,7 +31,7 @@ Deployed on Vercel (`hushyboard.vercel.app`) with Neon.
 - Add `zod` and `lib/env.ts`.
 - Add Vitest: tests for `lib/xp.ts` (levels, cap, curve) and `lib/dates.ts`.
 - Add a GitHub Actions CI: lint, typecheck, format:check, test, build with a dummy `DATABASE_URL`. Never touch the database in CI.
-- Update the sidebar to v2: add Mails (an item with no count yet), remove Comics, rename the Career « Analyses » item to « Progression » (`/career/progress`), and keep the order from `01-product-spec.md`.
+- Update the sidebar to v2: add Mails (an item with no count yet) and Projets (under Carrière, after Profil; the page comes in phase 2b), remove Comics, rename the Career « Analyses » item to « Progression » (`/career/progress`), and keep the order from `01-product-spec.md`.
 - **Done when** CI is green on the PR and the sidebar matches the v2 Figma frames.
 
 ## Phase 1: shared UI kit
@@ -59,24 +59,46 @@ Also add a reward context (`useRewards`) with the persistent toast.
 
 **Done when** each component is used on at least one real page in later phases. No `/styleguide` page is needed.
 
-## Phase 2: profile and skills
+## Phase 2: profile, skills roadmap, notion sheets, references ⚑
 
 - Migration from `03-data-model.md` (skills, tools, profile info, timeline), plus the idempotent seed from `data/skills-catalog.json`.
 - `lib/skills.ts`: `computeSkillLevel(tiers)` → `{ level, started, currentTier, remaining }`, unit-tested on the 18 seeded skills.
 - `/career/profile` (Figma 31:598), including « Modifier le profil » (side panel), tools menu, timeline CRUD, « Prochains objectifs ».
-- `/career/profile/[skillSlug]` (Figma 32:715): checking a notion (optimistic, undoable), collapse and expand tiers, guided « Me réévaluer » saving `SkillAssessment`, « Historique », edit mode, « Ajouter une compétence ».
+- ⚑ Alex creates the Gemini API key (moved here from phase 3 because notion sheets need it).
+- AI base: `lib/ai/*` (wrapper, prompts), `AiUsage`, the 429 handling.
+- `/career/profile/[skillSlug]` (`screens-v2.html`, « Roadmap + fiche notion »): roadmap of notions with milestones, the next notion highlighted, « Je sais faire » (optimistic, undoable), notion sheets generated on first open, edit and regenerate, « Mes notes », roadmap editing, guided « Me réévaluer » saving `SkillAssessment`, « Historique », « Ajouter une compétence » + « Générer la roadmap ».
+- `/career/profile/[skillSlug]/reference` (« Référence (ex. CSS) »): `ReferenceEntry` migration, MDN import for HTML, CSS and JS, « Générer la référence » for the other skills, search, filters, groups, entry details generated on first open, « Je connais », favourites, links to notions.
 
 **Done when:**
 
 - JavaScript shows level 1 with the pale 2nd segment and « 1+ / 5 »;
 - checking « map, filter, reduce » turns it into level 2 everywhere, including the profile and the objectives card;
 - Git shows « 1+ / 5 »;
-- HTML shows 5 / 5.
+- HTML shows 5 / 5;
+- the « map, filter, reduce » sheet opens with correct code and stays the same after a reload (stored, not regenerated);
+- the CSS reference lists every MDN property with groups, `justify-content` opens its detail, and « Je connais » counts update;
+- the Git reference is generated once and stays editable.
 
-## Phase 3: CV, AI base, certifications, courses ⚑
+## Phase 2b: projects ⚑
 
-- ⚑ Alex creates the Gemini API key.
-- `lib/ai/*` (wrapper, prompts, style guide), `AiUsage`, `lib/resume/schema.ts` (`ResumeContent`).
+- ⚑ Alex creates the fine-grained GitHub token (`GITHUB_TOKEN`) and adds it locally and on Vercel.
+- `Project` migration, `lib/github/*` (client, sync, skill map, unit-tested pure helpers: language %, category guess, relative-link rewriting, binary detection).
+- `/career/projects` (list, filters, search, sync, add an external repo by URL), and `/career/projects/[repo]` with the README, Code, Commits and Fiche projet tabs (`screens-v2.html`).
+- Skill sub-page « Lié à » now uses the `Project` relation.
+- Sidebar item « Projets » under Carrière, after Profil.
+
+**Done when:**
+
+- Alex's real repos (public and private) appear after one sync;
+- a teammate's public repo can be added by URL;
+- the README renders with its images;
+- a source file opens with highlighting;
+- pinning, hiding and « Mis en avant sur le CV » persist;
+- the linked skills show on the matching skill sub-pages.
+
+## Phase 3: CV, certifications, courses
+
+- AI prompts for CV and letters (style guide), `lib/resume/schema.ts` (`ResumeContent`). The Gemini key and the AI base already exist from phase 2.
 - `/career/resume` (Figma 15:923 adapted):
   - import the CV PDF, have Gemini extract it, review it in a form editor and save;
   - versions with a default one;

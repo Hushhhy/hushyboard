@@ -187,6 +187,60 @@ table.t{width:100%;border-collapse:collapse;background:var(--s1);border-radius:1
 .menu li i{width:8px;height:8px;border-radius:50%}
 .st{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--t1);background:var(--s3);border-radius:6px;padding:3px 8px;white-space:nowrap}
 .st i{width:6px;height:6px;border-radius:50%}
+.rm{display:flex;flex-direction:column;gap:0;overflow:hidden;padding:12px 10px}
+.rm .ms{display:flex;align-items:center;gap:10px;padding:10px 8px 6px;font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--t3)}
+.rm .ms b{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;font:700 12px var(--ui);letter-spacing:0;background:var(--s2);color:var(--t2)}
+.rm .ms.done b{background:var(--car-d);color:var(--car)}
+.rm .ms .r{margin-left:auto;text-transform:none;letter-spacing:0;font-weight:500}
+.nd{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center;padding:5px 8px;border-radius:8px;position:relative;color:var(--t2);font-size:14px}
+.nd::before{content:"";position:absolute;left:18px;top:-6px;bottom:-6px;width:2px;background:var(--line);z-index:0}
+.nd .dt{width:12px;height:12px;border-radius:50%;border:2px solid var(--line-strong);background:var(--bg);justify-self:center;z-index:1}
+.nd.done .dt{background:var(--car);border-color:var(--car)}
+.nd.done{color:var(--t2)}
+.nd.next{background:var(--s2);color:var(--t1);font-weight:600}
+.nd.next .dt{border-color:var(--car);box-shadow:0 0 0 3px oklch(0.84 0.145 82 / .25)}
+.nd.sel{outline:1px solid var(--line-strong)}
+.nd small{font-size:11px;color:var(--t3);font-weight:500}
+.cs h3{margin:0;font:700 22px/1.15 var(--display);letter-spacing:-.02em}
+.cs .sec{display:flex;flex-direction:column;gap:6px}
+.cs pre{margin:0;font:12.5px/1.65 ui-monospace,"SFMono-Regular",Menlo,monospace;background:var(--bg-0);border-radius:10px;padding:12px 14px;color:var(--t1);white-space:pre;overflow:hidden}
+.cs ul{margin:0;padding-left:18px;color:var(--t2);font-size:14px;line-height:1.55}
+.ai{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--t3)}
+.ref{display:flex;flex-direction:column;overflow:hidden;padding:8px}
+.ri{display:grid;grid-template-columns:22px 178px 1fr;gap:10px;align-items:center;padding:7px 8px;border-radius:8px;font-size:13px;color:var(--t2)}
+.ri.on{background:var(--s2)}
+.ri code{font:600 12.5px ui-monospace,Menlo,monospace;color:var(--t1)}
+.ri .ck{width:16px;height:16px;border-radius:5px;border:1.5px solid var(--line-strong);display:grid;place-items:center}
+.ri .ck.y{background:var(--hab);border-color:var(--hab)}
+.ri .ck.y svg{width:10px;height:10px;color:var(--bg-0)}
+.rg{font-size:12px;letter-spacing:.08em;text-transform:uppercase;font-weight:600;color:var(--t3);padding:10px 8px 4px;display:flex}
+.rg span{margin-left:auto;text-transform:none;letter-spacing:0;font-weight:500}
+.vals{display:flex;flex-wrap:wrap;gap:6px}
+.vals code{font:12px ui-monospace,Menlo,monospace;background:var(--s2);border-radius:6px;padding:2px 7px;color:var(--t1)}
+.pgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-content:start}
+.pc{background:var(--s1);border-radius:14px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.pc.pin{background:var(--s2)}
+.pc h4{margin:0;font:600 16px/1.2 var(--ui);display:flex;align-items:center;gap:8px}
+.pc p{margin:0;color:var(--t2);font-size:13px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.langbar{display:flex;height:6px;border-radius:2px;overflow:hidden;gap:2px}
+.langbar b{display:block;height:100%}
+.meta{display:flex;gap:12px;font-size:12px;color:var(--t3);align-items:center;flex-wrap:wrap}
+.meta span{display:inline-flex;gap:4px;align-items:center}
+.ld{width:8px;height:8px;border-radius:50%;display:inline-block}
+.vis{font-size:11px;font-weight:600;color:var(--t3);border:1px solid var(--line-strong);border-radius:6px;padding:0 6px}
+.filters{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.tree{font:13px/1.9 ui-monospace,"SFMono-Regular",Menlo,monospace;color:var(--t2);padding:6px 4px;overflow:hidden}
+.tree div{display:flex;align-items:center;gap:6px;padding:0 8px;border-radius:6px;white-space:nowrap}
+.tree div.on{background:var(--s2);color:var(--t1)}
+.code{font:12.5px/1.7 ui-monospace,"SFMono-Regular",Menlo,monospace;background:var(--bg-0);border-radius:10px;padding:12px 0;overflow:hidden;flex:1}
+.code div{display:grid;grid-template-columns:44px 1fr;white-space:pre}
+.code i{font-style:normal;color:var(--t3);text-align:right;padding-right:14px;user-select:none}
+.k1{color:oklch(0.78 0.12 300)}.k2{color:oklch(0.82 0.11 150)}.k3{color:oklch(0.84 0.1 82)}.k4{color:var(--t3)}
+.md h1{font:700 24px/1.15 var(--display);margin:0 0 8px;color:var(--t1)}
+.md h2{font:600 16px/1.3 var(--ui);margin:16px 0 6px;color:var(--t1)}
+.md p,.md li{color:var(--t2);font-size:14px;line-height:1.6;margin:0 0 8px}
+.md ul{margin:0 0 8px;padding-left:20px}
+.md code{font:12.5px ui-monospace,Menlo,monospace;background:var(--bg-0);border-radius:4px;padding:1px 5px;color:var(--t1)}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
@@ -214,12 +268,19 @@ table.t{width:100%;border-collapse:collapse;background:var(--s1);border-radius:1
 <symbol id="i-link" viewBox="0 0 20 20"><path d="M11 4h5v5M16 4l-7.5 7.5M14 12v4H4V6h4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 <symbol id="i-unsub" viewBox="0 0 20 20"><path d="M3 5.5h14v10H3z M3.5 6l6.5 5 6.5-5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M3 3l14 14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
 <symbol id="i-ia" viewBox="0 0 20 20"><path d="M10 2.5l1.6 4.4 4.4 1.6-4.4 1.6L10 14.5l-1.6-4.4L4 8.5l4.4-1.6z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+<symbol id="i-code" viewBox="0 0 20 20"><path d="M7 6 3 10l4 4M13 6l4 4-4 4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="i-star" viewBox="0 0 20 20"><path d="m10 3 2.1 4.4 4.8.6-3.5 3.3.9 4.7L10 13.7 5.7 16l.9-4.7L3.1 8l4.8-.6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+<symbol id="i-folder" viewBox="0 0 20 20"><path d="M3 5.5h5l1.5 2H17v8H3z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+<symbol id="i-file" viewBox="0 0 20 20"><path d="M5 2.8h6.5L15 6.3v10.9H5z M11.5 2.8v3.5H15" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></symbol>
+<symbol id="i-pin" viewBox="0 0 20 20"><path d="M7 3h6l-1 5 3 3H5l3-3zM10 11v6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" stroke-linecap="round"/></symbol>
+<symbol id="i-copy" viewBox="0 0 20 20"><path d="M7 7h9v9.5H7z M4 13V3.5h9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+<symbol id="i-sync" viewBox="0 0 20 20"><path d="M15.5 8A6 6 0 0 0 4.7 6.3M4.5 12a6 6 0 0 0 10.8 1.7M15.8 3.5V8h-4.5M4.2 16.5V12h4.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
 </defs></svg>
 
 <div class="page">
   <header class="lede">
     <h1>Hushyboard v2 : écrans en complément de Figma</h1>
-    <p>Les écrans Profil, sous-page JavaScript et Offre (lettre de motivation + CV adapté) sont dans Figma. Ceux-ci n'ont pas pu y être dessinés (quota Figma atteint) : candidatures spontanées et mails. Chaque maquette fait 1280 × 800.</p>
+    <p>Les écrans Profil, sous-page JavaScript et Offre (lettre de motivation + CV adapté) sont dans Figma. Ceux-ci n'ont pas pu y être dessinés (quota Figma atteint) : roadmap et référence d’une compétence, projets, candidatures spontanées et mails. Chaque maquette fait 1280 × 800.</p>
   </header>
   <nav class="picker" id="picker" aria-label="Écrans"></nav>
   <div class="mock" id="mock" tabindex="0" aria-label="Maquette"></div>
@@ -228,7 +289,7 @@ table.t{width:100%;border-collapse:collapse;background:var(--s1);border-radius:1
 
 <script>
 const I=(id,c,s)=>`<svg style="${c?'color:var(--'+c+');':''}${s?'width:'+s+'px;height:'+s+'px':''}" aria-hidden="true"><use href="#${id}"/></svg>`;
-const NAV=[['Accueil','i-home'],['Mails','i-mail','','12'],['h','Carrière','i-car','car'],['Profil','i-profil'],['CV','i-cv'],['Certifications','i-cert'],['Cours','i-cours'],['Recherches pro','i-search','','1'],['Analyses','i-ana'],['s'],['Habitudes & objectifs','i-hab','hab','2'],['h','Loisirs','i-loi','loi'],['Jeux vidéo','i-jeux'],['s'],['Finances','i-fin','fin']];
+const NAV=[['Accueil','i-home'],['Mails','i-mail','','12'],['h','Carrière','i-car','car'],['Profil','i-profil'],['Projets','i-code'],['CV','i-cv'],['Certifications','i-cert'],['Cours','i-cours'],['Recherches pro','i-search','','1'],['Progression','i-ana'],['s'],['Habitudes & objectifs','i-hab','hab','2'],['h','Loisirs','i-loi','loi'],['Jeux vidéo','i-jeux'],['s'],['Finances','i-fin','fin']];
 function side(on){return `<nav class="side" aria-label="Navigation principale"><div class="brand">${I('i-car','car',22)}Hushyboard</div>`+NAV.map(n=>{if(n[0]==='h')return `<div class="nav-h">${I(n[2],n[3],14)}${n[1]}</div>`; if(n[0]==='s')return '<div style="height:12px"></div>'; const [l,ic,col,c]=n; return `<a class="nav-i${l===on?' on':''}" href="#">${I(ic,col)}${l.replace('&','&amp;')}${c?`<span class="c n">${c}</span>`:''}</a>`;}).join('')+`<div class="who"><span class="av">A</span><span>Alex<small>acarpent · 42 Paris</small></span></div></nav>`;}
 function topBar(crumb,title){return `<div class="top"><div class="grow"><p class="crumb">${crumb}</p><h2>${title}</h2></div><div class="cmdk">${I('i-search','',16)}<span>Cocher, ajouter, aller à…</span><kbd>⌘K</kbd></div></div>`;}
 const tabs=(l,i)=>`<div class="tabs">${l.map((x,k)=>`<span class="tab${k===i?' on':''}">${x}</span>`).join('')}</div>`;
@@ -287,7 +348,103 @@ const mailScreen=(sel,reader,extra='',lblExtra='')=>app('Mails', topBar('Mails �
 const MENU=`<div class="menu" style="left:880px;top:150px"><ul>${[['Candidatures','car',1],['Newsletters','info'],['École 42','hab'],['Finances','fin']].map(l=>`<li class="${l[2]?'on':''}"><i style="background:var(--${l[1]})"></i>${l[0]}${l[2]?`<span style="margin-left:auto">${I('i-check','',14)}</span>`:''}</li>`).join('')}<li style="border-top:1px solid var(--line);margin-top:4px;padding-top:4px">${I('i-plus','t3',16)}Nouveau libellé…</li></ul></div>`;
 const NEWLBL=`<div class="scrim"></div><div class="sheet dialog"><h3 style="margin:0;font:700 20px var(--display)">Nouveau libellé</h3><div><label class="lbl">Nom</label><div class="field filled">Entretiens</div></div><div><span class="lbl">Couleur</span><div style="display:flex;gap:8px">${['car','info','hab','fin','loi','warn'].map((c,k)=>`<span style="width:24px;height:24px;border-radius:6px;background:var(--${c});${k===0?'outline:2px solid var(--t1);outline-offset:2px':''}"></span>`).join('')}</div></div><p class="note" style="margin:0">Le libellé est créé aussi dans Gmail.</p><div style="display:flex;gap:8px;justify-content:flex-end"><button class="btn btn-q">Annuler</button><button class="btn btn-p">Créer</button></div></div>`;
 
+/* ---------- Compétence : roadmap + fiches ---------- */
+const RM=[
+ [1,'Les bases',1,[['Variables (let, const) et types',1],['Conditions et comparaisons',1],['Fonctions et return',1],['Boucles for',1],['Concaténation de chaînes',1],['Opérateurs && et ||',1],['Math.random() et Math.floor()',1],['console.log()',1]]],
+ [2,'Tableaux, objets et DOM',0,[['Tableaux et index',1],['length, push, pop, shift, unshift',1],['Objets et méthodes',1],['getElementById, querySelector',1],['innerText et textContent',1],['addEventListener et onclick',1],['map, filter, reduce',2]]],
+ [3,'Asynchrone et modules',0,[['Promesses',0],['async / await',0],['fetch',0],['import / export',0],['Déstructuration',0]]],
+ [4,'Fonctionnement interne',0,[['Closures',0],['this',0],['Prototypes',0],['Event loop',0],['Gestion d’erreurs',0]]],
+ [5,'Niveau senior',0,[['Performance',0],['Mémoire',0],['Architecture d’une app',0],['Outils de build',0]]]];
+const skillTop=(tab)=>topBar('Carrière · Profil · JavaScript','JavaScript · niveau 1, plus qu’une notion avant le niveau 2')+
+`<div style="display:flex;gap:16px;align-items:center"><a class="btn btn-q" href="#" style="padding:0">← Profil</a>
+ <div style="display:flex;align-items:center;gap:10px"><span style="width:34px;height:34px;border-radius:8px;background:var(--car-d);border:1.5px solid var(--car);display:grid;place-items:center;font:750 18px var(--display);color:var(--car)">1</span><div><div class="b">Niveau 1 sur 5</div><div class="sm faint">14 notions sur 34 · évalué le 22 oct.</div></div></div>
+ <div class="ruler" style="width:180px">${[1,.5,0,0,0].map(v=>`<i>${v?`<b style="width:100%;background:var(--${v===1?'car':'car-d'})"></b>`:''}</i>`).join('')}</div>
+ <span style="flex:1"></span><button class="btn btn-q">Historique</button><button class="btn btn-s">Me réévaluer</button></div>`+
+tabs(['Roadmap','Référence · 412 entrées'],tab);
+const roadmap=`<section class="mod rm" style="width:380px;flex:none">${RM.map(([lv,t,done,ns])=>{const k=ns.filter(n=>n[1]===1).length;return `<div class="ms${k===ns.length?' done':''}"><b>${lv}</b>Niveau ${lv} · ${t}<span class="r n">${k} / ${ns.length}</span></div>`+(lv<=3?ns.map(n=>`<div class="nd${n[1]===1?' done':''}${n[1]===2?' next sel':''}"><span class="dt"></span><span>${n[0]}</span>${n[1]===2?'<small>prochaine</small>':''}</div>`).join(''):`<div class="nd" style="color:var(--t3);font-size:12px"><span class="dt" style="opacity:.5"></span><span>${ns.map(n=>n[0]).join(' · ')}</span></div>`)}).join('')}</section>`;
+const sheet=`<section class="mod cs f1" style="gap:12px;overflow:auto">
+ <div style="display:flex;align-items:flex-start;gap:12px"><div class="f1"><p class="k" style="margin:0 0 4px">Niveau 2 · notion 7 sur 7</p><h3>map, filter, reduce</h3></div><label style="display:flex;gap:8px;align-items:center;font-weight:600"><span class="chk"></span>Je sais faire</label></div>
+ <p class="muted" style="margin:0;font-size:14px;max-width:68ch">Trois méthodes de tableau qui créent un <b style="color:var(--t1)">nouveau</b> résultat sans modifier le tableau d’origine : <b style="color:var(--t1)">map</b> transforme chaque élément, <b style="color:var(--t1)">filter</b> garde ceux qui passent un test, <b style="color:var(--t1)">reduce</b> combine tout en une seule valeur.</p>
+ <div class="sec"><span class="k">Syntaxe</span><pre><span class="k1">const</span> doubles = nombres.<span class="k3">map</span>((n) => n * <span class="k3">2</span>);
+<span class="k1">const</span> pairs = nombres.<span class="k3">filter</span>((n) => n % <span class="k3">2</span> === <span class="k3">0</span>);
+<span class="k1">const</span> total = nombres.<span class="k3">reduce</span>((somme, n) => somme + n, <span class="k3">0</span>);</pre></div>
+ <div class="sec"><span class="k">Exemple concret</span><pre><span class="k4">// Total des dépenses de plus de 20 €</span>
+<span class="k1">const</span> total = depenses
+  .<span class="k3">filter</span>((d) => d.montant > <span class="k3">20</span>)
+  .<span class="k3">map</span>((d) => d.montant)
+  .<span class="k3">reduce</span>((s, m) => s + m, <span class="k3">0</span>);</pre></div>
+ <div class="row" style="gap:16px;flex:none"><div class="sec f1"><span class="k">Pièges</span><ul><li>Toujours donner la valeur de départ à <code>reduce</code> (ici <code>0</code>).</li><li><code>map</code> sans <code>return</code> dans des accolades renvoie des <code>undefined</code>.</li></ul></div>
+ <div class="sec f1"><span class="k">Mes notes</span><div class="field" style="height:auto;min-height:64px;align-items:flex-start;padding-top:8px">Vu dans Hushyboard : home-data.ts utilise reduce pour compter les statuts.</div></div></div>
+ <div style="display:flex;gap:12px;align-items:center;flex:none;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:10px"><span class="ai">${I('i-ia','car',14)}Fiche générée par l’IA, relue le 22 oct.</span><span style="flex:1"></span><span class="sm muted">Voir aussi : <code>Array.prototype.map</code> · <code>forEach</code></span><button class="btn btn-q">${I('i-link','',16)}MDN</button><button class="btn btn-q">Modifier la fiche</button></div>
+</section>`;
+const skillRoad=app('Profil', skillTop(0)+`<div class="row" style="flex:1;min-height:0">${roadmap}${sheet}</div>`);
+const CSSREF=[['Mise en page',38,[['display','Type de boîte : block, flex, grid…',1],['flex-direction','Sens des éléments flex',1],['justify-content','Alignement sur l’axe principal',1,1],['align-items','Alignement sur l’axe secondaire',1],['gap','Espace entre les éléments',1],['grid-template-columns','Colonnes d’une grille',1],['position','Mode de positionnement',1]]],
+ ['Boîte',22,[['margin','Marge extérieure',1],['padding','Marge intérieure',1],['box-sizing','Calcul de la largeur',0]]],
+ ['Texte',41,[['font-size','Taille du texte',1],['line-height','Hauteur de ligne',1],['text-wrap','Retour à la ligne équilibré',0]]],
+ ['Animations',19,[['transition','Animer un changement',0],['@keyframes','Étapes d’une animation',0]]]];
+const refList=`<section class="mod ref" style="width:440px;flex:none"><div style="display:flex;gap:8px;padding:4px 4px 6px"><div class="field" style="flex:1;height:34px">${I('i-search','',16)}Rechercher une propriété</div><span class="chip" style="padding:6px 8px">Non connues</span></div>
+ ${CSSREF.map(([g,n,items])=>`<div class="rg">${g}<span class="n">${items.filter(i=>i[2]).length} / ${n}</span></div>`+items.map(i=>`<div class="ri${i[3]?' on':''}"><span class="ck${i[2]?' y':''}">${i[2]?I('i-check','',10):''}</span><code>${i[0]}</code><span style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${i[1]}</span></div>`).join('')).join('')}</section>`;
+const refDetail=`<section class="mod cs f1" style="gap:14px;overflow:hidden">
+ <div style="display:flex;align-items:flex-start;gap:12px"><div class="f1"><p class="k" style="margin:0 0 4px">Propriété CSS · Mise en page</p><h3 style="font-family:ui-monospace,Menlo,monospace;font-size:20px">justify-content</h3></div><label style="display:flex;gap:8px;align-items:center;font-weight:600"><span class="chk done">${I('i-check','',14)}</span>Je connais</label></div>
+ <p class="muted" style="margin:0;font-size:14px">Répartit les éléments d’un conteneur flex ou grid le long de l’axe principal (horizontal par défaut).</p>
+ <div class="sec"><span class="k">Valeurs courantes</span><div class="vals">${['flex-start','center','flex-end','space-between','space-around','space-evenly'].map(v=>`<code>${v}</code>`).join('')}</div></div>
+ <div class="sec"><span class="k">Exemple</span><pre>.barre {
+  <span class="k3">display</span>: flex;
+  <span class="k3">justify-content</span>: space-between; <span class="k4">/* logo à gauche, menu à droite */</span>
+}</pre></div>
+ <div class="sec"><span class="k">En Tailwind</span><pre><span class="k2">justify-between</span>  <span class="k2">justify-center</span>  <span class="k2">justify-start</span></pre></div>
+ <div style="display:flex;gap:12px;align-items:center;margin-top:auto;flex-wrap:wrap"><span class="sm muted">Notion liée : <b style="color:var(--t1)">Flexbox</b> (CSS niveau 2)</span><span style="flex:1"></span><span class="ai">Liste : MDN · description : IA</span><button class="btn btn-q">${I('i-link','',16)}MDN</button></div>
+</section>`;
+const skillRef=app('Profil', topBar('Carrière · Profil · CSS','CSS · niveau 3, 103 propriétés connues sur 520')+
+`<div style="display:flex;gap:16px;align-items:center"><a class="btn btn-q" href="#" style="padding:0">← Profil</a><span class="sm muted">Liste complète issue de MDN, mise à jour automatiquement</span><span style="flex:1"></span><span class="chip">Toutes</span><span class="chip on">Courantes</span><span class="chip">Obsolètes masquées</span></div>`+
+tabs(['Roadmap','Référence · 520 propriétés'],1)+`<div class="row" style="flex:1;min-height:0">${refList}${refDetail}</div>`);
+
+/* ---------- Projets ---------- */
+const LC={TypeScript:'info',JavaScript:'car',C:'t2','C++':'loi',Python:'hab',PHP:'fin',Shell:'ok',CSS:'warn',HTML:'err'};
+const ld=l=>`<span class="ld" style="background:var(--${LC[l]||'t3'})"></span>`;
+const PR=[
+ ['hushyboard','Dashboard perso : carrière, habitudes, loisirs et finances. Next.js 16, Prisma, PostgreSQL.',[['TypeScript',82],['CSS',14],['JavaScript',4]],'aujourd’hui','Privé',1,0,['Next.js','React','Prisma','PostgreSQL']],
+ ['ft_transcendence','Plateforme web multijoueur de blackjack en temps réel, projet d’équipe 42.',[['TypeScript',71],['JavaScript',18],['CSS',11]],'il y a 3 sem.','Public',1,2,['Node.js','PostgreSQL','Docker']],
+ ['casino-42','Casino en ligne fictif : jeux, portefeuille virtuel, classement.',[['JavaScript',64],['HTML',21],['CSS',15]],'il y a 1 mois','Public',0,1,['JavaScript','SQL']],
+ ['python-data-science','Piscine Python for Data Science : pandas, visualisation, ETL.',[['Python',100]],'il y a 2 mois','Public',0,0,['Python','pandas']],
+ ['minishell','Shell Unix minimal : pipes, redirections, signaux, variables d’environnement.',[['C',97],['Shell',3]],'il y a 5 mois','Public',0,0,['C','Linux']],
+ ['cpp-modules','Modules C++ 00 à 09 : classes, forme canonique, héritage, templates, STL.',[['C++',100]],'il y a 7 mois','Public',0,0,['C++']]];
+const pcard=p=>`<article class="pc${p[5]?' pin':''}"><h4>${I('i-code','t3',16)}${p[0]}${p[5]?I('i-pin','car',14):''}<span style="flex:1"></span><span class="vis">${p[4]}</span></h4><p>${p[1]}</p>
+ <div class="langbar">${p[2].map(l=>`<b style="width:${l[1]}%;background:var(--${LC[l[0]]||'t3'})"></b>`).join('')}</div>
+ <div class="meta">${p[2].slice(0,3).map(l=>`<span>${ld(l[0])}${l[0]} ${l[1]} %</span>`).join('')}</div>
+ <div style="display:flex;gap:6px;flex-wrap:wrap">${p[7].map(t=>`<span class="tag">${t}</span>`).join('')}</div>
+ <div class="meta" style="margin-top:auto"><span>Modifié ${p[3]}</span>${p[6]?`<span>${I('i-star','t3',12)}${p[6]}</span>`:''}</div></article>`;
+const projets=app('Projets', topBar('Carrière · Projets','12 dépôts GitHub, 2 épinglés, synchronisés il y a 4 min.')+
+`<div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+ <div class="filters"><span class="chip on">Tous <small>12</small></span><span class="chip">Épinglés <small>2</small></span><span class="chip">Projets 42 <small>7</small></span><span class="chip">Perso <small>5</small></span><span class="chip">Masqués <small>3</small></span></div>
+ <span style="flex:1"></span><div class="field" style="width:220px;height:34px">${I('i-search','',16)}Rechercher un projet</div>
+ <button class="btn btn-s">${I('i-sync','',16)}Synchroniser</button></div>
+<div class="pgrid">${PR.map(pcard).join('')}</div>`);
+const ptop=(tab)=>topBar('Carrière · Projets · ft_transcendence','Plateforme web multijoueur de blackjack, projet d’équipe 42.')+
+`<div style="display:flex;gap:12px;align-items:center"><a class="btn btn-q" href="#" style="padding:0">← Projets</a><span style="flex:1"></span><span class="vis">Public</span><span class="sm faint">${I('i-star','t3',12)} 2 · branche main · modifié il y a 3 sem.</span><button class="btn btn-q">${I('i-pin','',16)}Désépingler</button><button class="btn btn-s">${I('i-link','',16)}Ouvrir sur GitHub</button></div>`+
+tabs(['README','Code','Commits','Fiche projet'],tab);
+const side2=`<div class="col" style="width:300px;flex:none">
+ <section class="mod"><p class="mh">${I('i-code','car')}Langages</p><div class="langbar" style="height:8px">${[['TypeScript',71],['JavaScript',18],['CSS',11]].map(l=>`<b style="width:${l[1]}%;background:var(--${LC[l[0]]})"></b>`).join('')}</div>${[['TypeScript',71],['JavaScript',18],['CSS',11]].map(l=>`<div style="display:flex;gap:8px;align-items:center" class="sm">${ld(l[0])}<span class="f1">${l[0]}</span><span class="n faint">${l[1]} %</span></div>`).join('')}</section>
+ <section class="mod"><p class="mh">${I('i-car','car')}Compétences liées</p><div style="display:flex;gap:6px;flex-wrap:wrap">${['TypeScript','Node.js','SQL / PostgreSQL','Docker','Git'].map(t=>`<span class="tag">${t}</span>`).join('')}</div><span class="sm faint">Proposées depuis les langages et le README. Modifiables dans « Fiche projet ».</span></section>
+ <section class="mod"><p class="mh">${I('i-cv','t3')}Sur le CV</p><div style="display:flex;gap:10px;align-items:center"><span class="chk done">${I('i-check','',14)}</span><span class="f1">Mis en avant sur le CV</span></div><span class="sm faint">Utilisé par l’analyse et l’adaptation du CV pour chaque offre.</span></section></div>`;
+const readme=app('Projets', ptop(0)+`<div class="row" style="flex:1;min-height:0"><section class="mod md f1" style="overflow:hidden">
+<h1>ft_transcendence</h1><p>Plateforme web de blackjack multijoueur en temps réel, réalisée en équipe de 4 dans le cadre du tronc commun de l’École 42.</p>
+<h2>Fonctionnalités</h2><ul><li>Parties en temps réel via WebSocket, jusqu’à 6 joueurs par table</li><li>Authentification OAuth 42 et double authentification</li><li>Classement, historique des parties et profils</li></ul>
+<h2>Lancer le projet</h2><p><code>make up</code> démarre le front, l’API et PostgreSQL avec Docker Compose.</p>
+<h2>Stack</h2><p>TypeScript, Node.js, PostgreSQL, Docker, Nginx.</p></section>${side2}</div>`);
+const codeLines=[['<span class="k1">import</span> { WebSocketServer } <span class="k1">from</span> <span class="k2">\'ws\'</span>;'],[''],['<span class="k1">export function</span> <span class="k3">createTable</span>(id: <span class="k1">string</span>, maxPlayers = <span class="k3">6</span>) {'],['  <span class="k1">const</span> players = <span class="k1">new</span> Map&lt;<span class="k1">string</span>, Player&gt;();'],['  <span class="k1">const</span> deck = shuffle(buildDeck());'],[''],['  <span class="k4">// Deal two cards to every seated player, dealer last.</span>'],['  <span class="k1">function</span> <span class="k3">deal</span>() {'],['    <span class="k1">for</span> (<span class="k1">const</span> p <span class="k1">of</span> players.values()) p.hand.push(deck.pop()!, deck.pop()!);'],['  }'],[''],['  <span class="k1">return</span> { id, players, deal };'],['}']];
+const code=app('Projets', ptop(1)+`<div class="row" style="flex:1;min-height:0">
+<section class="mod" style="width:260px;flex:none;padding:10px 8px"><div class="sm faint" style="padding:0 8px 6px">main · 48 fichiers</div><div class="tree">
+<div>${I('i-folder','t3',14)}backend</div><div style="padding-left:24px">${I('i-folder','t3',14)}src</div><div style="padding-left:40px">${I('i-folder','t3',14)}game</div><div class="on" style="padding-left:56px">${I('i-file','t2',14)}table.ts</div><div style="padding-left:56px">${I('i-file','t3',14)}deck.ts</div><div style="padding-left:40px">${I('i-file','t3',14)}server.ts</div><div>${I('i-folder','t3',14)}frontend</div><div>${I('i-folder','t3',14)}nginx</div><div>${I('i-file','t3',14)}docker-compose.yml</div><div>${I('i-file','t3',14)}Makefile</div><div>${I('i-file','t3',14)}README.md</div></div></section>
+<section class="mod f1" style="min-height:0"><div style="display:flex;align-items:center;gap:8px"><span class="b">backend/src/game/table.ts</span><span class="sm faint">TypeScript · 13 lignes</span><span style="flex:1"></span><button class="btn btn-q">${I('i-copy','',16)}Copier</button><button class="btn btn-q">${I('i-link','',16)}Voir sur GitHub</button></div>
+<div class="code">${codeLines.map((l,i)=>`<div><i>${i+1}</i><span>${l[0]||' '}</span></div>`).join('')}</div></section></div>`);
+
 const S=[
+ {g:'Carrière · Compétence',l:'Roadmap + fiche notion',html:skillRoad,note:'Remplace les paliers : les notions une par une jusqu’au niveau 5. Cliquer une notion ouvre sa fiche mémo (syntaxe, exemple, pièges, tes notes).'},
+ {l:'Référence (ex. CSS)',html:skillRef,note:'Liste de référence du langage : propriétés CSS, balises HTML, méthodes JS, commandes Git… Chaque entrée a sa mini-fiche et une case « Je connais ».'},
+ {g:'Carrière · Projets',l:'Liste des projets',html:projets,note:'Dépôts GitHub listés automatiquement (publics et privés), épinglés en premier. Filtres Projets 42 / Perso selon les topics GitHub.'},
+ {l:'Projet · README',html:readme,note:'Le README est rendu tel que sur GitHub. À droite : langages, compétences liées, et la case « Mis en avant sur le CV ».'},
+ {l:'Projet · Code',html:code,note:'Navigation dans les fichiers du dépôt, en lecture seule, avec coloration syntaxique.'},
  {g:'Recherches pro',l:'Candidatures spontanées',html:spont,note:'Nouvel onglet de Recherches pro. Une ligne par site carrière où tu as envoyé une candidature spontanée.'},
  {g:'Mails',l:'Réponse de recruteur détectée',html:mailScreen(0,readerApp),note:'Le mail vient d\'une entreprise où tu as postulé : le bandeau propose de mettre à jour la candidature, tu valides en 1 clic.'},
  {l:'Newsletter + désabonnement',html:mailScreen(1,readerNews),note:'« Se désabonner » utilise l\'en-tête List-Unsubscribe du mail, puis propose d\'archiver les anciens.'},

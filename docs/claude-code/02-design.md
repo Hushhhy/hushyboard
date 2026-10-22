@@ -47,24 +47,24 @@ The Figma variables still have French names. Translate them as follows:
 - Cards have no border and no shadow, except the single focal card, which uses `surface-raised` and `shadow-raised`.
 - Skeletons are static, with no looping shimmer. Errors stay on screen until fixed and are never toasts. Every action can be undone, except deletion, which goes through the one confirmation modal.
 - Respect `prefers-reduced-motion` and `<html data-animations="off">`.
-- Icons are hand-made SVGs (20×20 viewBox, 1.6–1.7 stroke, `currentColor`) in `components/icons.tsx` using `createIcon`. New icons the v2 screens need: mail, label (tag), download, copy, external link, sparkle (AI), unsubscribe (mail with a slash). Their paths are in `mockups/screens-v2.html` (`<symbol id="i-mail">` etc.).
+- Icons are hand-made SVGs (20×20 viewBox, 1.6–1.7 stroke, `currentColor`) in `components/icons.tsx` using `createIcon`. New icons the v2 screens need: mail, label (tag), download, copy, external link, sparkle (AI), unsubscribe (mail with a slash), code, star, folder, file, pin, sync. Their paths are in `mockups/screens-v2.html` (`<symbol id="i-mail">` etc.).
 
 ## Where each screen is drawn
 
 **Figma file**: `https://www.figma.com/design/EdNtBzx0aA0SHVfKYuksZJ`, page « Écrans ». **Primary source = the PNG exports** in `docs/claude-code/mockups/figma/` (1280 px wide). Only use the Figma MCP if a detail is unreadable on a PNG: the Starter quota is tiny, so at most one `get_design_context` per frame.
 
-| Screen                                  | PNG (`mockups/figma/`)                   | Figma node | Notes                                                                                  |
-| --------------------------------------- | ---------------------------------------- | ---------- | -------------------------------------------------------------------------------------- |
-| Accueil                                 | `v1-home.png`                            | `4:2`      | Implemented. Keep the full-height grid.                                                |
-| Recherches pro · Candidatures           | `v1-job-search-applications.png`         | `11:101`   | v1, still valid                                                                        |
-| Recherches pro · Veille                 | `v1-job-search-watch.png`                | `13:169`   | v1 layout. Content is now full stack and the tabs include « Candidatures spontanées ». |
-| Recherches pro · Analyses               | `v1-job-search-analytics.png`            | `14:310`   | v1, the job-search statistics tab                                                      |
-| Carrière · Progression                  | `v1-career-progress.png`                 | `13:1062`  | v1. Nav label « Progression », route `/career/progress`                                |
-| Carrière · CV                           | `v1-career-resume.png`                   | `15:923`   | v1. Some card texts are clipped in Figma: fix that in code.                            |
-| Carrière · Certifications               | `v1-career-certifications.png`           | `15:1371`  | v1. Cards hug their content.                                                           |
-| **v2 · Carrière · Profil**              | `v2-career-profile.png`                  | `31:598`   | New skills grid, tools, objectives                                                     |
-| **v2 · Carrière · Profil · JavaScript** | `v2-career-profile-skill-javascript.png` | `32:715`   | Template for every skill sub-page                                                      |
-| **v2 · Recherches pro · Offre**         | `v2-job-search-offer.png`                | `33:789`   | CV analysis and cover letter                                                           |
+| Screen                                  | PNG (`mockups/figma/`)                   | Figma node | Notes                                                                                                                                      |
+| --------------------------------------- | ---------------------------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Accueil                                 | `v1-home.png`                            | `4:2`      | Implemented. Keep the full-height grid.                                                                                                    |
+| Recherches pro · Candidatures           | `v1-job-search-applications.png`         | `11:101`   | v1, still valid                                                                                                                            |
+| Recherches pro · Veille                 | `v1-job-search-watch.png`                | `13:169`   | v1 layout. Content is now full stack and the tabs include « Candidatures spontanées ».                                                     |
+| Recherches pro · Analyses               | `v1-job-search-analytics.png`            | `14:310`   | v1, the job-search statistics tab                                                                                                          |
+| Carrière · Progression                  | `v1-career-progress.png`                 | `13:1062`  | v1. Nav label « Progression », route `/career/progress`                                                                                    |
+| Carrière · CV                           | `v1-career-resume.png`                   | `15:923`   | v1. Some card texts are clipped in Figma: fix that in code.                                                                                |
+| Carrière · Certifications               | `v1-career-certifications.png`           | `15:1371`  | v1. Cards hug their content.                                                                                                               |
+| **v2 · Carrière · Profil**              | `v2-career-profile.png`                  | `31:598`   | New skills grid, tools, objectives                                                                                                         |
+| **v2 · Carrière · Profil · JavaScript** | `v2-career-profile-skill-javascript.png` | `32:715`   | **Superseded**: the skill page is now a roadmap + notion sheet + reference list (`screens-v2.html`). Keep only its header and level medal. |
+| **v2 · Recherches pro · Offre**         | `v2-job-search-offer.png`                | `33:789`   | CV analysis and cover letter                                                                                                               |
 
 In Figma, display-font titles (Bricolage Grotesque Bold) may look dark or struck through in exported images. That is a rendering artefact: titles are `text-fg-1`.
 
@@ -73,6 +73,6 @@ The v1 frames still show the old sidebar (with Comics and without Mails). The v2
 **HTML mockups** (open them in a browser, 1280 × 800 each):
 
 - `mockups/screens-v1.html`: Cours, Habitudes ×3, Jeux vidéo, Finances ×3, Connexion, Mentions légales, ⌘K palette, side panel, level-up, deletion modal, empty/error states. **Ignore Comics** (dropped) and update the sidebar to v2.
-- `mockups/screens-v2.html`: Candidatures spontanées, Mails (recruiter reply detected, newsletter and unsubscribe, label menu, new label dialog).
+- `mockups/screens-v2.html`: Compétence (roadmap + notion sheet, reference list), Projets (list, README, code), Candidatures spontanées, Mails (recruiter reply detected, newsletter and unsubscribe, label menu, new label dialog).
 
 **Component specs** (French, with old French class names that you must translate into English): `design/components.md`. It lists 22 components with states, tokens, accessibility and motion. Follow it for buttons, status pills, habit checkbox, rulers, bars, nav, tabs, month picker, level medal, trophies, cards, empty/skeleton/error states, undo feedback, reward toast, side panel, delete modal and ⌘K palette.

@@ -18,12 +18,23 @@ Claude Code s'arrête et te renvoie ici quand il a besoin de toi. Coche au fur e
 - [ ] Commit et push de ce dossier `docs/` et du fichier `CLAUDE.md`.
 - [ ] Lance Claude Code à la racine du projet et donne-lui le premier message de `07-premier-message.md`.
 
-## Phase 3 · Clé Gemini (gratuite)
+## Phase 2b · Jeton GitHub (projets)
+
+1. Sur GitHub, ouvre ta photo de profil, puis Settings, puis Developer settings. Choisis Personal access tokens, puis **Fine-grained tokens**, puis Generate new token.
+2. Remplis le formulaire ainsi :
+   - Nom : « Hushyboard projets ».
+   - Expiration : 1 an. Note la date dans ton agenda.
+   - Repository access : **All repositories**.
+   - Permissions (onglet Repositories) : **Contents : Read-only** et **Metadata : Read-only**. Rien d'autre.
+3. Copie le jeton (tu ne le reverras plus), puis ajoute `GITHUB_TOKEN=...` dans `.env` et sur Vercel (Production). Redéploie.
+4. Bon à savoir : ce jeton ne peut que lire tes dépôts. Pour un projet d'équipe hébergé sur le compte d'un camarade, utilise « Ajouter un dépôt » dans l'app, avec son URL. Ça marche si le dépôt est public.
+
+## Phase 2 · Clé Gemini (gratuite)
 
 1. Va sur https://aistudio.google.com, connecte-toi avec ton compte Google, puis ouvre « Get API key » et « Create API key ».
 2. Ajoute dans `.env` (local) : `GEMINI_API_KEY=...` et `GEMINI_MODEL=` (laisse la valeur que Claude Code te donne).
 3. Sur Vercel, ouvre Project et Settings, puis Environment Variables. Ajoute les deux mêmes variables pour l'environnement Production, puis redéploie.
-4. À savoir : avec l'offre gratuite, Google peut utiliser ce que tu envoies pour améliorer ses produits. Le dashboard n'envoie que ton CV, les offres et les mails de recruteurs, jamais tes finances.
+4. À savoir : avec l'offre gratuite, Google peut utiliser ce que tu envoies pour améliorer ses produits. Le dashboard n'envoie que des noms de notions et de propriétés (pour les fiches mémo), ton CV, les offres et les mails de recruteurs. Il n'envoie jamais tes finances.
 
 ## Phase 5 · Gmail
 
