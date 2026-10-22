@@ -80,6 +80,9 @@ export async function NotesView() {
                       <h3 className="text-label-12 text-fg-3 uppercase">
                         Module {moduleIndex + 1} · {courseModule.title}
                       </h3>
+                      {courseModule.items.length === 0 ? (
+                        <p className="px-2 text-caption-12 text-fg-3">Module vide.</p>
+                      ) : null}
                       <ul className="flex flex-col">
                         {courseModule.items.map((item) => {
                           const tone = KIND_TONES[item.kind];
