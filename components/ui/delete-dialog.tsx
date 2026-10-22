@@ -62,6 +62,10 @@ export function DeleteDialog({
         aria-labelledby={titleId}
         aria-describedby={descriptionId}
         onClose={() => setIsOpen(false)}
+        // Escape closes only the dialog, not a side panel that contains it.
+        onKeyDown={(event) => {
+          if (event.key === 'Escape') event.stopPropagation();
+        }}
         className="m-auto w-110 max-w-[calc(100vw-2rem)] animate-palette-in rounded-panel bg-surface-overlay p-6 text-fg-1 shadow-overlay backdrop:bg-scrim"
       >
         {isOpen ? (

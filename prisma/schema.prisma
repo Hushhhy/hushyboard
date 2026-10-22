@@ -8,8 +8,10 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client"
-  output   = "../generated/prisma"
+  provider            = "prisma-client"
+  output              = "../generated/prisma"
+  // Explicit .ts imports so Node can run scripts that use the client (prisma/seed.ts) without a build step.
+  importFileExtension = "ts"
 }
 
 model User {
@@ -46,6 +48,12 @@ model User {
 
   // Trophies (every domain, no XP)
   trophies TrophyUnlock[]
+
+  // Profile and skills
+  skills          Skill[]
+  tools           Tool[]
+  profileInfo     ProfileInfo?
+  timelineEntries TimelineEntry[]
 
   @@unique([email])
   @@map("user")
@@ -244,6 +252,7 @@ model Certification {
   credentialUrl String?
   costCents     Int?
   courses       Course[]
+  skills        Skill[]
   createdAt     DateTime            @default(now())
   updatedAt     DateTime            @updatedAt
 
@@ -267,6 +276,7 @@ model Course {
   completedAt     DateTime?
   nextDeadline    DateTime?
   notes           CourseNote[]
+  skills          Skill[]
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
@@ -519,4 +529,122 @@ model TrophyUnlock {
 
   @@unique([userId, trophyKey])
   @@map("trophy_unlocks")
+}
+
+// =============================================================================
+// PROFILE AND SKILLS
+// Skill levels are never stored: a level is the last tier whose notions are all
+// checked (see lib/skills.ts). SkillAssessment only keeps dated snapshots.
+// =============================================================================
+
+enum SkillCategory {
+  WEB_FRONT
+  BACKEND_DATA
+  DATA_ENGINEERING
+  SYSTEM_TOOLS
+}
+
+/// A language, framework or tool Alex learns, with 5 tiers of notions (5 = senior developer).
+model Skill {
+  id             String            @id @default(cuid())
+  userId         String
+  user           User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  slug           String
+  name           String
+  category       SkillCategory
+  position       Int               @default(0)
+  projects       String[] // free labels shown on the sub-page, e.g. "Transcendance"
+  tiers          SkillTier[]
+  assessments    SkillAssessment[]
+  courses        Course[]
+  certifications Certification[]
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@unique([userId, slug])
+  @@map("skills")
+}
+
+model SkillTier {
+  id      String        @id @default(cuid())
+  skillId String
+  skill   Skill         @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  level   Int // 1..5
+  title   String // "Tableaux, objets et DOM"
+  notions SkillNotion[]
+
+  @@unique([skillId, level])
+  @@map("skill_tiers")
+}
+
+/// A notion is "known" when checkedAt is set. The level is computed, never stored.
+model SkillNotion {
+  id        String    @id @default(cuid())
+  tierId    String
+  tier      SkillTier @relation(fields: [tierId], references: [id], onDelete: Cascade)
+  label     String
+  position  Int       @default(0)
+  checkedAt DateTime?
+
+  @@index([tierId, position])
+  @@map("skill_notions")
+}
+
+/// Snapshot saved after a guided re-evaluation, used for history charts.
+model SkillAssessment {
+  id         String   @id @default(cuid())
+  skillId    String
+  skill      Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  level      Int
+  started    Boolean
+  assessedAt DateTime @default(now())
+
+  @@index([skillId, assessedAt])
+  @@map("skill_assessments")
+}
+
+enum ToolStatus {
+  DISCOVERED
+  USING
+  MASTERED
+}
+
+model Tool {
+  id       String     @id @default(cuid())
+  userId   String
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name     String
+  status   ToolStatus @default(USING)
+  position Int        @default(0)
+
+  @@unique([userId, name])
+  @@map("tools")
+}
+
+model ProfileInfo {
+  userId        String  @id
+  user          User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  headline      String // "Étudiant à 42 Paris · acarpent"
+  targetRoles   String // "Full stack et/ou data engineer"
+  currentSearch String // "Full stack uniquement"
+  contracts     String
+  zone          String
+  availability  String
+  githubUrl     String?
+
+  @@map("profile_info")
+}
+
+model TimelineEntry {
+  id        String  @id @default(cuid())
+  userId    String
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  period    String // "2026 – en cours"
+  title     String
+  place     String?
+  isCurrent Boolean @default(false)
+  position  Int     @default(0)
+
+  @@index([userId, position])
+  @@map("timeline_entries")
 }

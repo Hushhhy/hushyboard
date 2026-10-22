@@ -1,19 +1,34 @@
 'use client';
 
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 export type TabItem = { href: string; label: string };
 
+type TabsProps = { label: string; items: TabItem[] };
+
 // Link tabs: one URL per tab (back button and sharing work, no ARIA tab pattern).
-// Client component: it needs the current URL to mark the active tab.
-export function Tabs({ label, items }: { label: string; items: TabItem[] }) {
+// Client component: it needs the current URL to mark the active tab. The URL read sits in
+// <Suspense> so dynamic routes keep a static shell (fallback = no active tab).
+export function Tabs(props: TabsProps) {
+  return (
+    <Suspense fallback={<TabsBody {...props} active={undefined} />}>
+      <ActiveTabs {...props} />
+    </Suspense>
+  );
+}
+
+function ActiveTabs(props: TabsProps) {
   const pathname = usePathname();
   // The longest matching href wins, so "/habits" is not active on "/habits/history".
-  const active = items
+  const active = props.items
     .filter((item) => pathname === item.href || pathname.startsWith(`${item.href}/`))
     .sort((a, b) => b.href.length - a.href.length)[0]?.href;
+  return <TabsBody {...props} active={active} />;
+}
 
+function TabsBody({ label, items, active }: TabsProps & { active: string | undefined }) {
   return (
     <nav aria-label={label} className="border-b border-line-subtle">
       <ul className="flex gap-1">

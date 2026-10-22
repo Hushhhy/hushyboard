@@ -30,7 +30,7 @@ export function UndoStatus({
   return (
     <div
       role="status"
-      className={`flex min-h-9 items-center gap-2 text-body-14 text-fg-2 ${className}`}
+      className={`flex items-center gap-2 text-body-14 text-fg-2 empty:absolute ${className}`}
     >
       {message ? (
         <>

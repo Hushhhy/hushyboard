@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { Suspense, type ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -14,10 +14,33 @@ type NavLinkProps = {
 };
 
 // Client component: it needs the current URL (usePathname) to know whether it is the active page.
-export function NavLink({ href, icon, label, iconColorClass = 'text-fg-3', count }: NavLinkProps) {
-  const pathname = usePathname();
-  const isActive = href === '/' ? pathname === '/' : pathname.startsWith(href);
+// Reading the URL on a dynamic route must sit in <Suspense>: the inactive link is the fallback,
+// so the sidebar still belongs to the static shell.
+export function NavLink(props: NavLinkProps) {
+  return (
+    <Suspense fallback={<NavLinkBody {...props} isActive={false} />}>
+      <ActiveNavLink {...props} />
+    </Suspense>
+  );
+}
 
+function ActiveNavLink(props: NavLinkProps) {
+  const pathname = usePathname();
+  const isActive =
+    props.href === '/'
+      ? pathname === '/'
+      : pathname === props.href || pathname.startsWith(`${props.href}/`);
+  return <NavLinkBody {...props} isActive={isActive} />;
+}
+
+function NavLinkBody({
+  href,
+  icon,
+  label,
+  iconColorClass = 'text-fg-3',
+  count,
+  isActive,
+}: NavLinkProps & { isActive: boolean }) {
   return (
     <Link
       href={href}

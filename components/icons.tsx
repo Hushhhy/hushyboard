@@ -100,6 +100,18 @@ export const PlusIcon = createIcon(<path d="M10 4.5v11M4.5 10h11" />);
 export const CloseIcon = createIcon(<path d="m5 5 10 10M15 5 5 15" />);
 export const ChevronLeftIcon = createIcon(<path d="M12 4.5 6.5 10l5.5 5.5" />);
 export const ChevronRightIcon = createIcon(<path d="M8 4.5 13.5 10 8 15.5" />);
+export const ChevronUpIcon = createIcon(<path d="M4.5 12 10 6.5l5.5 5.5" />);
+export const ChevronDownIcon = createIcon(<path d="M4.5 8 10 13.5 15.5 8" />);
+export const PencilIcon = createIcon(<path d="M12.8 4.2 15.8 7.2 7.5 15.5H4.5v-3zM11 6l3 3" />);
+export const SparkleIcon = createIcon(
+  <path d="M10 2.5l1.6 4.4 4.4 1.6-4.4 1.6L10 14.5l-1.6-4.4L4 8.5l4.4-1.6z" />
+);
+export const ToolsIcon = createIcon(
+  <>
+    <circle cx="10" cy="10" r="2.6" />
+    <path d="M10 2.8v2.4M10 14.8v2.4M2.8 10h2.4M14.8 10h2.4M4.9 4.9l1.7 1.7M13.4 13.4l1.7 1.7M4.9 15.1l1.7-1.7M13.4 6.6l1.7-1.7" />
+  </>
+);
 export const PauseIcon = createIcon(<path d="M7.5 5v10M12.5 5v10" />);
 export const LockIcon = createIcon(
   <>

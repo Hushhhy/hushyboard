@@ -4,6 +4,7 @@ import {
   formatMonth,
   formatMonthKey,
   formatMonthKeyName,
+  formatShortDate,
   isMonthKey,
   isoWeekdayInParis,
   monthKeyInParis,
@@ -109,5 +110,13 @@ describe('month keys', () => {
   it('formats in French', () => {
     expect(formatMonthKey('2026-10')).toBe('octobre 2026');
     expect(formatMonthKeyName('2026-09')).toBe('septembre');
+  });
+});
+
+describe('formatShortDate', () => {
+  it('formats a short French date in Paris time', () => {
+    expect(formatShortDate(new Date('2026-10-22T10:00:00Z'))).toBe('22 oct. 2026');
+    // 23:30 UTC on 31 Dec = 1 Jan in Paris.
+    expect(formatShortDate(new Date('2026-12-31T23:30:00Z'))).toBe('1 janv. 2027');
   });
 });
