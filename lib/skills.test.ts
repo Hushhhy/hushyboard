@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import catalog from '../docs/claude-code/data/skills-catalog.json';
 import {
+  codeLanguage,
   computeSkillLevel,
   describeReference,
   describeSkillLevel,
   formatSkillLevel,
   lowerFirst,
+  nextNotionId,
   nextObjectives,
   shouldStopAssessment,
   slugifySkillName,
@@ -157,12 +159,12 @@ describe('nextObjectives', () => {
         slug: 'javascript',
         name: 'JavaScript',
         notions: 'map, filter, reduce',
-        hint: 'termine le palier 2',
+        hint: 'termine le niveau 2',
       },
-      expect.objectContaining({ slug: 'git', hint: 'termine le palier 2' }),
-      expect.objectContaining({ slug: 'css', hint: 'palier 4' }),
-      expect.objectContaining({ slug: 'typescript', hint: 'palier 1' }),
-      expect.objectContaining({ slug: 'react', hint: 'palier 1' }),
+      expect.objectContaining({ slug: 'git', hint: 'termine le niveau 2' }),
+      expect.objectContaining({ slug: 'css', hint: 'niveau 4' }),
+      expect.objectContaining({ slug: 'typescript', hint: 'niveau 1' }),
+      expect.objectContaining({ slug: 'react', hint: 'niveau 1' }),
     ]);
   });
 
@@ -178,7 +180,7 @@ describe('nextObjectives', () => {
       'typescript',
       'react',
     ]);
-    expect(objectives.find((objective) => objective.slug === 'javascript')?.hint).toBe('palier 3');
+    expect(objectives.find((objective) => objective.slug === 'javascript')?.hint).toBe('niveau 3');
   });
 
   it('never lists a skill at level 5 or a level-0 skill outside the full-stack focus', () => {
@@ -210,5 +212,45 @@ describe('lowerFirst', () => {
     expect(lowerFirst('Écrire un test')).toBe('écrire un test');
     expect(lowerFirst('JSX')).toBe('JSX');
     expect(lowerFirst('map, filter, reduce')).toBe('map, filter, reduce');
+  });
+});
+
+describe('nextNotionId', () => {
+  it('is the first unknown notion of the lowest incomplete level', () => {
+    const tiers = [
+      { level: 2, notions: [{ id: 'b1', checked: false }] },
+      {
+        level: 1,
+        notions: [
+          { id: 'a1', checked: true },
+          { id: 'a2', checked: false },
+        ],
+      },
+    ];
+    expect(nextNotionId(tiers)).toBe('a2');
+  });
+
+  it('skips empty and complete levels, and is null when all is known', () => {
+    expect(
+      nextNotionId([
+        { level: 1, notions: [{ id: 'a1', checked: true }] },
+        { level: 2, notions: [] },
+        { level: 3, notions: [{ id: 'c1', checked: false }] },
+      ])
+    ).toBe('c1');
+    expect(nextNotionId([{ level: 1, notions: [{ id: 'a1', checked: true }] }])).toBeNull();
+  });
+});
+
+describe('codeLanguage', () => {
+  it('keeps the language given by the sheet, with shell aliases', () => {
+    expect(codeLanguage('JavaScript', 'css')).toBe('javascript');
+    expect(codeLanguage('bash', 'git')).toBe('shellscript');
+  });
+
+  it('falls back to the skill language, then plain text', () => {
+    expect(codeLanguage('', 'python')).toBe('python');
+    expect(codeLanguage('not a language!', 'react')).toBe('tsx');
+    expect(codeLanguage(undefined, 'unknown-skill')).toBe('text');
   });
 });

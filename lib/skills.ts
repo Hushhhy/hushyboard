@@ -69,18 +69,23 @@ export function describeSkillLevel(name: string, skill: SkillLevel): string {
 
 // Title on the « Référence » tab: "CSS · niveau 3, 103 propriétés connues sur 520".
 // The noun and its agreement depend on what the list holds.
-const REFERENCE_NOUNS: Record<string, { noun: string; known: string }> = {
-  css: { noun: 'propriétés', known: 'connues' },
-  html: { noun: 'éléments', known: 'connus' },
-  javascript: { noun: 'méthodes et objets', known: 'connus' },
-  git: { noun: 'commandes', known: 'connues' },
-  docker: { noun: 'commandes', known: 'connues' },
-  'linux-bash': { noun: 'commandes', known: 'connues' },
+const REFERENCE_NOUNS: Record<string, { noun: string; known: string; one: string }> = {
+  css: { noun: 'propriétés', known: 'connues', one: 'une propriété' },
+  html: { noun: 'éléments', known: 'connus', one: 'un élément' },
+  javascript: { noun: 'méthodes et objets', known: 'connus', one: 'une méthode' },
+  git: { noun: 'commandes', known: 'connues', one: 'une commande' },
+  docker: { noun: 'commandes', known: 'connues', one: 'une commande' },
+  'linux-bash': { noun: 'commandes', known: 'connues', one: 'une commande' },
 };
-const DEFAULT_NOUN = { noun: 'entrées', known: 'connues' };
+const DEFAULT_NOUN = { noun: 'entrées', known: 'connues', one: 'une entrée' };
 
 export function referenceNoun(slug: string): string {
   return (REFERENCE_NOUNS[slug] ?? DEFAULT_NOUN).noun;
+}
+
+// Placeholder of the search field: « Rechercher une propriété ».
+export function referenceSearchLabel(slug: string): string {
+  return `Rechercher ${(REFERENCE_NOUNS[slug] ?? DEFAULT_NOUN).one}`;
 }
 
 export function describeReference(
@@ -92,6 +97,50 @@ export function describeReference(
 ): string {
   const { noun, known: agreement } = REFERENCE_NOUNS[slug] ?? DEFAULT_NOUN;
   return `${name} · niveau ${level}, ${known} ${noun} ${agreement} sur ${total}`;
+}
+
+// The roadmap's « prochaine » notion: the first unknown one, in roadmap order
+// (that is, in the lowest incomplete level). Null when everything is known.
+export function nextNotionId(
+  tiers: { level: number; notions: { id: string; checked: boolean }[] }[]
+): string | null {
+  const ordered = [...tiers].sort((a, b) => a.level - b.level);
+  for (const tier of ordered) {
+    const notion = tier.notions.find((item) => !item.checked);
+    if (notion) return notion.id;
+  }
+  return null;
+}
+
+// Highlighting language of a skill's code, when a sheet does not give one (shiki ids).
+const SKILL_CODE_LANGUAGES: Record<string, string> = {
+  html: 'html',
+  css: 'css',
+  javascript: 'javascript',
+  typescript: 'typescript',
+  react: 'tsx',
+  nextjs: 'tsx',
+  tailwind: 'html',
+  sql: 'sql',
+  nodejs: 'javascript',
+  'php-symfony': 'php',
+  prisma: 'prisma',
+  python: 'python',
+  pandas: 'python',
+  c: 'c',
+  cpp: 'cpp',
+  git: 'shellscript',
+  docker: 'docker',
+  'linux-bash': 'shellscript',
+};
+
+export function codeLanguage(lang: string | undefined, skillSlug: string): string {
+  const given = lang?.trim().toLowerCase();
+  if (given && /^[a-z0-9+#-]+$/.test(given)) {
+    if (given === 'bash' || given === 'shell' || given === 'sh') return 'shellscript';
+    return given;
+  }
+  return SKILL_CODE_LANGUAGES[skillSlug] ?? 'text';
 }
 
 // Guided re-evaluation, level by level: it stops after the first level with 2 « Non » or more.
@@ -137,7 +186,7 @@ export type Objective = {
   name: string;
   // "map, filter, reduce"
   notions: string;
-  // "termine le palier 2" when the tier is started, else "palier 4".
+  // "termine le niveau 2" when the tier is started, else "niveau 4".
   hint: string;
 };
 
@@ -170,8 +219,8 @@ export function nextObjectives(skills: ObjectiveSkill[], limit = 5): Objective[]
     name: skill.name,
     notions: computed.remaining.slice(0, NOTIONS_PER_OBJECTIVE).map(lowerFirst).join(', '),
     hint: computed.started
-      ? `termine le palier ${computed.currentTier!.level}`
-      : `palier ${computed.currentTier!.level}`,
+      ? `termine le niveau ${computed.currentTier!.level}`
+      : `niveau ${computed.currentTier!.level}`,
   }));
 }
 

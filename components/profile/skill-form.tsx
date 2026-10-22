@@ -34,8 +34,8 @@ export function SkillForm() {
         error={state.fieldErrors?.category}
       />
       <p className="text-caption-12 text-fg-3">
-        La compétence est créée avec 5 paliers vides. Tu ajoutes ensuite les notions de chaque
-        palier.
+        La compétence est créée avec une roadmap vide de 5 niveaux. Tu la génères avec l’IA ou tu la
+        remplis à la main.
       </p>
       <div className="mt-2">
         <Button type="submit" onOverlay pending={isPending}>

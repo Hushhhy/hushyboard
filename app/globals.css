@@ -420,6 +420,16 @@
     color: var(--color-fg-3);
     user-select: none;
   }
+  /* Short snippets (notion sheets, reference): no line numbers. */
+  .code-snippet {
+    border-radius: var(--radius-control);
+  }
+  .code-snippet pre {
+    padding: --spacing(3) --spacing(4);
+  }
+  .code-snippet .line::before {
+    content: none;
+  }
   /* README: GitHub wraps badges and logos in centered paragraphs. */
   .readme [align='center'] {
     text-align: center;

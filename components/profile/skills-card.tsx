@@ -36,7 +36,7 @@ export function SkillsCard({ skills }: { skills: SkillSummary[] }) {
       {skills.length === 0 ? (
         <EmptyState
           title="Aucune compétence suivie."
-          description="Ajoute un langage ou un outil, puis découpe-le en 5 paliers de notions."
+          description="Ajoute un langage ou un outil, puis découpe-le en une roadmap de 5 niveaux."
         />
       ) : (
         <div className="grid gap-x-6 gap-y-4 md:grid-cols-2">
@@ -56,8 +56,8 @@ export function SkillsCard({ skills }: { skills: SkillSummary[] }) {
 
       <p className="flex items-start gap-2 rounded-control bg-surface-sunken p-3 text-caption-12 text-fg-2">
         <SparkleIcon className="mt-px size-4 shrink-0 text-career" />
-        Le niveau = dernier palier dont toutes les notions sont cochées. Un cran pâle et le « + »
-        indiquent un palier commencé.
+        Le niveau = dernier niveau dont toutes les notions de la roadmap sont cochées. Un cran pâle
+        et le « + » indiquent un niveau commencé.
       </p>
 
       <Link
@@ -116,7 +116,7 @@ function SkillRow({ skill }: { skill: SkillSummary }) {
         <span aria-hidden="true">{value}</span>
         <span className="sr-only">
           , niveau {level} sur {MAX_SKILL_LEVEL}
-          {started ? ', palier suivant commencé' : ''}
+          {started ? ', niveau suivant commencé' : ''}
         </span>
       </span>
       <ChevronRightIcon className="size-4 text-fg-3" />

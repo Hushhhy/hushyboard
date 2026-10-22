@@ -10,7 +10,10 @@ import {
 const tiersInclude = {
   tiers: {
     orderBy: { level: 'asc' },
-    include: { notions: { orderBy: { position: 'asc' } } },
+    // Light: sheets and notes are read only for the selected notion.
+    include: {
+      notions: { orderBy: { position: 'asc' }, select: { id: true, label: true, checkedAt: true } },
+    },
   },
 } as const;
 
@@ -103,17 +106,75 @@ export async function getSkillPageData(userId: string, slug: string) {
   });
   if (!skill) return null;
 
-  const allCourses = await prisma.course.findMany({
-    where: { userId },
-    select: { id: true, title: true, provider: true },
-    orderBy: { title: 'asc' },
-  });
+  // Header counts of the « Référence » tab (deprecated entries are not counted).
+  const listed = { skillId: skill.id, hidden: false, isDeprecated: false };
+  const [allCourses, referenceTotal, referenceKnown] = await Promise.all([
+    prisma.course.findMany({
+      where: { userId },
+      select: { id: true, title: true, provider: true },
+      orderBy: { title: 'asc' },
+    }),
+    prisma.referenceEntry.count({ where: listed }),
+    prisma.referenceEntry.count({ where: { ...listed, knownAt: { not: null } } }),
+  ]);
 
   return {
     skill,
     computed: computeSkillLevel(toTierInputs(skill.tiers)),
     allCourses,
+    reference: { total: referenceTotal, known: referenceKnown },
   };
 }
 
 export type SkillPageData = NonNullable<Awaited<ReturnType<typeof getSkillPageData>>>;
+
+// The sheet of one notion of a skill already loaded for the user.
+export function getNotionSheetData(skillId: string, notionId: string) {
+  return prisma.skillNotion.findFirst({
+    where: { id: notionId, tier: { skillId } },
+    select: {
+      id: true,
+      sheet: true,
+      sheetGeneratedAt: true,
+      sheetEditedAt: true,
+      notes: true,
+      references: {
+        where: { hidden: false },
+        select: { id: true, name: true },
+        orderBy: { name: 'asc' },
+      },
+    },
+  });
+}
+
+// Rows of the « Référence » list (details are read only for the selected entry).
+export function getReferenceRows(skillId: string) {
+  return prisma.referenceEntry.findMany({
+    where: { skillId, hidden: false },
+    select: {
+      id: true,
+      name: true,
+      kind: true,
+      group: true,
+      summary: true,
+      isCommon: true,
+      isDeprecated: true,
+      knownAt: true,
+      favorite: true,
+      source: true,
+    },
+    orderBy: { name: 'asc' },
+  });
+}
+
+export function getReferenceEntry(skillId: string, entryId: string) {
+  return prisma.referenceEntry.findFirst({
+    where: { id: entryId, skillId, hidden: false },
+    include: {
+      notions: {
+        select: { id: true, label: true, tier: { select: { level: true } } },
+        orderBy: { label: 'asc' },
+      },
+    },
+  });
+}

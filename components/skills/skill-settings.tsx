@@ -17,7 +17,7 @@ export function SkillSettings({ skillId, skillName }: { skillId: string; skillNa
       </p>
       <DeleteDialog
         title={`Supprimer la compétence ${skillName} ?`}
-        description="Ses 5 paliers, ses notions cochées et son historique d'évaluations seront supprimés."
+        description="Sa roadmap, ses notions cochées, sa référence et son historique d'évaluations seront supprimés."
         triggerLabel="Supprimer la compétence"
         onConfirm={deleteSkill.bind(null, skillId)}
       />

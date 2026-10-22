@@ -14,6 +14,9 @@ import {
   JS_COMMON,
   jsObjectGroup,
 } from './mdn-groups';
+import { isMdnSkill, MDN_SKILLS, type MdnSkill } from './mdn-skills';
+
+export { isMdnSkill, MDN_SKILLS, type MdnSkill };
 
 // Reference lists of the web skills, built from MDN's open data (@mdn/browser-compat-data, CC0).
 // Server-only: the data set is large. No AI call here (summaries come with the entry details).
@@ -39,13 +42,6 @@ const subFeatures = (feature: Feature) =>
 
 // Standard features only: non-standard ones are browser-specific curiosities.
 const isStandard = (compat: Compat | undefined) => compat?.status?.standard_track === true;
-
-export const MDN_SKILLS = ['html', 'css', 'javascript'] as const;
-export type MdnSkill = (typeof MDN_SKILLS)[number];
-
-export function isMdnSkill(slug: string): slug is MdnSkill {
-  return (MDN_SKILLS as readonly string[]).includes(slug);
-}
 
 function entry(
   name: string,

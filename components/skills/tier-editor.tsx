@@ -2,20 +2,38 @@
 
 import { useId, useState, useTransition } from 'react';
 import { saveTier } from '@/app/(app)/career/profile/actions';
+import { moveNotionToLevel } from '@/app/(app)/career/profile/skill-actions';
 import { ChevronDownIcon, ChevronUpIcon, CloseIcon, PlusIcon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { ErrorState } from '@/components/ui/error-state';
-import type { TierView } from './tiers-card';
+import type { TierView } from './tier-view';
 
 type DraftNotion = { key: string; id: string | null; label: string };
 
-// Edit one tier: title, and the list of notions (rename, add, remove, reorder).
-// Removing a notion also removes its check, so the change is saved only on "Enregistrer".
-export function TierEditor({ tier }: { tier: TierView }) {
+const toDrafts = (tier: TierView): DraftNotion[] =>
+  tier.notions.map((notion) => ({ key: notion.id, id: notion.id, label: notion.label }));
+
+// Edit one level milestone: title, and the list of notions (rename, add, remove, reorder,
+// move to another level). Removing a notion also removes its check, so the change is saved
+// only on "Enregistrer". Moving is saved at once, so it needs no unsaved change in the level.
+export function TierEditor({ tier, levels }: { tier: TierView; levels: number[] }) {
   const [title, setTitle] = useState(tier.title);
-  const [notions, setNotions] = useState<DraftNotion[]>(() =>
-    tier.notions.map((notion) => ({ key: notion.id, id: notion.id, label: notion.label }))
-  );
+  const [notions, setNotions] = useState<DraftNotion[]>(() => toDrafts(tier));
+  // The saved level changed (saved, or a notion moved in or out): start again from it.
+  const savedKey = `${tier.title}|${tier.notions.map((n) => `${n.id}:${n.label}`).join(',')}`;
+  const [syncedKey, setSyncedKey] = useState(savedKey);
+  if (savedKey !== syncedKey) {
+    setSyncedKey(savedKey);
+    setTitle(tier.title);
+    setNotions(toDrafts(tier));
+  }
+  const dirty =
+    title !== tier.title ||
+    notions.length !== tier.notions.length ||
+    notions.some(
+      (notion, index) =>
+        notion.id !== tier.notions[index].id || notion.label !== tier.notions[index].label
+    );
   const [newLabel, setNewLabel] = useState('');
   const [status, setStatus] = useState<{ error?: string; saved?: boolean }>({});
   const [isPending, startTransition] = useTransition();
@@ -41,6 +59,13 @@ export function TierEditor({ tier }: { tier: TierView }) {
     setNewLabel('');
   }
 
+  function moveTo(notionId: string, level: number) {
+    startTransition(async () => {
+      const result = await moveNotionToLevel(notionId, level);
+      setStatus(result.error ? { error: result.error } : {});
+    });
+  }
+
   function save() {
     startTransition(async () => {
       const result = await saveTier(tier.id, {
@@ -53,12 +78,12 @@ export function TierEditor({ tier }: { tier: TierView }) {
 
   return (
     <section
-      aria-label={`Palier ${tier.level}`}
+      aria-label={`Niveau ${tier.level}`}
       className="flex flex-col gap-2 rounded-control bg-surface-base p-3"
     >
       <div className="flex items-center gap-2">
         <label htmlFor={`${baseId}-title`} className="shrink-0 text-body-14 font-semibold">
-          Palier {tier.level} ·
+          Niveau {tier.level} ·
         </label>
         <input
           id={`${baseId}-title`}
@@ -105,6 +130,22 @@ export function TierEditor({ tier }: { tier: TierView }) {
             >
               <ChevronDownIcon className="size-4" />
             </Button>
+            {notion.id ? (
+              <select
+                aria-label={`Niveau de « ${notion.label} »`}
+                title={dirty ? 'Enregistre d’abord ce niveau pour déplacer une notion.' : undefined}
+                value={tier.level}
+                disabled={dirty || isPending}
+                onChange={(event) => moveTo(notion.id!, Number(event.target.value))}
+                className="h-8 rounded-control border border-line-subtle bg-surface-sunken px-1.5 text-caption-12 disabled:opacity-55"
+              >
+                {levels.map((level) => (
+                  <option key={level} value={level}>
+                    Niv. {level}
+                  </option>
+                ))}
+              </select>
+            ) : null}
             <Button
               variant="icon"
               aria-label={`Retirer « ${notion.label} »`}
@@ -124,7 +165,7 @@ export function TierEditor({ tier }: { tier: TierView }) {
         }}
       >
         <label htmlFor={`${baseId}-new`} className="sr-only">
-          Nouvelle notion du palier {tier.level}
+          Nouvelle notion du niveau {tier.level}
         </label>
         <input
           id={`${baseId}-new`}
@@ -142,10 +183,10 @@ export function TierEditor({ tier }: { tier: TierView }) {
       {status.error ? <ErrorState title={status.error} announce /> : null}
       <div className="flex items-center gap-3">
         <Button small pending={isPending} onClick={save}>
-          Enregistrer le palier
+          Enregistrer le niveau
         </Button>
         <span role="status" className="text-caption-12 text-fg-2">
-          {status.saved ? `Palier ${tier.level} enregistré.` : ''}
+          {status.saved ? `Niveau ${tier.level} enregistré.` : ''}
         </span>
       </div>
     </section>

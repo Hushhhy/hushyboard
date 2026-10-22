@@ -215,27 +215,54 @@ export async function importMdnReference(skillId: string): Promise<ActionResult>
 
   const entries = buildMdnEntries(skill.slug);
   const existing = await prisma.referenceEntry.findMany({
-    where: { skillId: skill.id, source: 'MDN' },
-    select: { id: true, kind: true, name: true },
+    where: { skillId: skill.id },
+    select: {
+      id: true,
+      kind: true,
+      name: true,
+      source: true,
+      group: true,
+      docUrl: true,
+      isDeprecated: true,
+      isCommon: true,
+    },
   });
-  const wanted = new Set(entries.map((entry) => `${entry.kind}:${entry.name}`));
+  const key = (entry: { kind: string; name: string }) => `${entry.kind}:${entry.name}`;
+  const byKey = new Map(existing.map((entry) => [key(entry), entry]));
+  const wanted = new Set(entries.map(key));
+  // Hundreds of rows: one bulk insert, then only the rows whose MDN data changed.
+  // `hidden` is never reset, so an entry Alex hid stays hidden.
+  const changed = entries.filter((entry) => {
+    const current = byKey.get(key(entry));
+    return (
+      current?.source === 'MDN' &&
+      (current.group !== entry.group ||
+        current.docUrl !== entry.docUrl ||
+        current.isDeprecated !== entry.isDeprecated ||
+        current.isCommon !== entry.isCommon)
+    );
+  });
 
   await prisma.$transaction(
     async (tx) => {
-      for (const entry of entries) {
-        await tx.referenceEntry.upsert({
-          where: { skillId_kind_name: { skillId: skill.id, kind: entry.kind, name: entry.name } },
-          create: { skillId: skill.id, source: 'MDN', ...entry },
-          update: {
+      await tx.referenceEntry.createMany({
+        data: entries
+          .filter((entry) => !byKey.has(key(entry)))
+          .map((entry) => ({ skillId: skill.id, source: 'MDN' as const, ...entry })),
+        skipDuplicates: true,
+      });
+      for (const entry of changed) {
+        await tx.referenceEntry.update({
+          where: { id: byKey.get(key(entry))!.id },
+          data: {
             group: entry.group,
             docUrl: entry.docUrl,
             isDeprecated: entry.isDeprecated,
             isCommon: entry.isCommon,
-            hidden: false,
           },
         });
       }
-      const removed = existing.filter((entry) => !wanted.has(`${entry.kind}:${entry.name}`));
+      const removed = existing.filter((entry) => entry.source === 'MDN' && !wanted.has(key(entry)));
       if (removed.length > 0) {
         await tx.referenceEntry.updateMany({
           where: { id: { in: removed.map((entry) => entry.id) } },
@@ -254,6 +281,11 @@ export async function importMdnReference(skillId: string): Promise<ActionResult>
 export async function generateReferenceList(skillId: string): Promise<ActionResult> {
   const user = await requireUser();
   const skill = await ownedSkill(user.id, skillId);
+  // Created once (it costs a Gemini call); afterwards Alex adds, hides or deletes entries.
+  const generated = await prisma.referenceEntry.count({
+    where: { skillId: skill.id, source: 'AI' },
+  });
+  if (generated > 0) return { error: 'La référence a déjà été générée.' };
   try {
     const answer = await generateJson(
       user.id,
@@ -261,16 +293,18 @@ export async function generateReferenceList(skillId: string): Promise<ActionResu
       referenceListPrompt(skill.name),
       referenceListAnswerSchema
     );
-    await prisma.$transaction(async (tx) => {
-      for (const entry of answer.entries) {
-        await tx.referenceEntry.upsert({
-          where: { skillId_kind_name: { skillId: skill.id, kind: entry.kind, name: entry.name } },
-          create: { skillId: skill.id, source: 'AI', ...entry },
-          update: { group: entry.group, isCommon: entry.isCommon, hidden: false },
-        });
-      }
-      await tx.skill.update({ where: { id: skill.id }, data: { referenceSyncedAt: new Date() } });
-    });
+    await prisma.$transaction([
+      // Duplicates in the answer, or entries Alex already added by hand, are skipped.
+      prisma.referenceEntry.createMany({
+        data: answer.entries.map((entry) => ({
+          skillId: skill.id,
+          source: 'AI' as const,
+          ...entry,
+        })),
+        skipDuplicates: true,
+      }),
+      prisma.skill.update({ where: { id: skill.id }, data: { referenceSyncedAt: new Date() } }),
+    ]);
   } catch (error) {
     return { error: aiMessage(error) };
   }
@@ -367,7 +401,7 @@ const manualEntrySchema = z.object({
 export async function addReferenceEntry(
   skillId: string,
   input: { name: string; kind: string; group: string; summary: string }
-): Promise<ActionResult> {
+): Promise<ActionResult & { id?: string }> {
   const user = await requireUser();
   const skill = await ownedSkill(user.id, skillId);
   const parsed = manualEntrySchema.safeParse(input);
@@ -378,7 +412,7 @@ export async function addReferenceEntry(
     },
   });
   if (existing) return { error: 'Cette entrée existe déjà.' };
-  await prisma.referenceEntry.create({
+  const created = await prisma.referenceEntry.create({
     data: {
       skillId: skill.id,
       source: 'MANUAL',
@@ -387,13 +421,25 @@ export async function addReferenceEntry(
     },
   });
   revalidateSkills();
-  return {};
+  return { id: created.id };
 }
 
 export async function deleteReferenceEntry(entryId: string): Promise<ActionResult> {
   const user = await requireUser();
   const entry = await ownedEntry(user.id, entryId);
   await prisma.referenceEntry.delete({ where: { id: entry.id } });
+  revalidateSkills();
+  return {};
+}
+
+// « Réafficher » the entries Alex hid (and those MDN no longer lists).
+export async function unhideReferenceEntries(skillId: string): Promise<ActionResult> {
+  const user = await requireUser();
+  const skill = await ownedSkill(user.id, skillId);
+  await prisma.referenceEntry.updateMany({
+    where: { skillId: skill.id, hidden: true },
+    data: { hidden: false },
+  });
   revalidateSkills();
   return {};
 }
