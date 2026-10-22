@@ -57,7 +57,7 @@ export async function CoursePage({
       title: item.title,
       done: item.completedAt !== null,
       score: item.score,
-      notes: item.notes.map(withHtml),
+      noteCount: item._count.notes,
     })),
   }));
 

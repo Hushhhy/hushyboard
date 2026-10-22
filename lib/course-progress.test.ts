@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { XP_REWARDS } from './xp';
-import { computeProgress, isQuizPassed, nextItem, QUIZ_PASS_SCORE } from './course-progress';
+import {
+  adjacentItems,
+  computeProgress,
+  isQuizPassed,
+  nextItem,
+  QUIZ_PASS_SCORE,
+} from './course-progress';
 
 const done = { completedAt: new Date('2026-10-20T10:00:00Z') };
 const todo = { completedAt: null };
@@ -59,5 +65,22 @@ describe('XP table', () => {
   it('rewards a passed quiz and a finished solo project', () => {
     expect(XP_REWARDS.QUIZ_PASSED).toBe(10);
     expect(XP_REWARDS.SOLO_PROJECT_COMPLETED).toBe(30);
+  });
+});
+
+describe('adjacentItems', () => {
+  const modules = [{ items: [{ id: 'a' }, { id: 'b' }] }, { items: [] }, { items: [{ id: 'c' }] }];
+
+  it('crosses module boundaries, skipping empty modules', () => {
+    expect(adjacentItems(modules, 'b')).toEqual({ previous: { id: 'a' }, next: { id: 'c' } });
+  });
+
+  it('has no previous at the start and no next at the end', () => {
+    expect(adjacentItems(modules, 'a').previous).toBeNull();
+    expect(adjacentItems(modules, 'c').next).toBeNull();
+  });
+
+  it('returns nothing for an unknown item', () => {
+    expect(adjacentItems(modules, 'z')).toEqual({ previous: null, next: null });
   });
 });

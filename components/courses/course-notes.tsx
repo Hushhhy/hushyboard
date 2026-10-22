@@ -6,7 +6,6 @@ import {
   deleteCourseNote,
   updateCourseNote,
 } from '@/app/(app)/career/courses/actions';
-import { PlusIcon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { DeleteDialog } from '@/components/ui/delete-dialog';
 import { ErrorState } from '@/components/ui/error-state';
@@ -85,31 +84,30 @@ function NoteForm({
 
 // Notes oldest first like a notebook, then the editor for the next one.
 // itemId = notes of one part, quiz or solo project; null = general notes of the course.
-// compact = inside the course plan: the editor stays folded behind "Ajouter une note".
 export function CourseNotes({
   courseId,
   itemId = null,
   notes,
-  compact = false,
 }: {
   courseId: string;
   itemId?: string | null;
   notes: RenderedNote[];
-  compact?: boolean;
 }) {
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [isAdding, setIsAdding] = useState(!compact);
   const headingId = useId();
 
   return (
     <div className="flex flex-col gap-3">
-      {notes.length === 0 && !compact ? (
+      {notes.length === 0 ? (
         <p className="text-body-14 text-fg-2">Aucune note. Écris la première ci-dessous.</p>
-      ) : null}
-      {notes.length > 0 ? (
+      ) : (
         <ul className="flex flex-col divide-y divide-line-subtle">
           {notes.map((note) => (
-            <li key={note.id} className="flex flex-col gap-2 py-3 first:pt-0">
+            <li
+              key={note.id}
+              id={`note-${note.id}`}
+              className="flex flex-col gap-2 py-3 first:pt-0"
+            >
               {editingId === note.id ? (
                 <NoteForm
                   courseId={courseId}
@@ -121,11 +119,7 @@ export function CourseNotes({
               ) : (
                 <>
                   <div className="flex items-baseline gap-2">
-                    <h3
-                      className={`flex-1 ${compact ? 'text-body-16 font-semibold' : 'text-title-18'}`}
-                    >
-                      {note.title}
-                    </h3>
+                    <h3 className="flex-1 text-title-18">{note.title}</h3>
                     <span className="text-caption-12 text-fg-3">
                       {formatShortDate(note.updatedAt)}
                     </span>
@@ -146,37 +140,17 @@ export function CourseNotes({
             </li>
           ))}
         </ul>
-      ) : null}
-
-      {isAdding ? (
-        <section
-          aria-labelledby={headingId}
-          className={`flex flex-col gap-2 ${notes.length > 0 || !compact ? 'border-t border-line-subtle pt-3' : ''}`}
-        >
-          <h2 id={headingId} className="text-label-12 text-fg-3 uppercase">
-            Nouvelle note
-          </h2>
-          <NoteForm
-            courseId={courseId}
-            itemId={itemId}
-            note={null}
-            onDone={() => {
-              if (compact) setIsAdding(false);
-            }}
-            onCancel={compact ? () => setIsAdding(false) : undefined}
-          />
-        </section>
-      ) : (
-        <Button
-          variant="quiet"
-          small
-          className="-ml-2 self-start"
-          onClick={() => setIsAdding(true)}
-        >
-          <PlusIcon className="size-4" />
-          Ajouter une note
-        </Button>
       )}
+
+      <section
+        aria-labelledby={headingId}
+        className={`flex flex-col gap-2 ${notes.length > 0 ? 'border-t border-line-subtle pt-3' : ''}`}
+      >
+        <h2 id={headingId} className="text-label-12 text-fg-3 uppercase">
+          Nouvelle note
+        </h2>
+        <NoteForm courseId={courseId} itemId={itemId} note={null} onDone={() => {}} />
+      </section>
     </div>
   );
 }

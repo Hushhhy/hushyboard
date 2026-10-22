@@ -89,16 +89,63 @@ export async function getCourseCounts(userId: string) {
   };
 }
 
-export async function getCourseNotes(userId: string) {
-  return prisma.courseNote.findMany({
-    where: { course: { userId } },
-    include: {
-      course: { select: { id: true, title: true, status: true } },
-      item: { select: { title: true, kind: true } },
+// "Notes" tab: every course with its plan, as a table of contents with note counts.
+export async function getNotesIndex(userId: string) {
+  return prisma.course.findMany({
+    where: { userId },
+    orderBy: [{ status: 'desc' }, { updatedAt: 'desc' }],
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      _count: { select: { notes: { where: { itemId: null } } } },
+      modules: {
+        orderBy: { position: 'asc' },
+        select: {
+          id: true,
+          title: true,
+          items: {
+            orderBy: { position: 'asc' },
+            select: {
+              id: true,
+              title: true,
+              kind: true,
+              completedAt: true,
+              notes: { orderBy: { createdAt: 'asc' }, select: { id: true, title: true } },
+            },
+          },
+        },
+      },
     },
-    // Chronological: the newest note comes last, like a notebook.
-    orderBy: { createdAt: 'asc' },
   });
+}
+
+// One part, quiz or solo project with its notes, plus the course plan for the navigation.
+export async function getCourseItemPage(userId: string, courseId: string, itemId: string) {
+  const course = await prisma.course.findFirst({
+    where: { id: courseId, userId },
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      modules: {
+        orderBy: { position: 'asc' },
+        select: {
+          id: true,
+          title: true,
+          items: { orderBy: { position: 'asc' }, select: { id: true, title: true, kind: true } },
+        },
+      },
+    },
+  });
+  if (!course) return null;
+  const item = await prisma.courseItem.findFirst({
+    where: { id: itemId, module: { courseId: course.id } },
+    include: { notes: { orderBy: { createdAt: 'asc' } } },
+  });
+  if (!item) return null;
+  const moduleIndex = course.modules.findIndex((courseModule) => courseModule.id === item.moduleId);
+  return { course, item, moduleIndex, module: course.modules[moduleIndex] };
 }
 
 // One course with its plan (modules, items and their notes) and its general notes.
@@ -113,7 +160,7 @@ export async function getCourseWithNotes(userId: string, courseId: string) {
         include: {
           items: {
             orderBy: { position: 'asc' },
-            include: { notes: { orderBy: { createdAt: 'asc' } } },
+            include: { _count: { select: { notes: true } } },
           },
         },
       },

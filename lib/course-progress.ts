@@ -33,3 +33,18 @@ export function nextItem<T extends ProgressItem>(modules: { items: T[] }[]): T |
   }
   return null;
 }
+
+// Previous and next items around one item, across modules, in plan order ("Précédent / Suivant").
+export function adjacentItems<T extends { id: string }>(
+  modules: { items: T[] }[],
+  itemId: string
+): { previous: T | null; next: T | null } {
+  const flat = modules.flatMap((courseModule) => courseModule.items);
+  const index = flat.findIndex((item) => item.id === itemId);
+  if (index === -1) return { previous: null, next: null };
+  return { previous: flat[index - 1] ?? null, next: flat[index + 1] ?? null };
+}
+
+// Page of one part, quiz or solo project (with its notes).
+export const itemPath = (courseId: string, itemId: string) =>
+  `/career/courses/${courseId}/parts/${itemId}`;
