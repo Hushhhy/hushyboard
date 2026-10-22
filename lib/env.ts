@@ -10,6 +10,10 @@ const envSchema = z.object({
   GITHUB_CLIENT_SECRET: z.string().min(1),
   // Numeric id of the only GitHub account allowed to sign in.
   ALLOWED_GITHUB_ID: z.string().regex(/^\d+$/),
+  // Google AI Studio key (free tier). Content sent on the free tier may be used by Google.
+  GEMINI_API_KEY: z.string().min(20),
+  // A free-tier Flash model, see https://ai.google.dev/gemini-api/docs/models
+  GEMINI_MODEL: z.string().min(1).default('gemini-3.8-flash'),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 });
 
