@@ -15,6 +15,8 @@ type RulerProps = {
   // Index of the segment drawn pale because it is started but not complete.
   partialIndex?: number;
   size?: 'large' | 'small';
+  // Inside a link or row that already says the value in text: hidden from assistive tech.
+  decorative?: boolean;
   className?: string;
 };
 
@@ -30,18 +32,23 @@ export function Ruler({
   partialColorClass = 'bg-career-deep',
   partialIndex,
   size = 'large',
+  decorative = false,
   className = '',
 }: RulerProps) {
   const fills = segmentFills(value, max, segments);
 
   return (
     <div
-      role="progressbar"
-      aria-label={label}
-      aria-valuemin={0}
-      aria-valuemax={max}
-      aria-valuenow={value}
-      aria-valuetext={valueText ?? `${value} sur ${max}`}
+      {...(decorative
+        ? { 'aria-hidden': true }
+        : {
+            role: 'progressbar',
+            'aria-label': label,
+            'aria-valuemin': 0,
+            'aria-valuemax': max,
+            'aria-valuenow': value,
+            'aria-valuetext': valueText ?? `${value} sur ${max}`,
+          })}
       className={`flex ${size === 'large' ? 'h-2.5 gap-1' : 'h-1.5 gap-0.5'} ${className}`}
     >
       {fills.map((fill, index) => (

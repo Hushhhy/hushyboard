@@ -1,7 +1,7 @@
 import type { ComponentProps, ReactNode } from 'react';
 
 // Dot colors for a chip status (tools: discovered / using / mastered…).
-export type ChipTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger';
+export type ChipTone = 'neutral' | 'info' | 'success' | 'warning' | 'danger' | 'career';
 
 const DOT_CLASSES: Record<ChipTone, string> = {
   neutral: 'bg-fg-3',
@@ -9,6 +9,7 @@ const DOT_CLASSES: Record<ChipTone, string> = {
   success: 'bg-success',
   warning: 'bg-warning',
   danger: 'bg-danger',
+  career: 'bg-career',
 };
 
 type ChipProps = Omit<ComponentProps<'button'>, 'children'> & {
