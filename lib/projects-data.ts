@@ -28,6 +28,7 @@ const projectSelect = {
   hidden: true,
   featuredOnCv: true,
   skills: { select: { id: true, name: true, slug: true }, orderBy: { position: 'asc' } },
+  courses: { select: { id: true, title: true }, orderBy: { title: 'asc' } },
 } as const;
 
 type ProjectRow = Awaited<ReturnType<typeof findProjects>>[number];

@@ -40,9 +40,11 @@ function Toggle({
 export function DetailsForm({
   project,
   skills,
+  courses,
 }: {
   project: ProjectItem;
   skills: { id: string; name: string }[];
+  courses: { id: string; title: string }[];
 }) {
   const [state, formAction, isPending] = useActionState(
     saveProjectDetails.bind(null, project.id),
@@ -80,6 +82,28 @@ export function DetailsForm({
         ) : null}
       </div>
       <SkillCheckboxes skills={skills} selected={project.skills.map((skill) => skill.id)} />
+      {courses.length > 0 ? (
+        <fieldset className="flex flex-col gap-1.5">
+          <legend className="mb-1 text-body-14 font-medium">Cours liés</legend>
+          <div className="flex flex-wrap gap-1.5">
+            {courses.map((course) => (
+              <label
+                key={course.id}
+                className="flex items-center gap-1.5 rounded-control bg-surface-raised px-2 py-1 text-caption-12 has-checked:bg-surface-control has-checked:text-fg-1"
+              >
+                <input
+                  type="checkbox"
+                  name="courseIds"
+                  value={course.id}
+                  defaultChecked={project.courses.some((linked) => linked.id === course.id)}
+                  className="size-3.5 accent-career"
+                />
+                {course.title}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      ) : null}
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-body-14 font-medium">Affichage</legend>
         <Toggle

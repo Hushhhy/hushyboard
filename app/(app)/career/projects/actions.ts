@@ -105,6 +105,11 @@ export async function saveProjectDetails(
     where: { id: { in: skillIds }, userId: user.id },
     select: { id: true },
   });
+  const courseIds = formData.getAll('courseIds').map(String);
+  const courses = await prisma.course.findMany({
+    where: { id: { in: courseIds }, userId: user.id },
+    select: { id: true },
+  });
   await prisma.project.update({
     where: { id: project.id },
     data: {
@@ -114,9 +119,11 @@ export async function saveProjectDetails(
       pinned: formData.get('pinned') === 'on',
       hidden: formData.get('hidden') === 'on',
       skills: { set: skills },
+      courses: { set: courses },
     },
   });
   revalidateProjects();
+  revalidatePath('/career/courses', 'layout');
   return { done: Date.now() };
 }
 

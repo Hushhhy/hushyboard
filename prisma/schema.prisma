@@ -290,6 +290,7 @@ model Course {
   notes           CourseNote[]
   modules         CourseModule[]
   skills          Skill[]
+  projects        Project[] // GitHub repos done for this course (solo projects, exercises)
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 
@@ -763,6 +764,7 @@ model Project {
   hidden            Boolean         @default(false)
   featuredOnCv      Boolean         @default(false)
   skills            Skill[]
+  courses           Course[]
   timelineEntries   TimelineEntry[]
 
   @@unique([userId, githubId])

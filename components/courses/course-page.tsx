@@ -2,19 +2,22 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import type { CourseStatus } from '@/generated/prisma/client';
 import { PageHeader } from '@/components/app-shell/page-header';
-import { ChevronLeftIcon, PencilIcon } from '@/components/icons';
+import { ChevronLeftIcon, CodeIcon, PencilIcon, PlusIcon } from '@/components/icons';
+import { SidePanel } from '@/components/ui/side-panel';
 import { buttonClasses } from '@/components/ui/button';
 import { Tag, type ChipTone } from '@/components/ui/chip';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Ruler } from '@/components/ui/ruler';
 import { LoadingRegion, Skeleton } from '@/components/ui/skeleton';
 import { formatShortDate } from '@/lib/dates';
-import { COURSE_STATUS_LABELS, getCourseWithNotes } from '@/lib/learning-data';
+import { projectSlug } from '@/lib/github/helpers';
+import { COURSE_STATUS_LABELS, getCourseWithNotes, getProjectOptions } from '@/lib/learning-data';
 import { renderMarkdown } from '@/lib/markdown';
 import { requireUser } from '@/lib/session';
 import { CourseNotes } from './course-notes';
 import { CoursePlan, type PlanModule } from './course-plan';
 import { ModuleEditor } from './module-editor';
+import { ProjectLinkForm } from './project-link-form';
 
 const STATUS_TONES: Record<CourseStatus, ChipTone> = {
   PLANNED: 'neutral',
@@ -34,8 +37,12 @@ export async function CoursePage({
   searchParams,
 }: Pick<PageProps<'/career/courses/[courseId]'>, 'params' | 'searchParams'>) {
   const [{ courseId }, { edit }, user] = await Promise.all([params, searchParams, requireUser()]);
-  const course = await getCourseWithNotes(user.id, courseId);
+  const [course, projectOptions] = await Promise.all([
+    getCourseWithNotes(user.id, courseId),
+    getProjectOptions(user.id),
+  ]);
   if (!course) notFound();
+  const linkedIds = course.projects.map((project) => project.id);
 
   const isEditing = edit === '1';
   const pagePath = `/career/courses/${course.id}`;
@@ -110,6 +117,63 @@ export async function CoursePage({
           </p>
         ) : null}
       </section>
+
+      <section
+        aria-labelledby="course-projects-title"
+        className="flex flex-col gap-2 rounded-card bg-surface-default p-4"
+      >
+        <div className="flex items-center gap-2">
+          <h2
+            id="course-projects-title"
+            className="flex flex-1 items-center gap-2 text-label-12 text-fg-3 uppercase"
+          >
+            <CodeIcon className="size-4" />
+            Projets liés · {course.projects.length}
+          </h2>
+          <Link
+            href={`${pagePath}?panel=link-projects`}
+            scroll={false}
+            className={buttonClasses({ variant: 'quiet' })}
+          >
+            <PlusIcon className="size-4" />
+            Lier un projet
+          </Link>
+        </div>
+        {course.projects.length > 0 ? (
+          <ul className="flex flex-wrap gap-2">
+            {course.projects.map((project) => (
+              <li key={project.id}>
+                <Link
+                  href={`/career/projects/${projectSlug(project)}`}
+                  className="inline-flex h-8 items-center gap-1.5 rounded-control bg-surface-raised px-2.5 text-body-14 font-medium hover:bg-surface-overlay"
+                >
+                  <CodeIcon className="size-3.5 text-fg-2" />
+                  {project.name}
+                  {project.isPrivate ? (
+                    <span className="text-caption-12 text-fg-3">privé</span>
+                  ) : null}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="text-body-14 text-fg-2">
+            Aucun dépôt GitHub lié. Lie le dépôt de tes solo projects ou de tes exercices.
+          </p>
+        )}
+      </section>
+
+      <SidePanel name="link-projects" title={`Projets liés à « ${course.title} »`}>
+        <ProjectLinkForm
+          courseId={course.id}
+          projects={projectOptions.filter(
+            (project) =>
+              linkedIds.includes(project.id) ||
+              !(project.hidden || project.isFork || project.isArchived)
+          )}
+          linkedIds={linkedIds}
+        />
+      </SidePanel>
 
       <section
         aria-labelledby="plan-title"
