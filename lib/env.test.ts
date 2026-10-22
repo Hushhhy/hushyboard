@@ -24,8 +24,17 @@ describe('parseEnv', () => {
     expect(() => parseEnv({ ...valid, BETTER_AUTH_SECRET: 'short' })).not.toThrow(/short/);
   });
 
-  it('defaults the Gemini model to a free-tier Flash model', () => {
-    expect(parseEnv(valid).GEMINI_MODEL).toBe('gemini-3.8-flash');
+  it('defaults the Gemini models to free-tier Flash and Flash Lite', () => {
+    expect(parseEnv(valid).GEMINI_MODEL).toEqual(['gemini-3.8-flash', 'gemini-3.6-flash']);
+    expect(parseEnv(valid).GEMINI_MODEL_LITE).toEqual([
+      'gemini-3.5-flash-lite',
+      'gemini-3.1-flash-lite',
+    ]);
+  });
+
+  it('reads a comma-separated list of models', () => {
+    expect(parseEnv({ ...valid, GEMINI_MODEL: ' a , b,, ' }).GEMINI_MODEL).toEqual(['a', 'b']);
+    expect(() => parseEnv({ ...valid, GEMINI_MODEL_LITE: ' , ' })).toThrow(/GEMINI_MODEL_LITE/);
   });
 
   it('rejects a non-numeric GitHub id', () => {
