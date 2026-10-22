@@ -58,6 +58,9 @@ model User {
   // AI usage log (free-tier quota follow-up)
   aiUsage AiUsage[]
 
+  // GitHub projects
+  projects Project[]
+
   @@unique([email])
   @@map("user")
 }
@@ -602,7 +605,8 @@ model Skill {
   name           String
   category       SkillCategory
   position       Int               @default(0)
-  projects       String[] // free labels shown on the sub-page, e.g. "Transcendance"
+  projectLabels  String[]          @map("projects") // legacy free labels (phase 2), replaced by the Project relation
+  projects       Project[]
   tiers          SkillTier[]
   assessments    SkillAssessment[]
   courses        Course[]
@@ -685,14 +689,16 @@ model ProfileInfo {
 }
 
 model TimelineEntry {
-  id        String  @id @default(cuid())
+  id        String   @id @default(cuid())
   userId    String
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   period    String // "2026 – en cours"
   title     String
   place     String?
-  isCurrent Boolean @default(false)
-  position  Int     @default(0)
+  isCurrent Boolean  @default(false)
+  position  Int      @default(0)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
 
   @@index([userId, position])
   @@map("timeline_entries")
@@ -715,4 +721,51 @@ model AiUsage {
 
   @@index([userId, createdAt])
   @@map("ai_usage")
+}
+
+// =============================================================================
+// GITHUB PROJECTS
+// A snapshot of each repository, refreshed on sync, plus Alex's own annotations.
+// Code, READMEs and commits are always read live from GitHub and never stored.
+// =============================================================================
+
+enum ProjectCategory {
+  SCHOOL_42
+  PERSONAL
+  TEAM
+}
+
+model Project {
+  id                String          @id @default(cuid())
+  userId            String
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  githubId          BigInt // repository id from the GitHub API
+  fullName          String // "Hushhhy/hushyboard"
+  name              String
+  description       String?
+  url               String
+  homepage          String?
+  defaultBranch     String
+  isPrivate         Boolean
+  isFork            Boolean         @default(false)
+  isArchived        Boolean         @default(false)
+  isExternal        Boolean         @default(false) // public repo of someone else, added by URL
+  topics            String[]
+  languages         Json // [{ "name": "TypeScript", "percent": 82.1 }], sorted, in percent
+  stars             Int             @default(0)
+  pushedAt          DateTime?
+  deletedOnGithubAt DateTime?
+  syncedAt          DateTime
+  // Alex's annotations, never overwritten by a sync
+  category          ProjectCategory @default(PERSONAL)
+  role              String? // "Mon rôle et ce que j'ai fait"
+  pinned            Boolean         @default(false)
+  hidden            Boolean         @default(false)
+  featuredOnCv      Boolean         @default(false)
+  skills            Skill[]
+  timelineEntries   TimelineEntry[]
+
+  @@unique([userId, githubId])
+  @@index([userId, pinned, pushedAt])
+  @@map("projects")
 }
