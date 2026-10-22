@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { parseDateInput } from '@/lib/dates';
 import { parseEurosToCents } from '@/lib/finance';
 import { fieldErrors, formValues, type FormState } from '@/lib/forms';
+import { fetchPreviewImage } from '@/lib/link-preview';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/session';
 import { grantXp, revokeXp } from '@/lib/xp-events';
@@ -29,6 +30,10 @@ const certificationSchema = z.object({
   plannedFor: z.string(),
   obtainedAt: z.string(),
   credentialUrl: z.union([z.literal(''), z.url('Saisis une adresse complète (https://…).')]),
+  imageUrl: z.union([
+    z.literal(''),
+    z.url({ protocol: /^https$/, error: 'Saisis l’adresse https de l’image.' }),
+  ]),
   cost: z
     .string()
     .trim()
@@ -63,6 +68,10 @@ export async function saveCertification(_: FormState, formData: FormData): Promi
     select: { id: true },
   });
 
+  // Picture of the certificate or badge: pasted by Alex, or read from the credential page.
+  const imageUrl =
+    data.imageUrl || (data.credentialUrl ? await fetchPreviewImage(data.credentialUrl) : null);
+
   const fields = {
     name: data.name,
     issuer: data.issuer,
@@ -71,6 +80,7 @@ export async function saveCertification(_: FormState, formData: FormData): Promi
     plannedFor,
     obtainedAt,
     credentialUrl: data.credentialUrl || null,
+    imageUrl,
     costCents,
   };
 

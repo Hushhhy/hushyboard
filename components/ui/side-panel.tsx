@@ -14,6 +14,8 @@ type SidePanelProps = {
   children: ReactNode;
   // Buttons at the bottom of the panel.
   footer?: ReactNode;
+  // 640px instead of 400px, for long reading (course notes with code and tables).
+  wide?: boolean;
 };
 
 // Non-modal detail panel: no scrim, no focus trap, the page behind stays usable.
@@ -27,7 +29,7 @@ export function SidePanel(props: SidePanelProps) {
   );
 }
 
-function SidePanelContent({ name, title, subtitle, children, footer }: SidePanelProps) {
+function SidePanelContent({ name, title, subtitle, children, footer, wide }: SidePanelProps) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const router = useRouter();
@@ -66,7 +68,7 @@ function SidePanelContent({ name, title, subtitle, children, footer }: SidePanel
     <aside
       aria-labelledby={titleId}
       onKeyDown={handleKeyDown}
-      className="fixed inset-y-3 right-3 z-30 flex w-100 max-w-[calc(100vw-1.5rem)] animate-panel-in flex-col gap-4 overflow-y-auto rounded-panel bg-surface-overlay p-4 shadow-overlay"
+      className={`fixed inset-y-3 right-3 z-30 flex ${wide ? 'w-160' : 'w-100'} max-w-[calc(100vw-1.5rem)] animate-panel-in flex-col gap-4 overflow-y-auto rounded-panel bg-surface-overlay p-4 shadow-overlay`}
     >
       <header className="flex items-start gap-3">
         <div className="min-w-0 flex-1">

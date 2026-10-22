@@ -105,6 +105,31 @@ export function CertificationForm({
           error={state.fieldErrors?.credentialUrl}
         />
       </div>
+      <TextField
+        name="imageUrl"
+        label="Image du certificat ou du badge (facultatif)"
+        placeholder="https://images.credly.com/…png"
+        hint="Vide : l’image est lue depuis le lien du certificat, quand le site en publie une. Vide ce champ pour la relire."
+        defaultValue={value('imageUrl', certification?.imageUrl ?? '')}
+        error={state.fieldErrors?.imageUrl}
+      />
+      {certification?.imageUrl ? (
+        <figure className="flex flex-col gap-1">
+          {/* External image of an unknown host: next/image would need each domain configured. */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={certification.imageUrl}
+            alt={`Certificat ou badge « ${certification.name} »`}
+            referrerPolicy="no-referrer"
+            className="max-h-60 w-full rounded-control bg-surface-sunken object-contain"
+          />
+          <figcaption className="text-caption-12 text-fg-3">Image actuelle</figcaption>
+        </figure>
+      ) : certification?.credentialUrl ? (
+        <p className="text-caption-12 text-fg-2">
+          Aucune image trouvée sur ce lien. Colle l’adresse de l’image du badge ci-dessus.
+        </p>
+      ) : null}
       <SkillCheckboxes
         skills={skills}
         selected={certification?.skills.map((skill) => skill.id) ?? []}

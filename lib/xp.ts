@@ -8,6 +8,8 @@ export const XP_REWARDS: Record<XpReason, number> = {
   COURSE_COMPLETED: 60,
   CERTIFICATION_OBTAINED: 200,
   OFFER_RECEIVED: 300,
+  QUIZ_PASSED: 10, // only when the score is at least QUIZ_PASS_SCORE (validated on 22/10/2026)
+  SOLO_PROJECT_COMPLETED: 30,
 };
 
 // Daily cap, applied to applications only (5 qualified applications per day).

@@ -11,11 +11,12 @@ import { Button, buttonClasses } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Ruler } from '@/components/ui/ruler';
 import { UndoStatus } from '@/components/ui/undo-status';
+import { COURSE_ITEM_LABELS } from '@/lib/course-progress';
 import { formatShortDate } from '@/lib/dates';
-import type { CourseItem } from '@/lib/learning-data';
+import type { CourseListEntry } from '@/lib/learning-data';
 
 // "IBM Data Engineering · cours 4 / 13 · Coursera"
-function courseContext(course: CourseItem): string {
+function courseContext(course: CourseListEntry): string {
   const parts: string[] = [];
   if (course.certification) {
     parts.push(course.certification.name);
@@ -28,7 +29,7 @@ function courseContext(course: CourseItem): string {
   return parts.join(' · ');
 }
 
-type StatusChange = (course: CourseItem, status: CourseStatus, message: string) => void;
+type StatusChange = (course: CourseListEntry, status: CourseStatus, message: string) => void;
 
 // List of course cards. The "Annuler" line lives here, not in a card: a completed course
 // leaves the "En cours" tab, and its undo must stay available.
@@ -37,7 +38,7 @@ export function CourseList({
   basePath,
   empty,
 }: {
-  courses: CourseItem[];
+  courses: CourseListEntry[];
   basePath: string;
   empty: { title: string; description: string };
 }) {
@@ -93,7 +94,7 @@ function CourseCard({
   isPending,
   onStatus,
 }: {
-  course: CourseItem;
+  course: CourseListEntry;
   basePath: string;
   isPending: boolean;
   onStatus: StatusChange;
@@ -111,7 +112,12 @@ function CourseCard({
         <CourseIcon className="mt-0.5 size-4.5 shrink-0 text-career" />
         <div className="min-w-0 flex-1">
           <h2 id={titleId} className="text-title-18">
-            {course.title}
+            <Link
+              href={`/career/courses/${course.id}`}
+              className="hover:underline hover:decoration-line-strong hover:underline-offset-3"
+            >
+              {course.title}
+            </Link>
           </h2>
           <p className="text-caption-12 text-fg-2">{courseContext(course)}</p>
         </div>
@@ -153,10 +159,10 @@ function CourseCard({
       </div>
 
       <Ruler
-        value={course.progress}
+        value={course.progress.percent}
         max={100}
         label={`Avancement de « ${course.title} »`}
-        valueText={`${course.progress} %`}
+        valueText={`${course.progress.percent} %, ${course.progress.done} éléments faits sur ${course.progress.total}`}
         colorClass="bg-career"
         size="small"
       />
@@ -165,10 +171,15 @@ function CourseCard({
         <span className="tabular">
           {isCompleted && course.completedAt
             ? `Terminé le ${formatShortDate(course.completedAt)}`
-            : course.status === 'PLANNED'
-              ? 'Pas encore commencé'
-              : `${course.progress} %`}
+            : course.progress.total === 0
+              ? 'Plan à remplir'
+              : `${course.progress.percent} % · ${course.progress.done} / ${course.progress.total} éléments`}
         </span>
+        {course.next && !isCompleted ? (
+          <span>
+            Ensuite : {COURSE_ITEM_LABELS[course.next.kind]} · {course.next.title}
+          </span>
+        ) : null}
         {course.nextDeadline && !isCompleted ? (
           <span>Échéance · {formatShortDate(course.nextDeadline)}</span>
         ) : null}
@@ -176,8 +187,7 @@ function CourseCard({
           <span className="text-fg-3">{course.skills.map((skill) => skill.name).join(', ')}</span>
         ) : null}
         <Link
-          href={`${basePath}?panel=notes-${course.id}`}
-          scroll={false}
+          href={`/career/courses/${course.id}`}
           className="ml-auto underline decoration-line-strong underline-offset-3 hover:text-fg-1"
         >
           Notes ({course._count.notes})

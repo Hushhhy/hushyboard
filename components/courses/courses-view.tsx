@@ -8,17 +8,15 @@ import { DeleteDialog } from '@/components/ui/delete-dialog';
 import { SidePanel } from '@/components/ui/side-panel';
 import { LoadingRegion, Skeleton } from '@/components/ui/skeleton';
 import { Tabs } from '@/components/ui/tabs';
-import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/session';
 import {
   getCourseCounts,
   getCourses,
   getLearningOptions,
-  type CourseItem,
+  type CourseListEntry,
 } from '@/lib/learning-data';
 import { CourseList } from './course-card';
 import { CourseForm } from './course-form';
-import { CourseNotes } from './course-notes';
 
 export const COURSE_TABS = [
   { href: '/career/courses', label: 'En cours' },
@@ -67,23 +65,17 @@ export function CoursesHeader({
   );
 }
 
-// Edit and notes panels of the listed courses, plus the "new course" panel.
+// Edit panels of the listed courses, plus the "new course" panel.
 export async function CoursePanels({
   userId,
   courses,
   basePath,
 }: {
   userId: string;
-  courses: CourseItem[];
+  courses: CourseListEntry[];
   basePath: string;
 }) {
-  const [options, notes] = await Promise.all([
-    getLearningOptions(userId),
-    prisma.courseNote.findMany({
-      where: { courseId: { in: courses.map((course) => course.id) } },
-      orderBy: { createdAt: 'desc' },
-    }),
-  ]);
+  const options = await getLearningOptions(userId);
   return (
     <>
       <SidePanel name="course-new" title="Ajouter un cours">
@@ -99,18 +91,6 @@ export async function CoursePanels({
               onConfirm={deleteCourse.bind(null, course.id)}
             />
           </div>
-        </SidePanel>
-      ))}
-      {courses.map((course) => (
-        <SidePanel
-          key={`notes-${course.id}`}
-          name={`notes-${course.id}`}
-          title={`Notes · ${course.title}`}
-        >
-          <CourseNotes
-            courseId={course.id}
-            notes={notes.filter((note) => note.courseId === course.id)}
-          />
         </SidePanel>
       ))}
     </>

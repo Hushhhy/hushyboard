@@ -180,6 +180,17 @@ function CertificationCard({
       scroll={false}
       className="flex flex-col gap-3 rounded-card bg-surface-default p-4 transition-colors duration-(--duration-tick) hover:bg-surface-raised"
     >
+      {certification.imageUrl ? (
+        // External image of an unknown host: next/image would need each domain configured.
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={certification.imageUrl}
+          alt={`Certificat ou badge « ${certification.name} »`}
+          referrerPolicy="no-referrer"
+          loading="lazy"
+          className="aspect-[16/10] w-full rounded-control bg-surface-sunken object-contain"
+        />
+      ) : null}
       <div className="flex items-center justify-between gap-2">
         <span
           aria-hidden="true"
