@@ -161,6 +161,8 @@ enum XpReason {
   COURSE_COMPLETED
   CERTIFICATION_OBTAINED
   OFFER_RECEIVED
+  QUIZ_PASSED // score >= 70 %
+  SOLO_PROJECT_COMPLETED
 }
 
 /// A version of the CV (e.g. "Data Engineer, FR"). The PDF itself is stored later (phase 3).
@@ -275,7 +277,7 @@ model Course {
   title           String
   provider        String
   status          CourseStatus   @default(PLANNED)
-  progress        Int            @default(0) // percentage, 0 to 100
+  progress        Int            @default(0) // legacy manual %, no longer used: progress is computed from items
   position        Int? // order inside the certification path
   certificationId String?
   certification   Certification? @relation(fields: [certificationId], references: [id], onDelete: SetNull)
@@ -283,6 +285,7 @@ model Course {
   completedAt     DateTime?
   nextDeadline    DateTime?
   notes           CourseNote[]
+  modules         CourseModule[]
   skills          Skill[]
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
@@ -292,16 +295,55 @@ model Course {
 }
 
 model CourseNote {
-  id        String   @id @default(cuid())
+  id        String      @id @default(cuid())
   courseId  String
-  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  course    Course      @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  // The part, quiz or solo project the note is about; null = general note of the course.
+  itemId    String?
+  item      CourseItem? @relation(fields: [itemId], references: [id], onDelete: SetNull)
   title     String
   content   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 
   @@index([courseId])
   @@map("course_notes")
+}
+
+/// A module of a course ("Module 2 · SQL"), ordered inside the course.
+model CourseModule {
+  id       String       @id @default(cuid())
+  courseId String
+  course   Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  title    String
+  position Int          @default(0)
+  items    CourseItem[]
+
+  @@index([courseId, position])
+  @@map("course_modules")
+}
+
+enum CourseItemKind {
+  PART
+  QUIZ
+  SOLO_PROJECT
+}
+
+/// One thing to do inside a module: a part (lesson), a quiz or a solo project.
+/// The course progress is computed from these (done / total), never stored.
+model CourseItem {
+  id          String         @id @default(cuid())
+  moduleId    String
+  module      CourseModule   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  kind        CourseItemKind @default(PART)
+  title       String
+  position    Int            @default(0)
+  completedAt DateTime?
+  score       Int? // quiz only, 0 to 100
+  notes       CourseNote[]
+
+  @@index([moduleId, position])
+  @@map("course_items")
 }
 
 /// One XP gain. We store every gain instead of a total, so nothing is ever counted twice
