@@ -13,7 +13,7 @@ import {
   getCourseCounts,
   getCourses,
   getLearningOptions,
-  type CourseItem,
+  type CourseListEntry,
 } from '@/lib/learning-data';
 import { CourseList } from './course-card';
 import { CourseForm } from './course-form';
@@ -72,7 +72,7 @@ export async function CoursePanels({
   basePath,
 }: {
   userId: string;
-  courses: CourseItem[];
+  courses: CourseListEntry[];
   basePath: string;
 }) {
   const options = await getLearningOptions(userId);

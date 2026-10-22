@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { EmptyState } from '@/components/ui/empty-state';
 import { formatShortDate } from '@/lib/dates';
 import { getCourseCounts, getCourseNotes } from '@/lib/learning-data';
+import { COURSE_ITEM_LABELS } from '@/lib/course-progress';
 import { renderMarkdown } from '@/lib/markdown';
 import { requireUser } from '@/lib/session';
 import { CoursesHeader } from './courses-view';
@@ -42,7 +43,14 @@ export async function NotesView() {
               {group.notes.map((note) => (
                 <li key={note.id} className="flex flex-col gap-1 py-3">
                   <div className="flex items-baseline gap-2">
-                    <h3 className="flex-1 font-semibold">{note.title}</h3>
+                    <h3 className="flex-1 font-semibold">
+                      {note.title}
+                      {note.item ? (
+                        <span className="ml-2 text-caption-12 font-normal text-fg-3">
+                          {COURSE_ITEM_LABELS[note.item.kind]} · {note.item.title}
+                        </span>
+                      ) : null}
+                    </h3>
                     <span className="text-caption-12 text-fg-3">
                       {formatShortDate(note.updatedAt)}
                     </span>

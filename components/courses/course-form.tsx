@@ -8,7 +8,7 @@ import { ErrorState } from '@/components/ui/error-state';
 import { SelectField, TextField } from '@/components/ui/text-field';
 import { toDateInputValue } from '@/lib/dates';
 import { EMPTY_FORM_STATE } from '@/lib/forms';
-import type { CourseItem } from '@/lib/learning-data';
+import type { CourseListEntry } from '@/lib/learning-data';
 import { SkillCheckboxes, type Option } from './skill-checkboxes';
 
 const STATUS_OPTIONS = [
@@ -23,7 +23,7 @@ export function CourseForm({
   skills,
   closeHref,
 }: {
-  course: CourseItem | null;
+  course: CourseListEntry | null;
   certifications: Option[];
   skills: Option[];
   closeHref: string;
@@ -50,22 +50,17 @@ export function CourseForm({
         defaultValue={value('provider', course?.provider ?? '')}
         error={state.fieldErrors?.provider}
       />
-      <div className="grid grid-cols-2 gap-3">
-        <SelectField
-          name="status"
-          label="Statut"
-          options={STATUS_OPTIONS}
-          defaultValue={value('status', course?.status ?? 'IN_PROGRESS')}
-          error={state.fieldErrors?.status}
-        />
-        <TextField
-          name="progress"
-          label="Avancement (%)"
-          inputMode="numeric"
-          defaultValue={value('progress', String(course?.progress ?? 0))}
-          error={state.fieldErrors?.progress}
-        />
-      </div>
+      <SelectField
+        name="status"
+        label="Statut"
+        options={STATUS_OPTIONS}
+        defaultValue={value('status', course?.status ?? 'IN_PROGRESS')}
+        error={state.fieldErrors?.status}
+      />
+      <p className="text-caption-12 text-fg-3">
+        L’avancement se calcule à partir des parties, quiz et solo projects cochés : ajoute les
+        modules depuis la page du cours.
+      </p>
       <SelectField
         name="certificationId"
         label="Parcours de certification"

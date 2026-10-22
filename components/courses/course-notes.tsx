@@ -1,11 +1,12 @@
 'use client';
 
-import { useActionState, useEffect, useRef, useState } from 'react';
+import { useActionState, useEffect, useId, useRef, useState } from 'react';
 import {
   addCourseNote,
   deleteCourseNote,
   updateCourseNote,
 } from '@/app/(app)/career/courses/actions';
+import { PlusIcon } from '@/components/icons';
 import { Button } from '@/components/ui/button';
 import { DeleteDialog } from '@/components/ui/delete-dialog';
 import { ErrorState } from '@/components/ui/error-state';
@@ -26,12 +27,16 @@ export type RenderedNote = {
 
 function NoteForm({
   courseId,
+  itemId,
   note,
   onDone,
+  onCancel,
 }: {
   courseId: string;
+  itemId: string | null;
   note: RenderedNote | null;
   onDone: () => void;
+  onCancel?: () => void;
 }) {
   const action = note ? updateCourseNote.bind(null, note.id) : addCourseNote.bind(null, courseId);
   const [state, formAction, isPending] = useActionState(action, EMPTY_FORM_STATE);
@@ -50,6 +55,7 @@ function NoteForm({
   return (
     <form key={formKey} action={formAction} className="flex flex-col gap-2" noValidate>
       {state.error ? <ErrorState title={state.error} announce /> : null}
+      {itemId ? <input type="hidden" name="itemId" value={itemId} /> : null}
       <TextField
         name="title"
         label="Titre de la note"
@@ -67,8 +73,8 @@ function NoteForm({
         <Button type="submit" small pending={isPending}>
           {note ? 'Enregistrer la note' : 'Ajouter la note'}
         </Button>
-        {note ? (
-          <Button variant="quiet" small onClick={onDone}>
+        {onCancel ? (
+          <Button variant="quiet" small onClick={onCancel}>
             Annuler
           </Button>
         ) : null}
@@ -77,26 +83,49 @@ function NoteForm({
   );
 }
 
-// Notes of one course, oldest first like a notebook, then the editor for the next one.
-export function CourseNotes({ courseId, notes }: { courseId: string; notes: RenderedNote[] }) {
+// Notes oldest first like a notebook, then the editor for the next one.
+// itemId = notes of one part, quiz or solo project; null = general notes of the course.
+// compact = inside the course plan: the editor stays folded behind "Ajouter une note".
+export function CourseNotes({
+  courseId,
+  itemId = null,
+  notes,
+  compact = false,
+}: {
+  courseId: string;
+  itemId?: string | null;
+  notes: RenderedNote[];
+  compact?: boolean;
+}) {
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [isAdding, setIsAdding] = useState(!compact);
+  const headingId = useId();
 
   return (
-    <div className="flex flex-col gap-4">
-      {notes.length === 0 ? (
-        <p className="text-body-14 text-fg-2">
-          Aucune note pour ce cours. Écris la première ci-dessous.
-        </p>
-      ) : (
+    <div className="flex flex-col gap-3">
+      {notes.length === 0 && !compact ? (
+        <p className="text-body-14 text-fg-2">Aucune note. Écris la première ci-dessous.</p>
+      ) : null}
+      {notes.length > 0 ? (
         <ul className="flex flex-col divide-y divide-line-subtle">
           {notes.map((note) => (
-            <li key={note.id} className="flex flex-col gap-2 py-3">
+            <li key={note.id} className="flex flex-col gap-2 py-3 first:pt-0">
               {editingId === note.id ? (
-                <NoteForm courseId={courseId} note={note} onDone={() => setEditingId(null)} />
+                <NoteForm
+                  courseId={courseId}
+                  itemId={itemId}
+                  note={note}
+                  onDone={() => setEditingId(null)}
+                  onCancel={() => setEditingId(null)}
+                />
               ) : (
                 <>
                   <div className="flex items-baseline gap-2">
-                    <h3 className="flex-1 text-title-18">{note.title}</h3>
+                    <h3
+                      className={`flex-1 ${compact ? 'text-body-16 font-semibold' : 'text-title-18'}`}
+                    >
+                      {note.title}
+                    </h3>
                     <span className="text-caption-12 text-fg-3">
                       {formatShortDate(note.updatedAt)}
                     </span>
@@ -117,17 +146,37 @@ export function CourseNotes({ courseId, notes }: { courseId: string; notes: Rend
             </li>
           ))}
         </ul>
-      )}
+      ) : null}
 
-      <section
-        aria-labelledby={`new-note-${courseId}`}
-        className="flex flex-col gap-2 border-t border-line-subtle pt-4"
-      >
-        <h2 id={`new-note-${courseId}`} className="text-label-12 text-fg-3 uppercase">
-          Nouvelle note
-        </h2>
-        <NoteForm courseId={courseId} note={null} onDone={() => {}} />
-      </section>
+      {isAdding ? (
+        <section
+          aria-labelledby={headingId}
+          className={`flex flex-col gap-2 ${notes.length > 0 || !compact ? 'border-t border-line-subtle pt-3' : ''}`}
+        >
+          <h2 id={headingId} className="text-label-12 text-fg-3 uppercase">
+            Nouvelle note
+          </h2>
+          <NoteForm
+            courseId={courseId}
+            itemId={itemId}
+            note={null}
+            onDone={() => {
+              if (compact) setIsAdding(false);
+            }}
+            onCancel={compact ? () => setIsAdding(false) : undefined}
+          />
+        </section>
+      ) : (
+        <Button
+          variant="quiet"
+          small
+          className="-ml-2 self-start"
+          onClick={() => setIsAdding(true)}
+        >
+          <PlusIcon className="size-4" />
+          Ajouter une note
+        </Button>
+      )}
     </div>
   );
 }

@@ -1,4 +1,5 @@
 import type { CertificationStatus, CourseStatus } from '@/generated/prisma/client';
+import { computeProgress, nextItem } from '@/lib/course-progress';
 import { prisma } from '@/lib/prisma';
 
 export const COURSE_STATUS_LABELS: Record<CourseStatus, string> = {
@@ -17,6 +18,17 @@ const courseInclude = {
   certification: { select: { id: true, name: true, totalCourses: true } },
   skills: { select: { id: true, name: true } },
   _count: { select: { notes: true } },
+  modules: {
+    orderBy: { position: 'asc' },
+    select: {
+      id: true,
+      title: true,
+      items: {
+        orderBy: { position: 'asc' },
+        select: { id: true, title: true, kind: true, completedAt: true },
+      },
+    },
+  },
 } as const;
 
 // Options of the forms: certifications (for a course) and skills (for both).
@@ -37,16 +49,30 @@ export async function getLearningOptions(userId: string) {
 }
 
 export async function getCourses(userId: string, statuses: CourseStatus[]) {
-  return prisma.course.findMany({
+  const courses = await prisma.course.findMany({
     where: { userId, status: { in: statuses } },
     include: courseInclude,
     // Enum order is PLANNED, IN_PROGRESS, COMPLETED: descending puts "in progress" before "planned".
     // Inside a status, the closest deadline first.
     orderBy: [{ status: 'desc' }, { nextDeadline: 'asc' }, { updatedAt: 'desc' }],
   });
+  return courses.map((course) => ({
+    ...course,
+    // Computed from the parts, quizzes and solo projects; a finished course is always 100 %.
+    progress: courseProgress(course),
+    next: nextItem(course.modules),
+  }));
 }
 
-export type CourseItem = Awaited<ReturnType<typeof getCourses>>[number];
+function courseProgress(course: {
+  status: CourseStatus;
+  modules: { items: { completedAt: Date | null }[] }[];
+}) {
+  const progress = computeProgress(course.modules.flatMap((courseModule) => courseModule.items));
+  return course.status === 'COMPLETED' ? { ...progress, percent: 100 } : progress;
+}
+
+export type CourseListEntry = Awaited<ReturnType<typeof getCourses>>[number];
 
 export async function getCourseCounts(userId: string) {
   const rows = await prisma.course.groupBy({
@@ -66,19 +92,38 @@ export async function getCourseCounts(userId: string) {
 export async function getCourseNotes(userId: string) {
   return prisma.courseNote.findMany({
     where: { course: { userId } },
-    include: { course: { select: { id: true, title: true, status: true } } },
+    include: {
+      course: { select: { id: true, title: true, status: true } },
+      item: { select: { title: true, kind: true } },
+    },
     // Chronological: the newest note comes last, like a notebook.
     orderBy: { createdAt: 'asc' },
   });
 }
 
-// One course with all its notes (oldest first), or null if it is not Alex's.
+// One course with its plan (modules, items and their notes) and its general notes.
 export async function getCourseWithNotes(userId: string, courseId: string) {
-  return prisma.course.findFirst({
+  const course = await prisma.course.findFirst({
     where: { id: courseId, userId },
-    include: { ...courseInclude, notes: { orderBy: { createdAt: 'asc' } } },
+    include: {
+      certification: { select: { id: true, name: true, totalCourses: true } },
+      skills: { select: { id: true, name: true } },
+      modules: {
+        orderBy: { position: 'asc' },
+        include: {
+          items: {
+            orderBy: { position: 'asc' },
+            include: { notes: { orderBy: { createdAt: 'asc' } } },
+          },
+        },
+      },
+      notes: { where: { itemId: null }, orderBy: { createdAt: 'asc' } },
+    },
   });
+  return course ? { ...course, progress: courseProgress(course) } : null;
 }
+
+export type CoursePageData = NonNullable<Awaited<ReturnType<typeof getCourseWithNotes>>>;
 
 export async function getCertifications(userId: string) {
   const certifications = await prisma.certification.findMany({
