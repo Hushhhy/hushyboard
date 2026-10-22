@@ -9,7 +9,16 @@ import { toGeminiSchema } from './json-schema';
 // Never send finance data, habits, or mails that do not match an application.
 
 export type AiFeature =
-  'offer-extract' | 'cv-import' | 'cv-analysis' | 'cv-adapt' | 'cover-letter' | 'mail-classify';
+  | 'offer-extract'
+  | 'cv-import'
+  | 'cv-analysis'
+  | 'cv-adapt'
+  | 'cover-letter'
+  | 'mail-classify'
+  | 'skill-roadmap'
+  | 'notion-sheet'
+  | 'reference-list'
+  | 'reference-entry';
 
 // French message shown persistently (never as a toast).
 export class AiError extends Error {

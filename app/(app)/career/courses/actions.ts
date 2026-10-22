@@ -15,6 +15,7 @@ import { grantXp, revokeXp } from '@/lib/xp-events';
 
 function revalidateLearning() {
   revalidatePath('/career/courses', 'layout');
+  revalidatePath('/career/projects', 'layout');
   revalidatePath('/career/certifications');
   revalidatePath('/career/profile', 'layout');
   revalidatePath('/');
@@ -315,6 +316,20 @@ export async function deleteCourseModule(moduleId: string): Promise<{ error?: st
   if (deleted.count === 0) return { error: "Ce module n'existe plus." };
   revalidateLearning();
   return {};
+}
+
+// GitHub projects done for this course (only Alex's own projects can be linked).
+export async function setCourseProjects(courseId: string, projectIds: string[]): Promise<void> {
+  const user = await requireUser();
+  const course = await prisma.course.findFirst({ where: { id: courseId, userId: user.id } });
+  if (!course) throw new Error('Course not found');
+  const projects = await prisma.project.findMany({
+    where: { id: { in: z.array(z.string()).parse(projectIds) }, userId: user.id },
+    select: { id: true },
+  });
+  await prisma.course.update({ where: { id: course.id }, data: { projects: { set: projects } } });
+  revalidateLearning();
+  redirect(`/career/courses/${course.id}`);
 }
 
 const noteSchema = z.object({

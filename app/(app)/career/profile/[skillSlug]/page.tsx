@@ -1,6 +1,9 @@
 import { Suspense } from 'react';
 import { SkillSkeleton, SkillView } from '@/components/skills/skill-view';
 
+// Notion sheets and « Générer la roadmap » call Gemini from this page's Server Actions.
+export const maxDuration = 60;
+
 export default function SkillPage({
   params,
   searchParams,

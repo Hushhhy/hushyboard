@@ -54,15 +54,152 @@ export function formatSkillLevel({
   return `${level}${started ? '+' : ''} / ${MAX_SKILL_LEVEL}`;
 }
 
-// Page title of a skill: "JavaScript · niveau 1, palier 2 presque terminé".
+// Page title of a skill (« Roadmap » tab):
+// "JavaScript · niveau 1, plus qu'une notion avant le niveau 2", "…, 3 notions avant le niveau 3".
 export function describeSkillLevel(name: string, skill: SkillLevel): string {
-  const { level, started, remaining, currentTier } = skill;
+  const { level, remaining, currentTier } = skill;
   if (!currentTier) return `${name} · niveau ${MAX_SKILL_LEVEL} sur ${MAX_SKILL_LEVEL}`;
   const next = currentTier.level;
-  if (started && remaining.length <= 1)
-    return `${name} · niveau ${level}, palier ${next} presque terminé`;
-  if (started) return `${name} · niveau ${level}, palier ${next} commencé`;
-  return `${name} · niveau ${level}`;
+  if (remaining.length === 0) return `${name} · niveau ${level}`;
+  if (remaining.length === 1) {
+    return `${name} · niveau ${level}, plus qu’une notion avant le niveau ${next}`;
+  }
+  return `${name} · niveau ${level}, ${remaining.length} notions avant le niveau ${next}`;
+}
+
+// Title on the « Référence » tab: "CSS · niveau 3, 103 propriétés connues sur 520".
+// The noun and its agreement depend on what the list holds; 0 and 1 are singular in French.
+type ReferenceNoun = {
+  noun: string;
+  known: string;
+  single: string;
+  knownSingle: string;
+  one: string;
+};
+const REFERENCE_NOUNS: Record<string, ReferenceNoun> = {
+  css: {
+    noun: 'propriétés',
+    known: 'connues',
+    single: 'propriété',
+    knownSingle: 'connue',
+    one: 'une propriété',
+  },
+  html: {
+    noun: 'éléments',
+    known: 'connus',
+    single: 'élément',
+    knownSingle: 'connu',
+    one: 'un élément',
+  },
+  javascript: {
+    noun: 'méthodes et objets',
+    known: 'connus',
+    single: 'méthode ou objet',
+    knownSingle: 'connu',
+    one: 'une méthode',
+  },
+  git: {
+    noun: 'commandes',
+    known: 'connues',
+    single: 'commande',
+    knownSingle: 'connue',
+    one: 'une commande',
+  },
+  docker: {
+    noun: 'commandes',
+    known: 'connues',
+    single: 'commande',
+    knownSingle: 'connue',
+    one: 'une commande',
+  },
+  'linux-bash': {
+    noun: 'commandes',
+    known: 'connues',
+    single: 'commande',
+    knownSingle: 'connue',
+    one: 'une commande',
+  },
+};
+const DEFAULT_NOUN: ReferenceNoun = {
+  noun: 'entrées',
+  known: 'connues',
+  single: 'entrée',
+  knownSingle: 'connue',
+  one: 'une entrée',
+};
+
+export function referenceNoun(slug: string): string {
+  return (REFERENCE_NOUNS[slug] ?? DEFAULT_NOUN).noun;
+}
+
+// Placeholder of the search field: « Rechercher une propriété ».
+export function referenceSearchLabel(slug: string): string {
+  return `Rechercher ${(REFERENCE_NOUNS[slug] ?? DEFAULT_NOUN).one}`;
+}
+
+export function describeReference(
+  name: string,
+  slug: string,
+  level: number,
+  known: number,
+  total: number
+): string {
+  if (total === 0) return `${name} · niveau ${level}, référence pas encore créée`;
+  const nouns = REFERENCE_NOUNS[slug] ?? DEFAULT_NOUN;
+  const words =
+    known <= 1 ? `${nouns.single} ${nouns.knownSingle}` : `${nouns.noun} ${nouns.known}`;
+  return `${name} · niveau ${level}, ${known} ${words} sur ${total}`;
+}
+
+// The roadmap's « prochaine » notion: the first unknown one, in roadmap order
+// (that is, in the lowest incomplete level). Null when everything is known.
+export function nextNotionId(
+  tiers: { level: number; notions: { id: string; checked: boolean }[] }[]
+): string | null {
+  const ordered = [...tiers].sort((a, b) => a.level - b.level);
+  for (const tier of ordered) {
+    const notion = tier.notions.find((item) => !item.checked);
+    if (notion) return notion.id;
+  }
+  return null;
+}
+
+// Highlighting language of a skill's code, when a sheet does not give one (shiki ids).
+const SKILL_CODE_LANGUAGES: Record<string, string> = {
+  html: 'html',
+  css: 'css',
+  javascript: 'javascript',
+  typescript: 'typescript',
+  react: 'tsx',
+  nextjs: 'tsx',
+  tailwind: 'html',
+  sql: 'sql',
+  nodejs: 'javascript',
+  'php-symfony': 'php',
+  prisma: 'prisma',
+  python: 'python',
+  pandas: 'python',
+  c: 'c',
+  cpp: 'cpp',
+  git: 'shellscript',
+  docker: 'docker',
+  'linux-bash': 'shellscript',
+};
+
+export function codeLanguage(lang: string | undefined, skillSlug: string): string {
+  const given = lang?.trim().toLowerCase();
+  if (given && /^[a-z0-9+#-]+$/.test(given)) {
+    if (given === 'bash' || given === 'shell' || given === 'sh') return 'shellscript';
+    return given;
+  }
+  return SKILL_CODE_LANGUAGES[skillSlug] ?? 'text';
+}
+
+// Guided re-evaluation, level by level: it stops after the first level with 2 « Non » or more.
+export const STOP_AFTER_NO = 2;
+
+export function shouldStopAssessment(answers: boolean[]): boolean {
+  return answers.filter((known) => !known).length >= STOP_AFTER_NO;
 }
 
 // Status of one tier, shown as a chip on the skill page.
@@ -101,7 +238,7 @@ export type Objective = {
   name: string;
   // "map, filter, reduce"
   notions: string;
-  // "termine le palier 2" when the tier is started, else "palier 4".
+  // "termine le niveau 2" when the tier is started, else "niveau 4".
   hint: string;
 };
 
@@ -134,8 +271,8 @@ export function nextObjectives(skills: ObjectiveSkill[], limit = 5): Objective[]
     name: skill.name,
     notions: computed.remaining.slice(0, NOTIONS_PER_OBJECTIVE).map(lowerFirst).join(', '),
     hint: computed.started
-      ? `termine le palier ${computed.currentTier!.level}`
-      : `palier ${computed.currentTier!.level}`,
+      ? `termine le niveau ${computed.currentTier!.level}`
+      : `niveau ${computed.currentTier!.level}`,
   }));
 }
 

@@ -15,7 +15,7 @@ export function ObjectivesCard({ objectives }: { objectives: Objective[] }) {
         <ChevronRightIcon className="size-4 text-career" />
         <span className="flex-1">Prochains objectifs</span>
         <span className="text-caption-12 tracking-normal normal-case">
-          calculés depuis tes paliers
+          calculés depuis tes roadmaps
         </span>
       </h2>
 

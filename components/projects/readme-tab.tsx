@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { CareerIcon, CodeIcon, ResumeIcon } from '@/components/icons';
+import { CareerIcon, CodeIcon, CourseIcon, ResumeIcon } from '@/components/icons';
 import { Tag } from '@/components/ui/chip';
 import { ErrorState } from '@/components/ui/error-state';
 import { GithubError } from '@/lib/github/client';
@@ -87,6 +87,27 @@ export async function ReadmeTab({ slug }: { slug: Promise<string> }) {
               Modifiables dans « Fiche projet »
             </Link>
             .
+          </p>
+        </SideCard>
+        <SideCard title="Cours liés" icon={<CourseIcon className="size-4" />}>
+          {project.courses.length > 0 ? (
+            <ul className="flex flex-col gap-1">
+              {project.courses.map((course) => (
+                <li key={course.id}>
+                  <Link
+                    href={`/career/courses/${course.id}`}
+                    className="text-body-14 underline decoration-line-strong underline-offset-3 hover:decoration-current"
+                  >
+                    {course.title}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="text-body-14 text-fg-2">Aucun cours lié.</p>
+          )}
+          <p className="text-caption-12 text-fg-3">
+            À lier depuis la page du cours ou dans « Fiche projet ».
           </p>
         </SideCard>
         <SideCard title="Sur le CV" icon={<ResumeIcon className="size-4" />}>

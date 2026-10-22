@@ -165,9 +165,22 @@ export async function getCourseWithNotes(userId: string, courseId: string) {
         },
       },
       notes: { where: { itemId: null }, orderBy: { createdAt: 'asc' } },
+      projects: {
+        select: { id: true, name: true, fullName: true, isExternal: true, isPrivate: true },
+        orderBy: { name: 'asc' },
+      },
     },
   });
   return course ? { ...course, progress: courseProgress(course) } : null;
+}
+
+// Projects that can be linked to a course (the ones not hidden, plus the already linked ones).
+export async function getProjectOptions(userId: string) {
+  return prisma.project.findMany({
+    where: { userId },
+    select: { id: true, name: true, hidden: true, isFork: true, isArchived: true },
+    orderBy: [{ pinned: 'desc' }, { pushedAt: 'desc' }],
+  });
 }
 
 export type CoursePageData = NonNullable<Awaited<ReturnType<typeof getCourseWithNotes>>>;

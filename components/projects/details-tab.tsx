@@ -11,18 +11,25 @@ export async function DetailsTab({ slug }: { slug: Promise<string> }) {
   const [user, repoSlug] = await Promise.all([requireUser(), slug]);
   const project = await getProjectBySlug(user.id, repoSlug);
   if (!project) notFound();
-  const skills = await prisma.skill.findMany({
-    where: { userId: user.id },
-    select: { id: true, name: true },
-    orderBy: { position: 'asc' },
-  });
+  const [skills, courses] = await Promise.all([
+    prisma.skill.findMany({
+      where: { userId: user.id },
+      select: { id: true, name: true },
+      orderBy: { position: 'asc' },
+    }),
+    prisma.course.findMany({
+      where: { userId: user.id },
+      select: { id: true, title: true },
+      orderBy: [{ status: 'desc' }, { title: 'asc' }],
+    }),
+  ]);
 
   return (
     <section
       aria-label="Fiche projet"
       className="flex max-w-180 flex-col gap-4 rounded-card bg-surface-default p-4 md:p-6"
     >
-      <DetailsForm project={project} skills={skills} />
+      <DetailsForm project={project} skills={skills} courses={courses} />
       {project.isExternal || project.deletedOnGithubAt ? (
         <div className="border-t border-line-subtle pt-3">
           <DeleteDialog

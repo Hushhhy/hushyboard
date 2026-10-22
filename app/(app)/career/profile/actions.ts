@@ -186,7 +186,7 @@ const skillSchema = z.object({
   }),
 });
 
-// Creates a skill with 5 empty tiers, then opens it in edit mode to fill the notions.
+// Creates a skill with 5 empty levels, then opens it: « Générer la roadmap » or edit by hand.
 export async function createSkill(_: FormState, formData: FormData): Promise<FormState> {
   const user = await requireUser();
   const values = formValues(formData);
@@ -214,13 +214,13 @@ export async function createSkill(_: FormState, formData: FormData): Promise<For
       tiers: {
         create: Array.from({ length: MAX_SKILL_LEVEL }, (_, index) => ({
           level: index + 1,
-          title: `Palier ${index + 1}`,
+          title: `Niveau ${index + 1}`,
         })),
       },
     },
   });
   revalidateProfile();
-  redirect(`${PROFILE_PATH}/${slug}?edit=1`);
+  redirect(`${PROFILE_PATH}/${slug}`);
 }
 
 // Loads a skill only if it belongs to the signed-in user.
@@ -277,12 +277,12 @@ export async function saveAssessment(skillId: string, knownNotionIds: string[]):
 }
 
 const tierSchema = z.object({
-  title: requiredText('Donne un titre au palier.', 80),
+  title: requiredText('Donne un titre au niveau.', 80),
   notions: z
     .array(
       z.object({ id: z.string().nullable(), label: requiredText('Une notion est vide.', 120) })
     )
-    .max(30, '30 notions au maximum par palier.'),
+    .max(30, '30 notions au maximum par niveau.'),
 });
 
 // Edit mode: rename a tier and add, remove, rename or reorder its notions.
@@ -298,7 +298,7 @@ export async function saveTier(
     where: { id: tierId, skill: { userId: user.id } },
     include: { notions: true },
   });
-  if (!tier) return { error: "Ce palier n'existe plus." };
+  if (!tier) return { error: "Ce niveau n'existe plus." };
 
   const keptIds = new Set(parsed.data.notions.flatMap((notion) => (notion.id ? [notion.id] : [])));
   const ownIds = new Set(tier.notions.map((notion) => notion.id));

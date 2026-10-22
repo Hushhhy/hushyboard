@@ -91,7 +91,7 @@ export default function StyleguidePage({ searchParams }: PageProps<'/styleguide'
             segments={5}
             partialIndex={1}
             label="JavaScript"
-            valueText="Niveau 1 sur 5, palier 2 commencé"
+            valueText="Niveau 1 sur 5, niveau suivant commencé"
             colorClass="bg-career"
             size="small"
             className="w-40"
