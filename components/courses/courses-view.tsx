@@ -8,6 +8,7 @@ import { DeleteDialog } from '@/components/ui/delete-dialog';
 import { SidePanel } from '@/components/ui/side-panel';
 import { LoadingRegion, Skeleton } from '@/components/ui/skeleton';
 import { Tabs } from '@/components/ui/tabs';
+import { renderMarkdown } from '@/lib/markdown';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/session';
 import {
@@ -106,10 +107,13 @@ export async function CoursePanels({
           key={`notes-${course.id}`}
           name={`notes-${course.id}`}
           title={`Notes · ${course.title}`}
+          wide
         >
           <CourseNotes
             courseId={course.id}
-            notes={notes.filter((note) => note.courseId === course.id)}
+            notes={notes
+              .filter((note) => note.courseId === course.id)
+              .map((note) => ({ ...note, html: renderMarkdown(note.content) }))}
           />
         </SidePanel>
       ))}

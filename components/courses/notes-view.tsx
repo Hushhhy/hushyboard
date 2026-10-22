@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { EmptyState } from '@/components/ui/empty-state';
 import { formatShortDate } from '@/lib/dates';
 import { getCourseCounts, getCourseNotes } from '@/lib/learning-data';
+import { renderMarkdown } from '@/lib/markdown';
 import { requireUser } from '@/lib/session';
 import { CoursesHeader } from './courses-view';
 
@@ -47,10 +48,13 @@ export async function NotesView() {
                   <div className="flex items-baseline gap-2">
                     <h3 className="flex-1 font-semibold">{note.title}</h3>
                     <span className="text-caption-12 text-fg-3">
-                      {formatShortDate(note.createdAt)}
+                      {formatShortDate(note.updatedAt)}
                     </span>
                   </div>
-                  <p className="text-body-14 whitespace-pre-line text-fg-2">{note.content}</p>
+                  <div
+                    className="markdown"
+                    dangerouslySetInnerHTML={{ __html: renderMarkdown(note.content) }}
+                  />
                 </li>
               ))}
             </ul>

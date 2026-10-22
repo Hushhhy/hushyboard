@@ -6,6 +6,7 @@ import { z } from 'zod';
 import type { CourseStatus } from '@/generated/prisma/client';
 import { parseDateInput } from '@/lib/dates';
 import { fieldErrors, formValues, type FormState } from '@/lib/forms';
+import { renderMarkdown } from '@/lib/markdown';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/session';
 import type { LevelUp } from '@/lib/xp';
@@ -144,7 +145,8 @@ export async function deleteCourse(courseId: string): Promise<{ error?: string }
 
 const noteSchema = z.object({
   title: z.string().trim().min(1, 'Donne un titre à la note.').max(120),
-  content: z.string().trim().min(1, 'Écris la note.').max(4000),
+  // Markdown (GitHub style): long enough for code blocks and tables.
+  content: z.string().trim().min(1, 'Écris la note.').max(20_000, '20 000 caractères au maximum.'),
 });
 
 export async function addCourseNote(
@@ -161,6 +163,31 @@ export async function addCourseNote(
   await prisma.courseNote.create({ data: { courseId: course.id, ...parsed.data } });
   revalidateLearning();
   return { done: Date.now() };
+}
+
+export async function updateCourseNote(
+  noteId: string,
+  _: FormState,
+  formData: FormData
+): Promise<FormState> {
+  const user = await requireUser();
+  const values = formValues(formData);
+  const parsed = noteSchema.safeParse(values);
+  if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error), values };
+  const updated = await prisma.courseNote.updateMany({
+    where: { id: noteId, course: { userId: user.id } },
+    data: parsed.data,
+  });
+  if (updated.count === 0) return { error: "Cette note n'existe plus.", values };
+  revalidateLearning();
+  return { done: Date.now() };
+}
+
+// "Aperçu" tab of the note editor: same rendering as the saved note, done on the server
+// so the browser does not load the Markdown and sanitizer libraries.
+export async function previewMarkdown(source: string): Promise<string> {
+  await requireUser();
+  return renderMarkdown(z.string().max(20_000).parse(source));
 }
 
 export async function deleteCourseNote(noteId: string): Promise<{ error?: string }> {

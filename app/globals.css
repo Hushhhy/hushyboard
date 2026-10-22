@@ -190,6 +190,8 @@
 @theme inline {
   --font-ui: var(--font-plex), 'Helvetica Neue', Arial, system-ui, sans-serif;
   --font-display: var(--font-bricolage), var(--font-plex), 'Arial Narrow', system-ui, sans-serif;
+  /* Code in course notes: the system monospace font, nothing to download. */
+  --font-mono: ui-monospace, 'Cascadia Code', 'SFMono-Regular', Menlo, Consolas, monospace;
   --default-font-family: var(--font-ui);
 }
 
@@ -271,5 +273,106 @@
     transition-duration: 1ms !important;
     transition-delay: 0ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   4. RENDERED MARKDOWN (course notes), tokens only
+   -------------------------------------------------------------------------- */
+@layer components {
+  .markdown {
+    font-size: var(--text-body-14);
+    line-height: 1.55;
+    color: var(--color-fg-1);
+    overflow-wrap: anywhere;
+  }
+  .markdown > * + * {
+    margin-top: --spacing(3);
+  }
+  .markdown :where(h1, h2, h3, h4, h5, h6) {
+    font-weight: 600;
+    line-height: 1.25;
+    margin-top: --spacing(4);
+  }
+  .markdown h1 {
+    font-size: var(--text-title-20);
+  }
+  .markdown h2 {
+    font-size: var(--text-title-18);
+  }
+  .markdown :where(h3, h4, h5, h6) {
+    font-size: var(--text-body-16);
+  }
+  .markdown :where(ul, ol) {
+    padding-left: --spacing(5);
+  }
+  .markdown ul {
+    list-style: disc;
+  }
+  .markdown ol {
+    list-style: decimal;
+  }
+  .markdown li + li {
+    margin-top: --spacing(1);
+  }
+  .markdown li:has(> input[type='checkbox']) {
+    list-style: none;
+    margin-left: calc(--spacing(5) * -1);
+  }
+  .markdown input[type='checkbox'] {
+    margin-right: --spacing(2);
+    accent-color: var(--color-habits);
+    vertical-align: -1px;
+  }
+  .markdown a {
+    text-decoration: underline;
+    text-decoration-color: var(--color-line-strong);
+    text-underline-offset: 3px;
+  }
+  .markdown a:hover {
+    text-decoration-color: currentColor;
+  }
+  .markdown blockquote {
+    border-left: 3px solid var(--color-line-strong);
+    padding-left: --spacing(3);
+    color: var(--color-fg-2);
+  }
+  .markdown :where(code, pre) {
+    font-family: var(--font-mono);
+    font-size: 0.8125rem;
+  }
+  .markdown :not(pre) > code {
+    background: var(--color-surface-sunken);
+    border-radius: var(--radius-tick);
+    padding: 0.1em 0.35em;
+  }
+  .markdown pre {
+    background: var(--color-surface-sunken);
+    border-radius: var(--radius-control);
+    padding: --spacing(3);
+    overflow-x: auto;
+    line-height: 1.5;
+  }
+  .markdown table {
+    display: block;
+    max-width: 100%;
+    overflow-x: auto;
+    border-collapse: collapse;
+  }
+  .markdown :where(th, td) {
+    border: 1px solid var(--color-line-subtle);
+    padding: --spacing(1) --spacing(2);
+    text-align: left;
+  }
+  .markdown th {
+    background: var(--color-surface-raised);
+    font-weight: 600;
+  }
+  .markdown hr {
+    border-color: var(--color-line-subtle);
+  }
+  .markdown img {
+    max-width: 100%;
+    border-radius: var(--radius-control);
   }
 }
