@@ -122,20 +122,23 @@ describe('withRetry', () => {
 });
 
 describe('modelChain', () => {
-  const models = { main: 'flash', lite: 'flash-lite' };
+  const models = { main: ['flash', 'flash-2'], lite: ['lite', 'lite-2'] };
 
-  it('tries the main model first, then the lite one, for complex tasks', () => {
-    expect(modelChain('notion-sheet', models)).toEqual(['flash', 'flash-lite']);
-    expect(modelChain('cv-adapt', models)).toEqual(['flash', 'flash-lite']);
+  it('tries the main models, then the lite ones, for complex tasks', () => {
+    expect(modelChain('notion-sheet', models)).toEqual(['flash', 'flash-2', 'lite', 'lite-2']);
+    expect(modelChain('cv-adapt', models)).toEqual(['flash', 'flash-2', 'lite', 'lite-2']);
   });
 
-  it('uses only the lite model for simple tasks', () => {
-    expect(modelChain('reference-entry', models)).toEqual(['flash-lite']);
-    expect(modelChain('mail-classify', models)).toEqual(['flash-lite']);
+  it('uses only the lite models for simple tasks', () => {
+    expect(modelChain('reference-entry', models)).toEqual(['lite', 'lite-2']);
+    expect(modelChain('mail-classify', models)).toEqual(['lite', 'lite-2']);
   });
 
-  it('calls a model once when both variables name the same one', () => {
-    expect(modelChain('notion-sheet', { main: 'same', lite: 'same' })).toEqual(['same']);
+  it('tries a model once when both lists name it', () => {
+    expect(modelChain('notion-sheet', { main: ['same'], lite: ['same', 'other'] })).toEqual([
+      'same',
+      'other',
+    ]);
   });
 
   it('gives every feature a tier', () => {

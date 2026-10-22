@@ -38,14 +38,17 @@ export const FEATURE_TIERS: Record<AiFeature, ModelTier> = {
   'mail-classify': 'lite',
 };
 
-// Models to try, in order: a main task falls back to the lite model when the main one is
-// out of quota; a lite task uses only the lite model (its quota is large).
+// Models to try, in order (each has its own daily quota): a main task goes through the main
+// models, then the lite ones; a lite task uses only the lite models (their quota is large).
 export function modelChain(
   feature: AiFeature,
-  models: { main: string; lite: string } = { main: env.GEMINI_MODEL, lite: env.GEMINI_MODEL_LITE }
+  models: { main: string[]; lite: string[] } = {
+    main: env.GEMINI_MODEL,
+    lite: env.GEMINI_MODEL_LITE,
+  }
 ): string[] {
-  if (FEATURE_TIERS[feature] === 'lite' || models.main === models.lite) return [models.lite];
-  return [models.main, models.lite];
+  const chain = FEATURE_TIERS[feature] === 'lite' ? models.lite : [...models.main, ...models.lite];
+  return [...new Set(chain)];
 }
 
 // French message shown persistently (never as a toast).
