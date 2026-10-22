@@ -68,16 +68,65 @@ export function describeSkillLevel(name: string, skill: SkillLevel): string {
 }
 
 // Title on the « Référence » tab: "CSS · niveau 3, 103 propriétés connues sur 520".
-// The noun and its agreement depend on what the list holds.
-const REFERENCE_NOUNS: Record<string, { noun: string; known: string; one: string }> = {
-  css: { noun: 'propriétés', known: 'connues', one: 'une propriété' },
-  html: { noun: 'éléments', known: 'connus', one: 'un élément' },
-  javascript: { noun: 'méthodes et objets', known: 'connus', one: 'une méthode' },
-  git: { noun: 'commandes', known: 'connues', one: 'une commande' },
-  docker: { noun: 'commandes', known: 'connues', one: 'une commande' },
-  'linux-bash': { noun: 'commandes', known: 'connues', one: 'une commande' },
+// The noun and its agreement depend on what the list holds; 0 and 1 are singular in French.
+type ReferenceNoun = {
+  noun: string;
+  known: string;
+  single: string;
+  knownSingle: string;
+  one: string;
 };
-const DEFAULT_NOUN = { noun: 'entrées', known: 'connues', one: 'une entrée' };
+const REFERENCE_NOUNS: Record<string, ReferenceNoun> = {
+  css: {
+    noun: 'propriétés',
+    known: 'connues',
+    single: 'propriété',
+    knownSingle: 'connue',
+    one: 'une propriété',
+  },
+  html: {
+    noun: 'éléments',
+    known: 'connus',
+    single: 'élément',
+    knownSingle: 'connu',
+    one: 'un élément',
+  },
+  javascript: {
+    noun: 'méthodes et objets',
+    known: 'connus',
+    single: 'méthode ou objet',
+    knownSingle: 'connu',
+    one: 'une méthode',
+  },
+  git: {
+    noun: 'commandes',
+    known: 'connues',
+    single: 'commande',
+    knownSingle: 'connue',
+    one: 'une commande',
+  },
+  docker: {
+    noun: 'commandes',
+    known: 'connues',
+    single: 'commande',
+    knownSingle: 'connue',
+    one: 'une commande',
+  },
+  'linux-bash': {
+    noun: 'commandes',
+    known: 'connues',
+    single: 'commande',
+    knownSingle: 'connue',
+    one: 'une commande',
+  },
+};
+const DEFAULT_NOUN: ReferenceNoun = {
+  noun: 'entrées',
+  known: 'connues',
+  single: 'entrée',
+  knownSingle: 'connue',
+  one: 'une entrée',
+};
 
 export function referenceNoun(slug: string): string {
   return (REFERENCE_NOUNS[slug] ?? DEFAULT_NOUN).noun;
@@ -95,8 +144,11 @@ export function describeReference(
   known: number,
   total: number
 ): string {
-  const { noun, known: agreement } = REFERENCE_NOUNS[slug] ?? DEFAULT_NOUN;
-  return `${name} · niveau ${level}, ${known} ${noun} ${agreement} sur ${total}`;
+  if (total === 0) return `${name} · niveau ${level}, référence pas encore créée`;
+  const nouns = REFERENCE_NOUNS[slug] ?? DEFAULT_NOUN;
+  const words =
+    known <= 1 ? `${nouns.single} ${nouns.knownSingle}` : `${nouns.noun} ${nouns.known}`;
+  return `${name} · niveau ${level}, ${known} ${words} sur ${total}`;
 }
 
 // The roadmap's « prochaine » notion: the first unknown one, in roadmap order

@@ -46,13 +46,18 @@ export type ReferenceGroup<T extends ReferenceRow> = {
   rows: T[];
 };
 
-// Fallback groups go last; the others by size, largest first.
+// Fallback groups go last; the others in the given order, else by size, largest first.
 const LAST_GROUPS = new Set(['Autres', 'Fonctions globales']);
 
 export function groupReference<T extends ReferenceRow>(
   rows: T[],
-  options: { query: string; filter: ReferenceFilter; showDeprecated: boolean }
+  options: { query: string; filter: ReferenceFilter; showDeprecated: boolean },
+  order: string[] = []
 ): ReferenceGroup<T>[] {
+  const rank = (name: string) => {
+    const index = order.indexOf(name);
+    return index === -1 ? order.length : index;
+  };
   const groups = new Map<string, ReferenceGroup<T>>();
   for (const row of rows) {
     if (row.isDeprecated && !options.showDeprecated) continue;
@@ -72,6 +77,11 @@ export function groupReference<T extends ReferenceRow>(
     .filter((group) => group.rows.length > 0)
     .sort((a, b) => {
       const last = Number(LAST_GROUPS.has(a.name)) - Number(LAST_GROUPS.has(b.name));
-      return last || b.total - a.total || a.name.localeCompare(b.name, 'fr');
+      return (
+        last ||
+        rank(a.name) - rank(b.name) ||
+        b.total - a.total ||
+        a.name.localeCompare(b.name, 'fr')
+      );
     });
 }

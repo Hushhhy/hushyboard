@@ -11,12 +11,12 @@ export function NotesField({ notionId, initial }: { notionId: string; initial: s
   const [, startTransition] = useTransition();
   const id = useId();
 
-  function save() {
-    if (value.trim() === saved.trim()) return;
+  function save(text: string) {
+    if (text.trim() === saved.trim()) return;
     startTransition(async () => {
       try {
-        await saveNotionNotes(notionId, value);
-        setSaved(value);
+        await saveNotionNotes(notionId, text);
+        setSaved(text);
         setStatus('Notes enregistrées.');
       } catch {
         setStatus('Les notes n’ont pas pu être enregistrées. Réessaie.');
@@ -38,7 +38,7 @@ export function NotesField({ notionId, initial }: { notionId: string; initial: s
           setValue(event.target.value);
           setStatus('');
         }}
-        onBlur={save}
+        onBlur={(event) => save(event.currentTarget.value)}
         placeholder="Où tu l’as utilisé, ce qui t’a bloqué…"
         className="min-h-20 rounded-control border border-line-subtle bg-surface-sunken px-3 py-2 text-body-14 placeholder:text-fg-3"
       />

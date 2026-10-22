@@ -72,7 +72,7 @@ export function GenerateOnOpen({
   if (isPending || isOwner || manual) {
     return (
       <LoadingRegion label={pendingLabel} className="flex flex-col gap-3">
-        <p className="flex items-center gap-2 text-body-14 text-fg-2">
+        <p aria-hidden="true" className="flex items-center gap-2 text-body-14 text-fg-2">
           <SparkleIcon className="size-4 text-career" />
           {pendingLabel}
         </p>

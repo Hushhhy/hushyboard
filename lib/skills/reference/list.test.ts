@@ -92,3 +92,24 @@ describe('docLink', () => {
     expect(docLink('')).toBeNull();
   });
 });
+
+describe('groupReference with an order', () => {
+  it('follows the given order, then size, fallback groups last', () => {
+    const rows = [
+      row({ name: 'a', group: 'Sélecteurs' }),
+      row({ name: 'b', group: 'Sélecteurs' }),
+      row({ name: 'c', group: 'Texte' }),
+      row({ name: 'd', group: 'Mise en page' }),
+      row({ name: 'e', group: 'Inconnu' }),
+      row({ name: 'f', group: 'Autres' }),
+    ];
+    const order = ['Mise en page', 'Texte', 'Sélecteurs'];
+    expect(groupReference(rows, options, order).map((group) => group.name)).toEqual([
+      'Mise en page',
+      'Texte',
+      'Sélecteurs',
+      'Inconnu',
+      'Autres',
+    ]);
+  });
+});

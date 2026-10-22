@@ -9,6 +9,7 @@ import {
   lowerFirst,
   nextNotionId,
   nextObjectives,
+  referenceSearchLabel,
   shouldStopAssessment,
   slugifySkillName,
   tierStatus,
@@ -141,6 +142,23 @@ describe('describeReference', () => {
     expect(describeReference('SQL', 'sql', 3, 12, 90)).toBe(
       'SQL · niveau 3, 12 entrées connues sur 90'
     );
+  });
+
+  it('is singular for 0 and 1, and says when there is no list yet', () => {
+    expect(describeReference('CSS', 'css', 3, 1, 726)).toBe(
+      'CSS · niveau 3, 1 propriété connue sur 726'
+    );
+    expect(describeReference('HTML', 'html', 5, 0, 160)).toBe(
+      'HTML · niveau 5, 0 élément connu sur 160'
+    );
+    expect(describeReference('Git', 'git', 1, 0, 0)).toBe(
+      'Git · niveau 1, référence pas encore créée'
+    );
+  });
+
+  it('gives the search placeholder', () => {
+    expect(referenceSearchLabel('css')).toBe('Rechercher une propriété');
+    expect(referenceSearchLabel('sql')).toBe('Rechercher une entrée');
   });
 });
 

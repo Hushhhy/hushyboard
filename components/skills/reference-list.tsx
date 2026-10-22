@@ -98,8 +98,11 @@ export function ReferenceList({
   skillSlug,
   selectedId,
   searchLabel,
+  groupOrder,
 }: {
   skillSlug: string;
+  // Display order of the groups (CSS); others are sorted by size.
+  groupOrder?: string[];
   selectedId: string | null;
   // « Rechercher une propriété »
   searchLabel: string;
@@ -110,7 +113,7 @@ export function ReferenceList({
   const [showDeprecated, setShowDeprecated] = useState(false);
   // Typing stays fluid on a list of 500+ rows.
   const deferredQuery = useDeferredValue(query);
-  const groups = groupReference(rows, { query: deferredQuery, filter, showDeprecated });
+  const groups = groupReference(rows, { query: deferredQuery, filter, showDeprecated }, groupOrder);
   const hasDeprecated = rows.some((row) => row.isDeprecated);
   const visible = groups.reduce((sum, group) => sum + group.rows.length, 0);
   const id = useId();

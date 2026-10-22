@@ -16,6 +16,7 @@ import { prisma } from '@/lib/prisma';
 import { getReferenceRows, getSkillPageData } from '@/lib/profile-data';
 import { requireUser } from '@/lib/session';
 import { referenceSearchLabel } from '@/lib/skills';
+import { CSS_GROUP_ORDER } from '@/lib/skills/reference/mdn-groups';
 import { isMdnSkill } from '@/lib/skills/reference/mdn-skills';
 import type { ReferenceRow } from '@/lib/skills/reference/list';
 import { withSearchParam } from '@/lib/url';
@@ -178,6 +179,7 @@ export async function ReferenceView({ params, searchParams }: ReferenceViewProps
             skillSlug={skill.slug}
             selectedId={selectedId}
             searchLabel={referenceSearchLabel(skill.slug)}
+            groupOrder={skill.slug === 'css' ? CSS_GROUP_ORDER : undefined}
           />
           <div className="lg:sticky lg:top-5">
             {selectedId ? (

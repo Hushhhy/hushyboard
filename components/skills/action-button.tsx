@@ -39,9 +39,11 @@ export function ActionButton({
         >
           {children}
         </Button>
-        <span role="status" className="text-caption-12 text-fg-3">
-          {isPending && pendingHint ? pendingHint : ''}
-        </span>
+        {pendingHint ? (
+          <span role="status" className="text-caption-12 text-fg-3 empty:hidden">
+            {isPending ? pendingHint : ''}
+          </span>
+        ) : null}
       </div>
       {error ? <ErrorState title={error} announce /> : null}
     </div>

@@ -68,6 +68,26 @@ const CSS_OVERRIDES: Record<string, string> = {
   'clip-path': 'Effets',
 };
 
+// Display order of the CSS groups: properties by everyday use, then selectors and at-rules.
+export const CSS_GROUP_ORDER = [
+  'Mise en page',
+  'Boîte',
+  'Texte',
+  'Couleurs et fonds',
+  'Bordures',
+  'Effets',
+  'Transformations',
+  'Animations',
+  'Interaction et défilement',
+  'Listes et compteurs',
+  'Tableaux',
+  'Génération et visibilité',
+  'Sélecteurs',
+  'Règles @',
+  'SVG',
+  'Impression',
+];
+
 export function cssPropertyGroup(name: string): string {
   if (CSS_OVERRIDES[name]) return CSS_OVERRIDES[name];
   return CSS_GROUP_RULES.find(([rule]) => rule.test(name))?.[1] ?? 'Autres';
