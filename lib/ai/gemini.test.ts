@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@google/genai';
 import { z } from 'zod';
 import { resumeContentSchema, EMPTY_RESUME } from '@/lib/resume/schema';
@@ -13,6 +13,7 @@ import {
   isTimeout,
   modelChain,
   parseJsonAnswer,
+  resetSkippedModels,
   toAiError,
   withFallback,
   withRetry,
@@ -150,6 +151,11 @@ describe('modelChain', () => {
 });
 
 describe('withFallback', () => {
+  beforeEach(() => {
+    resetSkippedModels();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
   it('moves to the next model when the first one is out of quota', async () => {
     const tried: string[] = [];
     const { result, model } = await withFallback(['flash', 'flash-lite'], async (name) => {
@@ -185,6 +191,11 @@ describe('withFallback', () => {
 });
 
 describe('withFallback and slow models', () => {
+  beforeEach(() => {
+    resetSkippedModels();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
   it('moves to the next model when one times out', async () => {
     const tried: string[] = [];
     const { model } = await withFallback(['flash', 'flash-lite'], async (name) => {
@@ -199,5 +210,52 @@ describe('withFallback and slow models', () => {
   it('says the AI is busy after a timeout', () => {
     expect(toAiError(new DOMException('aborted', 'TimeoutError')).message).toBe(AI_BUSY_MESSAGE);
     expect(isTimeout(new Error('bad request'))).toBe(false);
+  });
+});
+
+describe('withFallback memory and deadline', () => {
+  beforeEach(() => {
+    resetSkippedModels();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+  const quota = () => {
+    throw new ApiError({ message: 'quota PerDay', status: 429 });
+  };
+
+  it('skips a model that just ran out of quota', async () => {
+    await withFallback(['flash', 'lite'], async (name) => (name === 'flash' ? quota() : 'ok'));
+    const tried: string[] = [];
+    await withFallback(['flash', 'lite'], async (name) => {
+      tried.push(name);
+      return 'ok';
+    });
+    expect(tried).toEqual(['lite']);
+  });
+
+  it('tries every model again when all are skipped', async () => {
+    await expect(withFallback(['flash', 'lite'], async () => quota())).rejects.toThrow('quota');
+    const tried: string[] = [];
+    await withFallback(['flash', 'lite'], async (name) => {
+      tried.push(name);
+      return 'ok';
+    });
+    expect(tried).toEqual(['flash']);
+  });
+
+  it('stops before the function time limit', async () => {
+    let clock = 0;
+    const tried: string[] = [];
+    await expect(
+      withFallback(
+        ['a', 'b', 'c'],
+        async (name) => {
+          tried.push(name);
+          clock += 20_000;
+          throw new DOMException('timed out', 'TimeoutError');
+        },
+        () => clock
+      )
+    ).rejects.toThrow('timed out');
+    expect(tried).toEqual(['a', 'b']);
   });
 });

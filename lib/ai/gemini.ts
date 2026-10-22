@@ -126,19 +126,45 @@ export async function withRetry<T>(
   }
 }
 
+// Models that just ran out of quota or hung are skipped for a while (per server instance),
+// so the next requests go straight to a model that answers.
+const SKIP_MS = 10 * 60 * 1000;
+const skippedUntil = new Map<string, number>();
+
+// Whole chain budget: a Vercel function stops at 60 s.
+const CHAIN_DEADLINE_MS = 50_000;
+
 // Tries each model of the chain; moves to the next one when a model is out of quota or too slow.
 export async function withFallback<T>(
   models: string[],
-  call: (model: string) => Promise<T>
+  call: (model: string) => Promise<T>,
+  now: () => number = Date.now
 ): Promise<{ result: T; model: string }> {
+  const start = now();
+  const available = models.filter((model) => (skippedUntil.get(model) ?? 0) <= start);
+  // Every model skipped: try them all again rather than fail without a call.
+  const chain = available.length > 0 ? available : models;
   for (let index = 0; ; index += 1) {
-    const model = models[index];
+    const model = chain[index];
     try {
       return { result: await withRetry(() => call(model)), model };
     } catch (error) {
-      if (index >= models.length - 1 || !(isQuotaError(error) || isTimeout(error))) throw error;
+      const moveOn = isQuotaError(error) || isTimeout(error);
+      if (moveOn) skippedUntil.set(model, now() + SKIP_MS);
+      const last = index >= chain.length - 1;
+      const outOfTime = now() - start > CHAIN_DEADLINE_MS - ATTEMPT_TIMEOUT_MS;
+      // Server log only (model and reason, never content), to follow the free quotas.
+      console.warn(
+        `[gemini] ${model} failed (${isTimeout(error) ? 'timeout' : isQuotaError(error) ? 'quota' : 'error'})${moveOn && !last && !outOfTime ? ', trying the next model' : ''}`
+      );
+      if (!moveOn || last || outOfTime) throw error;
     }
   }
+}
+
+// Tests only: forget the skipped models.
+export function resetSkippedModels() {
+  skippedUntil.clear();
 }
 
 // A file sent inline (base64), e.g. the CV PDF. Never stored.

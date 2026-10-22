@@ -52,9 +52,9 @@ export function ApplicationPanel({
                 href={link}
                 target="_blank"
                 rel="noreferrer"
-                className="inline-flex items-center gap-1 underline-offset-2 hover:underline"
+                className="inline-flex items-start gap-1 break-all underline-offset-2 hover:underline"
               >
-                <ExternalLinkIcon className="size-3.5" />
+                <ExternalLinkIcon className="mt-1 size-3.5 shrink-0" />
                 {displayUrl(link)}
                 <span className="sr-only"> (nouvel onglet)</span>
               </a>

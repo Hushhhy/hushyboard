@@ -68,6 +68,17 @@ const applicationSchema = z
     message: 'Indique le poste.',
   });
 
+const APPLICATION_DEFAULTS = {
+  position: '',
+  contractType: '',
+  location: '',
+  source: '',
+  url: '',
+  careersUrl: '',
+  resumeId: '',
+  notes: '',
+};
+
 const applicationLabel = (company: string, position: string | null) =>
   position ? `${position} · ${company}` : `Candidature spontanée · ${company}`;
 
@@ -83,11 +94,8 @@ async function ownedResumeId(userId: string, resumeId: string | null) {
 export async function saveApplication(_: FormState, formData: FormData): Promise<FormState> {
   const user = await requireUser();
   const values = formValues(formData);
-  const parsed = applicationSchema.safeParse({
-    ...values,
-    resumeId: values.resumeId ?? '',
-    contractType: values.contractType ?? '',
-  });
+  // Each form shows only some fields (no offer link on a spontaneous one): missing = empty.
+  const parsed = applicationSchema.safeParse({ ...APPLICATION_DEFAULTS, ...values });
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error), values };
   const { id, sentAt: sentAtInput, resumeId: requestedResume, ...data } = parsed.data;
   const sentAt = parseDateInput(sentAtInput)!;
@@ -256,7 +264,17 @@ const offerSchema = z.object({
 export async function saveOffer(_: FormState, formData: FormData): Promise<FormState> {
   const user = await requireUser();
   const values = formValues(formData);
-  const parsed = offerSchema.safeParse({ contractType: '', skills: '', ...values });
+  const parsed = offerSchema.safeParse({
+    contractType: '',
+    skills: '',
+    location: '',
+    remotePolicy: '',
+    summary: '',
+    url: '',
+    source: '',
+    description: '',
+    ...values,
+  });
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error), values };
   const { skills, ...data } = parsed.data;
   await prisma.jobOffer.create({
