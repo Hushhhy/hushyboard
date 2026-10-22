@@ -64,7 +64,7 @@ function NoteForm({
         error={state.fieldErrors?.content}
       />
       <div className="flex gap-2">
-        <Button type="submit" onOverlay small pending={isPending}>
+        <Button type="submit" small pending={isPending}>
           {note ? 'Enregistrer la note' : 'Ajouter la note'}
         </Button>
         {note ? (
@@ -77,16 +77,16 @@ function NoteForm({
   );
 }
 
-// Notes of one course: an editor on top, then the notes rendered as Markdown (newest first).
+// Notes of one course, oldest first like a notebook, then the editor for the next one.
 export function CourseNotes({ courseId, notes }: { courseId: string; notes: RenderedNote[] }) {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   return (
     <div className="flex flex-col gap-4">
-      <NoteForm courseId={courseId} note={null} onDone={() => {}} />
-
       {notes.length === 0 ? (
-        <p className="text-body-14 text-fg-2">Aucune note pour ce cours.</p>
+        <p className="text-body-14 text-fg-2">
+          Aucune note pour ce cours. Écris la première ci-dessous.
+        </p>
       ) : (
         <ul className="flex flex-col divide-y divide-line-subtle">
           {notes.map((note) => (
@@ -96,7 +96,7 @@ export function CourseNotes({ courseId, notes }: { courseId: string; notes: Rend
               ) : (
                 <>
                   <div className="flex items-baseline gap-2">
-                    <h3 className="flex-1 text-body-14 font-semibold">{note.title}</h3>
+                    <h3 className="flex-1 text-title-18">{note.title}</h3>
                     <span className="text-caption-12 text-fg-3">
                       {formatShortDate(note.updatedAt)}
                     </span>
@@ -118,6 +118,16 @@ export function CourseNotes({ courseId, notes }: { courseId: string; notes: Rend
           ))}
         </ul>
       )}
+
+      <section
+        aria-labelledby={`new-note-${courseId}`}
+        className="flex flex-col gap-2 border-t border-line-subtle pt-4"
+      >
+        <h2 id={`new-note-${courseId}`} className="text-label-12 text-fg-3 uppercase">
+          Nouvelle note
+        </h2>
+        <NoteForm courseId={courseId} note={null} onDone={() => {}} />
+      </section>
     </div>
   );
 }

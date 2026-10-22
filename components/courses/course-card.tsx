@@ -111,7 +111,12 @@ function CourseCard({
         <CourseIcon className="mt-0.5 size-4.5 shrink-0 text-career" />
         <div className="min-w-0 flex-1">
           <h2 id={titleId} className="text-title-18">
-            {course.title}
+            <Link
+              href={`/career/courses/${course.id}`}
+              className="hover:underline hover:decoration-line-strong hover:underline-offset-3"
+            >
+              {course.title}
+            </Link>
           </h2>
           <p className="text-caption-12 text-fg-2">{courseContext(course)}</p>
         </div>
@@ -176,8 +181,7 @@ function CourseCard({
           <span className="text-fg-3">{course.skills.map((skill) => skill.name).join(', ')}</span>
         ) : null}
         <Link
-          href={`${basePath}?panel=notes-${course.id}`}
-          scroll={false}
+          href={`/career/courses/${course.id}`}
           className="ml-auto underline decoration-line-strong underline-offset-3 hover:text-fg-1"
         >
           Notes ({course._count.notes})

@@ -11,13 +11,9 @@ export async function NotesView() {
   const user = await requireUser();
   const [notes, counts] = await Promise.all([getCourseNotes(user.id), getCourseCounts(user.id)]);
 
-  const byCourse = new Map<string, { title: string; completed: boolean; notes: typeof notes }>();
+  const byCourse = new Map<string, { title: string; notes: typeof notes }>();
   for (const note of notes) {
-    const group = byCourse.get(note.course.id) ?? {
-      title: note.course.title,
-      completed: note.course.status === 'COMPLETED',
-      notes: [],
-    };
+    const group = byCourse.get(note.course.id) ?? { title: note.course.title, notes: [] };
     group.notes.push(note);
     byCourse.set(note.course.id, group);
   }
@@ -59,10 +55,10 @@ export async function NotesView() {
               ))}
             </ul>
             <Link
-              href={`/career/courses${group.completed ? '/completed' : ''}?panel=notes-${courseId}`}
+              href={`/career/courses/${courseId}`}
               className="self-start text-body-14 font-semibold text-fg-2 hover:text-fg-1 hover:underline"
             >
-              Ajouter une note
+              Ouvrir le cours
             </Link>
           </section>
         ))

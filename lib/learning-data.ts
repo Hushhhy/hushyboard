@@ -67,7 +67,16 @@ export async function getCourseNotes(userId: string) {
   return prisma.courseNote.findMany({
     where: { course: { userId } },
     include: { course: { select: { id: true, title: true, status: true } } },
-    orderBy: { createdAt: 'desc' },
+    // Chronological: the newest note comes last, like a notebook.
+    orderBy: { createdAt: 'asc' },
+  });
+}
+
+// One course with all its notes (oldest first), or null if it is not Alex's.
+export async function getCourseWithNotes(userId: string, courseId: string) {
+  return prisma.course.findFirst({
+    where: { id: courseId, userId },
+    include: { ...courseInclude, notes: { orderBy: { createdAt: 'asc' } } },
   });
 }
 
