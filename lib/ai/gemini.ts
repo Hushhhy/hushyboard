@@ -1,4 +1,10 @@
-import { ApiError, GoogleGenAI, type GenerateContentResponse, type Part } from '@google/genai';
+import {
+  ApiError,
+  GoogleGenAI,
+  ThinkingLevel,
+  type GenerateContentResponse,
+  type Part,
+} from '@google/genai';
 import type { z } from 'zod';
 import { env } from '@/lib/env';
 import { prisma } from '@/lib/prisma';
@@ -78,7 +84,9 @@ export function isQuotaError(error: unknown): boolean {
 
 // A model over its quota sometimes hangs instead of answering 429: each attempt gets a time
 // limit, so a slow model gives way to the next one well within the 60 s of a Vercel function.
-export const ATTEMPT_TIMEOUT_MS = 20_000;
+export const ATTEMPT_TIMEOUT_MS = 25_000;
+// Below this, another attempt is not worth starting.
+const MIN_ATTEMPT_MS = 6_000;
 
 export function isTimeout(error: unknown): boolean {
   return (
@@ -135,9 +143,10 @@ const skippedUntil = new Map<string, number>();
 const CHAIN_DEADLINE_MS = 50_000;
 
 // Tries each model of the chain; moves to the next one when a model is out of quota or too slow.
+// Each attempt gets the time left in the budget, at most ATTEMPT_TIMEOUT_MS.
 export async function withFallback<T>(
   models: string[],
-  call: (model: string) => Promise<T>,
+  call: (model: string, timeoutMs: number) => Promise<T>,
   now: () => number = Date.now
 ): Promise<{ result: T; model: string }> {
   const start = now();
@@ -147,12 +156,14 @@ export async function withFallback<T>(
   for (let index = 0; ; index += 1) {
     const model = chain[index];
     try {
-      return { result: await withRetry(() => call(model)), model };
+      const left = CHAIN_DEADLINE_MS - (now() - start);
+      const timeoutMs = Math.min(ATTEMPT_TIMEOUT_MS, left);
+      return { result: await withRetry(() => call(model, timeoutMs)), model };
     } catch (error) {
       const moveOn = isQuotaError(error) || isTimeout(error);
       if (moveOn) skippedUntil.set(model, now() + SKIP_MS);
       const last = index >= chain.length - 1;
-      const outOfTime = now() - start > CHAIN_DEADLINE_MS - ATTEMPT_TIMEOUT_MS;
+      const outOfTime = CHAIN_DEADLINE_MS - (now() - start) < MIN_ATTEMPT_MS;
       // Server log only (model and reason, never content), to follow the free quotas.
       console.warn(
         `[gemini] ${model} failed (${isTimeout(error) ? 'timeout' : isQuotaError(error) ? 'quota' : 'error'})${moveOn && !last && !outOfTime ? ', trying the next model' : ''}`
@@ -165,6 +176,26 @@ export async function withFallback<T>(
 // Tests only: forget the skipped models.
 export function resetSkippedModels() {
   skippedUntil.clear();
+}
+
+type RequestConfig = Record<string, unknown>;
+
+async function callModel(model: string, parts: Part[], config: RequestConfig, timeoutMs: number) {
+  const request = (extra: RequestConfig) =>
+    getClient().models.generateContent({
+      model,
+      contents: parts,
+      config: { ...config, ...extra, abortSignal: AbortSignal.timeout(timeoutMs) },
+    });
+  try {
+    return await request({ thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (error instanceof ApiError && error.status === 400 && /think/i.test(message)) {
+      return request({});
+    }
+    throw error;
+  }
 }
 
 // A file sent inline (base64), e.g. the CV PDF. Never stored.
@@ -224,17 +255,13 @@ export async function generateJsonWithModel<T>(
   let raw: string | undefined;
   let usedModel: string;
   try {
-    const { result: response, model } = await withFallback(modelChain(feature), (model) =>
-      getClient().models.generateContent({
-        model,
-        contents: contents(prompt, files),
-        config: {
-          responseMimeType: 'application/json',
-          responseJsonSchema: toGeminiSchema(schema),
-          temperature: 0.2,
-          abortSignal: AbortSignal.timeout(ATTEMPT_TIMEOUT_MS),
-        },
-      })
+    const config = {
+      responseMimeType: 'application/json',
+      responseJsonSchema: toGeminiSchema(schema),
+      temperature: 0.2,
+    };
+    const { result: response, model } = await withFallback(modelChain(feature), (model, timeout) =>
+      callModel(model, contents(prompt, files), config, timeout)
     );
     await logUsage(userId, feature, model, response.usageMetadata);
     raw = response.text;
@@ -260,12 +287,8 @@ export async function generateTextWithModel(
   prompt: string
 ): Promise<{ text: string; model: string }> {
   try {
-    const { result: response, model } = await withFallback(modelChain(feature), (model) =>
-      getClient().models.generateContent({
-        model,
-        contents: contents(prompt, []),
-        config: { temperature: 0.6, abortSignal: AbortSignal.timeout(ATTEMPT_TIMEOUT_MS) },
-      })
+    const { result: response, model } = await withFallback(modelChain(feature), (model, timeout) =>
+      callModel(model, contents(prompt, []), { temperature: 0.6 }, timeout)
     );
     await logUsage(userId, feature, model, response.usageMetadata);
     const text = response.text?.trim();

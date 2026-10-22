@@ -242,20 +242,21 @@ describe('withFallback memory and deadline', () => {
     expect(tried).toEqual(['flash']);
   });
 
-  it('stops before the function time limit', async () => {
+  it('gives each attempt the time left, and stops before the function time limit', async () => {
     let clock = 0;
     const tried: string[] = [];
     await expect(
       withFallback(
-        ['a', 'b', 'c'],
-        async (name) => {
-          tried.push(name);
-          clock += 20_000;
+        ['a', 'b', 'c', 'd'],
+        async (name, timeoutMs) => {
+          tried.push(`${name}:${timeoutMs}`);
+          clock += name === 'a' ? 25_000 : 18_000;
           throw new DOMException('timed out', 'TimeoutError');
         },
         () => clock
       )
     ).rejects.toThrow('timed out');
-    expect(tried).toEqual(['a', 'b']);
+    // 50 s budget: a gets 25 s, b 25 s, c the 7 s left; nothing left for d.
+    expect(tried).toEqual(['a:25000', 'b:25000', 'c:7000']);
   });
 });
