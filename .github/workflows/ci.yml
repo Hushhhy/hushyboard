@@ -24,6 +24,7 @@ jobs:
       GITHUB_CLIENT_ID: ci-dummy
       GITHUB_CLIENT_SECRET: ci-dummy
       ALLOWED_GITHUB_ID: '1'
+      GEMINI_API_KEY: ci-only-dummy-gemini-key-000
     steps:
       - uses: actions/checkout@v4
 

@@ -8,6 +8,7 @@ const valid = {
   GITHUB_CLIENT_ID: 'client-id',
   GITHUB_CLIENT_SECRET: 'client-secret',
   ALLOWED_GITHUB_ID: '123456',
+  GEMINI_API_KEY: 'test-gemini-key-0000000000',
 };
 
 describe('parseEnv', () => {
@@ -21,6 +22,10 @@ describe('parseEnv', () => {
       /GITHUB_CLIENT_SECRET[\s\S]*BETTER_AUTH_SECRET|BETTER_AUTH_SECRET[\s\S]*GITHUB_CLIENT_SECRET/
     );
     expect(() => parseEnv({ ...valid, BETTER_AUTH_SECRET: 'short' })).not.toThrow(/short/);
+  });
+
+  it('defaults the Gemini model to a free-tier Flash model', () => {
+    expect(parseEnv(valid).GEMINI_MODEL).toBe('gemini-3.8-flash');
   });
 
   it('rejects a non-numeric GitHub id', () => {

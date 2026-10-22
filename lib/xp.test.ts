@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   applicationXpAllowance,
+  detectLevelUp,
   DAILY_APPLICATION_XP_CAP,
   getLevelInfo,
   LEVEL_TITLES,
@@ -76,5 +77,26 @@ describe('applicationXpAllowance', () => {
     let earned = 0;
     for (let i = 0; i < 8; i++) earned += applicationXpAllowance(earned);
     expect(earned).toBe(75);
+  });
+});
+
+describe('detectLevelUp', () => {
+  it('returns null when the level does not change', () => {
+    expect(detectLevelUp(0, 40)).toBeNull();
+    expect(detectLevelUp(300, 250)).toBeNull();
+  });
+
+  it('describes the new level when a threshold is crossed', () => {
+    // 40 + 60 XP (course completed) crosses the 50 XP threshold.
+    expect(detectLevelUp(40, 100)).toEqual({
+      level: 2,
+      title: 'Rameur',
+      nextTitle: 'Vigie',
+      xpToNext: 150,
+    });
+  });
+
+  it('reports the highest level when several are crossed at once', () => {
+    expect(detectLevelUp(0, 300)?.level).toBe(3);
   });
 });

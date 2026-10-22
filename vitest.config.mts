@@ -8,7 +8,7 @@ export default defineConfig({
   },
   test: {
     environment: 'node',
-    include: ['**/*.test.ts'],
+    include: ['**/*.test.ts', '**/*.test.tsx'],
     exclude: ['node_modules/**', '.next/**', 'generated/**'],
     // Dummy values so modules that import lib/env.ts load. No test reaches a real service.
     env: {
@@ -18,6 +18,7 @@ export default defineConfig({
       GITHUB_CLIENT_ID: 'test',
       GITHUB_CLIENT_SECRET: 'test',
       ALLOWED_GITHUB_ID: '1',
+      GEMINI_API_KEY: 'test-only-dummy-gemini-key-000',
     },
   },
 });

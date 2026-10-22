@@ -1,4 +1,5 @@
 import type { z } from 'zod';
+import type { LevelUp } from '@/lib/xp';
 
 // What a form Server Action returns to useActionState.
 export type FormState = {
@@ -8,6 +9,10 @@ export type FormState = {
   fieldErrors?: Record<string, string>;
   // Last submitted values, so the form keeps what Alex typed after an error.
   values?: Record<string, string>;
+  // Set on success (a new number each time) so the client can close the panel.
+  done?: number;
+  // Level reached thanks to this save, announced by the reward toast.
+  levelUp?: LevelUp | null;
 };
 
 export const EMPTY_FORM_STATE: FormState = {};
