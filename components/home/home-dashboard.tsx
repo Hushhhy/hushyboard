@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { PageHeader } from '@/components/app-shell/page-header';
 import { requireUser } from '@/lib/session';
 import { getHomeData, type HomeData } from '@/lib/home-data';
 import { formatLongDate, formatMonth } from '@/lib/dates';
@@ -32,14 +33,10 @@ export async function HomeDashboard() {
 
   return (
     <>
-      <header className="flex h-13 items-center gap-4">
-        <div className="min-w-0 flex-1">
-          <p className="text-label-12 text-fg-3 uppercase">{formatLongDate(now)}</p>
-          <h1 className="truncate font-display text-display-24">
-            {buildSummary(habitsLeft, data.pendingOfferCount)}
-          </h1>
-        </div>
-      </header>
+      <PageHeader
+        breadcrumb={formatLongDate(now)}
+        title={buildSummary(habitsLeft, data.pendingOfferCount)}
+      />
 
       <div className="grid flex-1 grid-cols-12 grid-rows-[1.4fr_1fr_1fr] gap-3">
         <CareerModule data={data} />
