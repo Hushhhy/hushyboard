@@ -90,3 +90,93 @@ export function parseResumeContent(value: unknown): ResumeContent | null {
   const result = resumeContentSchema.safeParse(value);
   return result.success ? result.data : null;
 }
+
+// --- Answers from Gemini ------------------------------------------------------------
+
+type Loose = Record<string, unknown>;
+const asObject = (value: unknown): Loose =>
+  value && typeof value === 'object' && !Array.isArray(value) ? (value as Loose) : {};
+const asText = (value: unknown, max: number): string =>
+  typeof value === 'string' || typeof value === 'number' ? String(value).trim().slice(0, max) : '';
+const asList = (value: unknown, max: number): unknown[] =>
+  Array.isArray(value) ? value.slice(0, max) : [];
+const asTexts = (value: unknown, maxItems: number, maxLength: number): string[] =>
+  asList(value, Number.POSITIVE_INFINITY)
+    .map((item) => asText(item, maxLength))
+    .filter(Boolean)
+    .slice(0, maxItems);
+
+// Tidies a CV read or adapted by Gemini before validation: null or missing fields become
+// empty, texts and lists are cut to their limits, entries without their required field take
+// a neighbouring one (an experience with no title takes its organisation) or are dropped.
+// Nothing is invented. Pure, unit-tested.
+export function coerceResumeContent(value: unknown, fallbackName = ''): unknown {
+  const data = asObject(value);
+  const header = asObject(data.header);
+  return {
+    header: {
+      fullName: asText(header.fullName, 80) || fallbackName.trim().slice(0, 80),
+      title: asText(header.title, 120),
+      email: asText(header.email, 120),
+      phone: asText(header.phone, 40),
+      location: asText(header.location, 80),
+      github: asText(header.github, 160),
+      linkedin: asText(header.linkedin, 160),
+      website: asText(header.website, 160),
+    },
+    summary: asText(data.summary, 800),
+    skillGroups: asList(data.skillGroups, Number.POSITIVE_INFINITY)
+      .map(asObject)
+      .map((group) => ({
+        name: asText(group.name, 60) || 'Compétences',
+        items: asTexts(group.items, 30, 60),
+      }))
+      .filter((group) => group.items.length > 0)
+      .slice(0, 12),
+    experiences: asList(data.experiences, Number.POSITIVE_INFINITY)
+      .map(asObject)
+      .map((item) => {
+        const organization = asText(item.organization, 120);
+        return {
+          title: asText(item.title, 120) || organization,
+          organization,
+          location: asText(item.location, 80),
+          start: asText(item.start, 30),
+          end: asText(item.end, 30),
+          bullets: asTexts(item.bullets, 10, 300),
+        };
+      })
+      .filter((item) => item.title)
+      .slice(0, 15),
+    projects: asList(data.projects, Number.POSITIVE_INFINITY)
+      .map(asObject)
+      .map((item) => ({
+        name: asText(item.name, 120),
+        description: asText(item.description, 400),
+        technologies: asTexts(item.technologies, 15, 40),
+        url: asText(item.url, 200),
+      }))
+      .filter((item) => item.name)
+      .slice(0, 15),
+    education: asList(data.education, Number.POSITIVE_INFINITY)
+      .map(asObject)
+      .map((item) => {
+        const school = asText(item.school, 120);
+        return {
+          degree: asText(item.degree, 160) || school,
+          school,
+          start: asText(item.start, 30),
+          end: asText(item.end, 30),
+          details: asText(item.details, 300),
+        };
+      })
+      .filter((item) => item.degree)
+      .slice(0, 10),
+    languages: asList(data.languages, Number.POSITIVE_INFINITY)
+      .map(asObject)
+      .map((item) => ({ name: asText(item.name, 40), level: asText(item.level, 60) }))
+      .filter((item) => item.name)
+      .slice(0, 8),
+    interests: asTexts(data.interests, 12, 60),
+  };
+}

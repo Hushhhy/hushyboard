@@ -243,9 +243,10 @@ export async function generateJson<T>(
   feature: AiFeature,
   prompt: string,
   schema: z.ZodType<T>,
-  files: InlineFile[] = []
+  files: InlineFile[] = [],
+  options: JsonOptions = {}
 ): Promise<T> {
-  return (await generateJsonWithModel(userId, feature, prompt, schema, files)).data;
+  return (await generateJsonWithModel(userId, feature, prompt, schema, files, options)).data;
 }
 
 // Same, plus the model that answered (shown under generated content).
@@ -254,7 +255,8 @@ export async function generateJsonWithModel<T>(
   feature: AiFeature,
   prompt: string,
   schema: z.ZodType<T>,
-  files: InlineFile[] = []
+  files: InlineFile[] = [],
+  options: JsonOptions = {}
 ): Promise<{ data: T; model: string }> {
   let raw: string | undefined;
   let usedModel: string;
@@ -273,7 +275,7 @@ export async function generateJsonWithModel<T>(
   } catch (error) {
     throw toAiError(error);
   }
-  return { data: parseJsonAnswer(raw, schema), model: usedModel };
+  return { data: parseJsonAnswer(raw, schema, options.coerce), model: usedModel };
 }
 
 // Free text (cover letter).
@@ -304,15 +306,31 @@ export async function generateTextWithModel(
 }
 
 // Exported for tests: parses and validates a JSON answer.
-export function parseJsonAnswer<T>(raw: string | undefined, schema: z.ZodType<T>): T {
+// `coerce` tidies a near-valid answer first (null for "", text a bit too long…).
+export function parseJsonAnswer<T>(
+  raw: string | undefined,
+  schema: z.ZodType<T>,
+  coerce?: (data: unknown) => unknown
+): T {
   if (!raw) throw new AiError(AI_INVALID_MESSAGE);
   let data: unknown;
   try {
     data = JSON.parse(raw);
   } catch {
+    console.warn('[gemini] answer rejected: not valid JSON');
     throw new AiError(AI_INVALID_MESSAGE);
   }
-  const result = schema.safeParse(data);
-  if (!result.success) throw new AiError(AI_INVALID_MESSAGE);
+  const result = schema.safeParse(coerce ? coerce(data) : data);
+  if (!result.success) {
+    // Field paths and rule codes only, never the content (it may be personal data).
+    const issues = result.error.issues
+      .slice(0, 5)
+      .map((issue) => `${issue.path.join('.') || '(root)'}: ${issue.code}`)
+      .join(', ');
+    console.warn(`[gemini] answer rejected: ${issues}`);
+    throw new AiError(AI_INVALID_MESSAGE);
+  }
   return result.data;
 }
+
+export type JsonOptions = { coerce?: (data: unknown) => unknown };
