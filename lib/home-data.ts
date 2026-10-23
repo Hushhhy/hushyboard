@@ -1,3 +1,4 @@
+import { nextInFranchise } from '@/lib/games';
 import { prisma } from '@/lib/prisma';
 import { isoWeekdayInParis, monthRangeInParis, todayInParis } from '@/lib/dates';
 
@@ -53,19 +54,13 @@ export async function getHomeData(userId: string, now: Date) {
     prisma.trophyUnlock.count({ where: { userId } }),
   ]);
 
-  // Next game in the same franchise, in story order.
-  const nextGame =
-    currentGame?.franchise && currentGame.storyOrder !== null
-      ? await prisma.game.findFirst({
-          where: {
-            userId,
-            franchise: currentGame.franchise,
-            storyOrder: { gt: currentGame.storyOrder },
-            status: 'NOT_STARTED',
-          },
-          orderBy: { storyOrder: 'asc' },
-        })
-      : null;
+  // Next game in the same franchise, in story order (same rule as /leisure/games).
+  const nextGame = currentGame?.franchise
+    ? nextInFranchise(
+        await prisma.game.findMany({ where: { userId, franchise: currentGame.franchise } }),
+        currentGame
+      )
+    : null;
 
   // Only habits scheduled today: weekday habits on weekdays, "X times a week" habits every day.
   const todayHabits = habits
