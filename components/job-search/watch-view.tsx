@@ -18,7 +18,7 @@ import { requireUser } from '@/lib/session';
 import { JobSearchTabs } from './job-search-tabs';
 import { OfferCardActions, RestoreOfferButton } from './offer-actions-buttons';
 import { OfferForm } from './offer-form';
-import { JobAlertsControls } from './job-alerts';
+import { JobAlertsControls, PurgeExpiredOffers } from './job-alerts';
 import { KeywordsList, SourcesList } from './watch-settings';
 
 const BASE_PATH = '/career/job-search/watch';
@@ -89,13 +89,19 @@ export async function WatchView() {
     <>
       <PageHeader breadcrumb="Carrière · Recherches pro" title={describeWatch(pending.length)} />
       <JobSearchTabs />
+      <PurgeExpiredOffers />
 
       <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_18.75rem]">
         <section aria-labelledby="offers-title" className="flex flex-col gap-3">
           <div className="flex items-center gap-3">
-            <h2 id="offers-title" className="flex-1 text-title-18">
-              Nouvelles offres
-            </h2>
+            <div className="flex-1">
+              <h2 id="offers-title" className="text-title-18">
+                Nouvelles offres
+              </h2>
+              <p className="text-caption-12 text-fg-3">
+                Offres des 7 derniers jours. Sans candidature, elles sont supprimées ensuite.
+              </p>
+            </div>
             <Link
               href={`${BASE_PATH}?panel=offer-new`}
               scroll={false}
@@ -235,7 +241,8 @@ async function JobAlertsCard() {
       <>
         <p className="text-caption-12 text-fg-2">
           Crée tes alertes sur LinkedIn, Welcome to the Jungle, HelloWork, Indeed… puis un filtre
-          Gmail qui les range dans un libellé. Leurs offres arrivent ici, sans doublons.
+          Gmail qui les range dans un libellé. Les offres des alertes reçues ces 7 derniers jours
+          arrivent ici, sans doublons.
         </p>
         <JobAlertsControls labels={labels} labelId={settings?.gmailLabelId ?? null} />
         {settings?.lastSyncedAt ? (

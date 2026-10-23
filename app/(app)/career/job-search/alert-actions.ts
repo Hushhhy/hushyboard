@@ -15,6 +15,7 @@ import {
 } from '@/lib/job-alerts';
 import { mailPlainText } from '@/lib/gmail/message';
 import { getMessage } from '@/lib/gmail/read';
+import { OFFER_MAX_AGE_DAYS, offerCutoff } from '@/lib/job-search';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/session';
 
@@ -26,7 +27,8 @@ const AUTO_SYNC_MS = 30 * 60 * 1000;
 // Mails read per call, to stay well within the 60 s of a server function. The client calls
 // again while some remain.
 const MAILS_PER_CALL = 4;
-const LOOKBACK = 'newer_than:30d';
+// Alert mails of the last 7 days only: older offers would be deleted at once.
+const LOOKBACK = `newer_than:${OFFER_MAX_AGE_DAYS}d`;
 
 function revalidateWatch() {
   revalidatePath('/career/job-search', 'layout');
@@ -93,6 +95,14 @@ export async function syncJobAlerts(force = false): Promise<SyncResult> {
     return { skipped: true };
   }
   const labelId = settings.gmailLabelId;
+  await prisma.jobOffer.deleteMany({
+    where: {
+      userId: user.id,
+      decision: { not: 'APPLIED' },
+      application: null,
+      foundAt: { lt: offerCutoff(new Date()) },
+    },
+  });
 
   let mails = 0;
   let created = 0;
@@ -124,6 +134,14 @@ export async function syncJobAlerts(force = false): Promise<SyncResult> {
 
       for (const id of todo.slice(0, MAILS_PER_CALL)) {
         const message = await getMessage(session, id);
+        // Gmail's « newer_than » is approximate: a mail older than 7 days is skipped.
+        if (message.date < offerCutoff(new Date())) {
+          await prisma.jobAlertMail.create({
+            data: { userId: user.id, gmailMessageId: id, offersFound: 0 },
+          });
+          mails += 1;
+          continue;
+        }
         const links = extractLinks(message.bodies.html ?? '');
         let offers;
         try {

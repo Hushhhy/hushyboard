@@ -6,6 +6,7 @@ import {
   syncJobAlerts,
   type SyncResult,
 } from '@/app/(app)/career/job-search/alert-actions';
+import { purgeExpiredOffers } from '@/app/(app)/career/job-search/actions';
 import { Button } from '@/components/ui/button';
 import { ErrorState } from '@/components/ui/error-state';
 
@@ -114,4 +115,15 @@ export function JobAlertsControls({
       {error ? <ErrorState title={error} announce /> : null}
     </div>
   );
+}
+
+// Offers not applied to are deleted after 7 days: done when the watch opens.
+export function PurgeExpiredOffers() {
+  const done = useRef(false);
+  useEffect(() => {
+    if (done.current) return;
+    done.current = true;
+    void purgeExpiredOffers().catch(() => {});
+  }, []);
+  return null;
 }

@@ -5,7 +5,7 @@ import { z } from 'zod';
 import type { ApplicationStatus } from '@/generated/prisma/client';
 import { parseDateInput, todayInParis } from '@/lib/dates';
 import { fieldErrors, formValues, type FormState } from '@/lib/forms';
-import { followUpDate, statusXpReason } from '@/lib/job-search';
+import { followUpDate, offerCutoff, statusXpReason } from '@/lib/job-search';
 import { CONTRACT_TYPES } from '@/lib/job-search-schemas';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/session';
@@ -373,6 +373,22 @@ export async function applyToOffer(
     : null;
   revalidateJobSearch();
   return { levelUp };
+}
+
+// Offers of the watch not applied to are deleted after 7 days (with their analysis,
+// adapted CV and letter). Run when the watch opens and before each alert import.
+export async function purgeExpiredOffers(): Promise<{ deleted: number }> {
+  const user = await requireUser();
+  const { count } = await prisma.jobOffer.deleteMany({
+    where: {
+      userId: user.id,
+      decision: { not: 'APPLIED' },
+      application: null,
+      foundAt: { lt: offerCutoff(new Date()) },
+    },
+  });
+  if (count > 0) revalidateJobSearch();
+  return { deleted: count };
 }
 
 export async function deleteOffer(offerId: string): Promise<{ error?: string }> {

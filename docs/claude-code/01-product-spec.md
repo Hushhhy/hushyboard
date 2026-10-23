@@ -196,6 +196,7 @@ List/board of applications with status pills (7 statuses + new `FOLLOWED_UP` « 
 
 - « Ajouter une offre »: dialog with a URL field + a big textarea « Colle le texte de l'offre ». On submit, **Gemini extracts** title, company, location, contract type, remote policy, required skills (array), and a 2-line summary. Alex can correct the fields before saving. The pasted text is stored on the offer (needed for analysis).
 - Offer cards: source · age, title, company · location, tag chips, actions « Postulé » / « Refusé » (secondary) and the whole title links to the offer detail page.
+- **Freshness (Alex, 23/10/2026)**: the watch shows offers of the last 7 days only (age from the alert mail date, or the day the offer was added). An offer not applied to is deleted after 7 days, with its analysis, adapted CV and letter. Job-alert mails older than 7 days are not imported.
 - Right column: « Sources suivies » (manual list with counts this week), « Mots-clés de la veille » (editable chips).
 
 ### Offer detail `/career/job-search/offers/[offerId]` (Figma `v2 · Recherches pro · Offre` 33:789)
