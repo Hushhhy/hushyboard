@@ -26,14 +26,19 @@ model User {
   accounts      Account[]
 
   // Career domain
-  resumes        Resume[]
-  applications   Application[]
-  jobOffers      JobOffer[]
-  watchSources   WatchSource[]
-  watchKeywords  WatchKeyword[]
-  certifications Certification[]
-  courses        Course[]
-  xpEvents       XpEvent[]
+  resumes       Resume[]
+  applications  Application[]
+  jobOffers     JobOffer[]
+  watchSources  WatchSource[]
+  watchKeywords WatchKeyword[]
+
+  // Mail (Gmail connection, phase 5)
+  gmailConnection  GmailConnection?
+  mailMatches      MailMatch[]
+  mailUnsubscribes MailUnsubscribe[]
+  certifications   Certification[]
+  courses          Course[]
+  xpEvents         XpEvent[]
 
   // Habits & goals domain
   habits      Habit[]
@@ -252,6 +257,7 @@ model Application {
   jobOfferId   String?            @unique
   jobOffer     JobOffer?          @relation(fields: [jobOfferId], references: [id], onDelete: SetNull)
   events       ApplicationEvent[]
+  mailMatches  MailMatch[]
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
 
@@ -894,4 +900,65 @@ model WatchKeyword {
 
   @@unique([userId, label])
   @@map("watch_keywords")
+}
+
+/// Gmail connection (separate from the GitHub sign-in). Only the refresh token is kept,
+/// encrypted with AES-256-GCM (lib/crypto.ts). Mail content is never stored.
+model GmailConnection {
+  userId                String    @id
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  email                 String
+  encryptedRefreshToken String
+  scope                 String
+  connectedAt           DateTime  @default(now())
+  // Set when Google refuses the token (expired or revoked): « Connexion Gmail expirée ».
+  lastErrorAt           DateTime?
+
+  @@map("gmail_connections")
+}
+
+enum MailClassification {
+  INTERVIEW
+  REJECTION
+  OTHER
+}
+
+enum MailDecision {
+  ACCEPTED
+  IGNORED
+}
+
+/// One Gmail message from a company Alex applied to, classified once. Content is never stored.
+model MailMatch {
+  id             String             @id @default(cuid())
+  userId         String
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gmailMessageId String
+  applicationId  String?
+  application    Application?       @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+  classification MailClassification
+  confidence     Float
+  // One short French sentence shown in the banner.
+  reason         String
+  decision       MailDecision?
+  decidedAt      DateTime?
+  createdAt      DateTime           @default(now())
+
+  @@unique([userId, gmailMessageId])
+  @@map("mail_matches")
+}
+
+/// A sender Alex unsubscribed from: « Se désabonner » is hidden on its next mails.
+model MailUnsubscribe {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // Email address, lower case.
+  sender         String
+  // "one-click" | "mailto" | "link"
+  method         String
+  unsubscribedAt DateTime @default(now())
+
+  @@unique([userId, sender])
+  @@map("mail_unsubscribes")
 }

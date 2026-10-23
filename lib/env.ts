@@ -34,6 +34,14 @@ const envSchema = z.object({
   // Fine-grained token, read-only (Metadata + Contents), to list and read Alex's repos.
   // Optional: without it, only /career/projects shows how to create one.
   GITHUB_TOKEN: z.string().min(20).optional(),
+  // Gmail connection (phase 5), optional: without them, /mail explains what to configure.
+  GOOGLE_CLIENT_ID: z.string().min(1).optional(),
+  GOOGLE_CLIENT_SECRET: z.string().min(1).optional(),
+  // AES-256-GCM key for OAuth tokens: 32 random bytes, base64 (openssl rand -base64 32).
+  TOKEN_ENCRYPTION_KEY: z
+    .string()
+    .refine((value) => Buffer.from(value, 'base64').length === 32, 'Must be 32 bytes in base64.')
+    .optional(),
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
 });
 
