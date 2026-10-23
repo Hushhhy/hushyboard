@@ -33,7 +33,7 @@ export const resumeExperienceSchema = z.object({
 
 export const resumeProjectSchema = z.object({
   name: text(120).min(1, 'Nomme le projet.'),
-  description: text(400).describe('One or two sentences'),
+  description: text(700).describe('What was built and how, a few sentences'),
   technologies: z.array(text(40)).max(15),
   url: text(200).describe('Link to the project or repository, empty if absent'),
 });
@@ -97,7 +97,42 @@ type Loose = Record<string, unknown>;
 const asObject = (value: unknown): Loose =>
   value && typeof value === 'object' && !Array.isArray(value) ? (value as Loose) : {};
 const asText = (value: unknown, max: number): string =>
-  typeof value === 'string' || typeof value === 'number' ? String(value).trim().slice(0, max) : '';
+  typeof value === 'string' || typeof value === 'number'
+    ? clipText(repairLigatures(String(value).trim()), max)
+    : '';
+
+// Cuts a text that is too long at the end of a sentence, else at a word: never mid-word.
+export function clipText(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const head = text.slice(0, max);
+  const sentence = Math.max(head.lastIndexOf('. '), head.lastIndexOf('.\n'));
+  if (sentence >= max * 0.5) return head.slice(0, sentence + 1);
+  const space = head.lastIndexOf(' ');
+  return (space > 0 ? head.slice(0, space) : head).replace(/[\s,;:–-]+$/, '');
+}
+
+// PDF text often loses the "i" of the "fi" and "ffi" ligatures ("Makefle", "Offce",
+// "fabilité"). These are the broken forms seen on CVs; each is fixed only as a whole word part.
+const LIGATURE_FIXES: [RegExp, string][] = [
+  [/\b([Mm])akefle/g, '$1akefile'],
+  [/\b([Dd])ockerfle/g, '$1ockerfile'],
+  [/\b([Oo])ffce/g, '$1ffice'],
+  [/\b([Ff])abilit/g, '$1iabilit'],
+  [/\b([Ee])ffcac/g, '$1fficac'],
+  [/\b([Ee])ffcien/g, '$1fficien'],
+  [/\b([Cc])onfgur/g, '$1onfigur'],
+  [/\b([Pp])rofl/g, '$1rofil'],
+  [/\b([Ff])chier/g, '$1ichier'],
+  [/\b([Cc])ertifcat/g, '$1ertificat'],
+  [/\b([Ss])péci(f)(?!i)([a-zé])/g, '$1pécifi$3'],
+  [/\b([Ff])nanc/g, '$1inanc'],
+  [/\b([Ff])ltr/g, '$1iltr'],
+  [/\b([Ff])nal/g, '$1inal'],
+];
+
+export function repairLigatures(text: string): string {
+  return LIGATURE_FIXES.reduce((result, [pattern, fix]) => result.replace(pattern, fix), text);
+}
 const asList = (value: unknown, max: number): unknown[] =>
   Array.isArray(value) ? value.slice(0, max) : [];
 const asTexts = (value: unknown, maxItems: number, maxLength: number): string[] =>
@@ -152,7 +187,7 @@ export function coerceResumeContent(value: unknown, fallbackName = ''): unknown 
       .map(asObject)
       .map((item) => ({
         name: asText(item.name, 120),
-        description: asText(item.description, 400),
+        description: asText(item.description, 700),
         technologies: asTexts(item.technologies, 15, 40),
         url: asText(item.url, 200),
       }))

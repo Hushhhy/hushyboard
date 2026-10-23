@@ -4,6 +4,9 @@ export const CV_IMPORT_PROMPT = `You receive a CV (résumé) as a PDF. Extract i
 
 Rules:
 - Copy the text faithfully, in French, as written in the CV. Fix obvious typos only.
+- PDF text may lose the "i" of "fi" ligatures ("Makefle", "Offce", "fabilité"): write the real word
+  ("Makefile", "Office", "fiabilité").
+- Never cut a sentence: keep project descriptions whole.
 - Never invent anything: no experience, project, diploma, date, skill or link that is not in the CV.
 - Use an empty string for a missing text field and an empty array for a missing list.
 - Keep dates as written (e.g. "sept. 2023", "2023 – 2026"); use "en cours" when the CV says ongoing.

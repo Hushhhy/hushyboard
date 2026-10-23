@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { coerceResumeContent, resumeContentSchema } from './schema';
+import { clipText, coerceResumeContent, repairLigatures, resumeContentSchema } from './schema';
 
 describe('coerceResumeContent', () => {
   it('turns a sloppy AI answer into a valid CV without inventing anything', () => {
@@ -44,5 +44,32 @@ describe('coerceResumeContent', () => {
       header: { fullName: string };
     };
     expect(named.header.fullName).toBe('Jean');
+  });
+});
+
+describe('clipText', () => {
+  it('keeps short texts and cuts long ones at a sentence, else at a word', () => {
+    expect(clipText('Court.', 50)).toBe('Court.');
+    expect(clipText('Une première phrase entière et longue. Puis la suite', 45)).toBe(
+      'Une première phrase entière et longue.'
+    );
+    expect(clipText('un deux trois quatre cinq six', 16)).toBe('un deux trois');
+  });
+});
+
+describe('repairLigatures', () => {
+  it('restores the "fi" lost in PDF text', () => {
+    expect(repairLigatures('Git, Makefle, Shell')).toBe('Git, Makefile, Shell');
+    expect(repairLigatures('Suite Offce')).toBe('Suite Office');
+    expect(repairLigatures('rigueur et fabilité')).toBe('rigueur et fiabilité');
+    expect(repairLigatures('Dockerfles personnalisés, confguration')).toBe(
+      'Dockerfiles personnalisés, configuration'
+    );
+    expect(repairLigatures('un projet spécifque')).toBe('un projet spécifique');
+  });
+
+  it('leaves correct words alone', () => {
+    const text = 'Makefile, Office, fiabilité, profil, fichier, final, spécifique, fable';
+    expect(repairLigatures(text)).toBe(text);
   });
 });
