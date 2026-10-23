@@ -70,8 +70,9 @@ ${skillLines(input.skills)}
 - strengths: skills of the offer the CV or the levels prove (level 1 or more).
 - gaps: skills of the offer that are missing or at level 0.
 - changes: 3 to 5 concrete changes an adapted CV would make (title, order of projects and skills,
-  wording of the summary). Only rewriting and reordering: never add an experience, project,
-  diploma, date or skill that is not in the CV or the levels above.`;
+  wording of the summary, the offer's exact keywords for ATS). Only rewriting and reordering:
+  never add an experience, project, diploma, date or skill that is not in the CV or the
+  levels above.`;
 }
 
 export function cvAdaptPrompt(input: {
@@ -96,11 +97,23 @@ Strict rules:
 - Rewrite and reorder only. Never invent an experience, project, diploma, date, company,
   link or skill. Keep every experience, project and diploma of the base CV.
 - Keep names, companies, schools and dates exactly as in the base CV.
-- You may change the title under the name, the summary, bullet wording, and the order of
-  experiences, projects, skill groups and skills to put what the offer asks first.
+- You may change the job title (printed first, above the name), the summary, bullet wording,
+  and the order of experiences, projects, skill groups and skills to put what the offer asks first.
 - A skill at level 0 may appear only if it is marked "started", followed by
   " (en cours d’apprentissage)".
-- Everything in French, concise, no clichés.`;
+- Everything in French, concise, no clichés.
+
+The CV is read by an applicant tracking system (ATS) before a recruiter:
+- Job title: reuse the offer's job title word for word when it honestly fits the profile
+  (e.g. "Développeur Full Stack Junior"), without "(H/F)" or the contract type.
+- Keywords: write each skill or technology the candidate really has exactly as the offer
+  spells it ("PostgreSQL", not "Postgres"; "Node.js", not "Node"). Put them in the summary,
+  the skill groups and the bullets where they are true.
+- Summary: 2 or 3 plain sentences with the title and the main matching keywords.
+- Bullets: start with an action verb, one fact per bullet, no symbols or emojis.
+- Skill group names: short and standard ("Langages", "Front-end", "Back-end",
+  "Bases de données", "Outils").
+- Spell out an acronym once when the offer does ("API REST", "CI/CD").`;
 }
 
 export function coverLetterPrompt(input: { offer: OfferForPrompt; resume: ResumeContent }): string {
