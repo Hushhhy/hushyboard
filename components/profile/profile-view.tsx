@@ -2,6 +2,7 @@ import { requireUser } from '@/lib/session';
 import { getProfileData } from '@/lib/profile-data';
 import { PageHeader } from '@/components/app-shell/page-header';
 import { LoadingRegion, Skeleton } from '@/components/ui/skeleton';
+import { DataCard } from './data-card';
 import { IdentityCard } from './identity-card';
 import { ObjectivesCard } from './objectives-card';
 import { SkillsCard } from './skills-card';
@@ -29,6 +30,7 @@ export async function ProfileView() {
           <IdentityCard name={user.name} profile={data.profile} />
           <ToolsCard tools={data.tools} />
           <TimelineCard entries={data.timeline} projects={data.projects} />
+          <DataCard />
         </div>
         <div className="flex flex-col gap-3">
           <SkillsCard skills={data.skills} />

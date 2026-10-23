@@ -157,10 +157,12 @@ export default function LegalPage() {
           <Section title="Conservation et suppression">
             <p>
               Les données sont conservées tant que l’application est utilisée. L’éditeur peut les
-              modifier ou les supprimer à tout moment depuis l’application ; une commande «
-              Supprimer toutes mes données » sera ajoutée dans les paramètres. Les droits prévus par
-              le RGPD (accès, rectification, effacement) s’exercent auprès de chaque sous-traitant
-              via sa politique de confidentialité.
+              modifier ou les supprimer à tout moment depuis l’application. La commande « Supprimer
+              toutes mes données » (page Profil, carte « Mes données ») efface définitivement toutes
+              les lignes du compte dans la base, révoque l’accès Gmail auprès de Google et ferme la
+              session. Les offres d’emploi non retenues sont supprimées après 7 jours. Les droits
+              prévus par le RGPD (accès, rectification, effacement) s’exercent auprès de chaque
+              sous-traitant via sa politique de confidentialité.
             </p>
           </Section>
 
