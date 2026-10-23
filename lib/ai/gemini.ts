@@ -24,7 +24,8 @@ export type AiFeature =
   | 'skill-roadmap'
   | 'notion-sheet'
   | 'reference-list'
-  | 'reference-entry';
+  | 'reference-entry'
+  | 'job-alert';
 
 // Two free-tier models. "main" (GEMINI_MODEL) for reasoning and writing that Alex rereads;
 // "lite" (GEMINI_MODEL_LITE) for extraction, classification and short descriptions.
@@ -42,6 +43,8 @@ export const FEATURE_TIERS: Record<AiFeature, ModelTier> = {
   'reference-entry': 'lite',
   'offer-extract': 'lite',
   'mail-classify': 'lite',
+  // Job-alert mails: many short lists, read on each import.
+  'job-alert': 'lite',
 };
 
 // Models to try, in order (each has its own daily quota): a main task goes through the main

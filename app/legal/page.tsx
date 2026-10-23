@@ -81,7 +81,9 @@ export default function LegalPage() {
         <header className="flex flex-col gap-1">
           <p className="text-label-12 text-fg-3 uppercase">Hushyboard</p>
           <h1 className="font-display text-display-30">Mentions légales et données personnelles</h1>
-          <p className="text-caption-12 text-fg-3">Dernière mise à jour : 23 octobre 2026</p>
+          <p className="text-caption-12 text-fg-3">
+            Dernière mise à jour : 23 octobre 2026 (alertes d’offres)
+          </p>
         </header>
 
         <div className="flex flex-col gap-6 text-body-14 text-fg-2">
@@ -143,11 +145,12 @@ export default function LegalPage() {
               Sur l’offre gratuite de l’API Gemini, Google peut utiliser le contenu envoyé pour
               améliorer ses produits. Seuls sont donc envoyés : les noms de compétences et de
               notions, le CV, les offres d’emploi collées dans l’application et, une fois Gmail
-              connecté, les mails de recruteurs liés à une candidature.
+              connecté, les mails de recruteurs liés à une candidature et les alertes d’offres
+              d’emploi rangées dans le libellé choisi dans la Veille (pour en extraire les offres).
             </p>
             <p>
               Ne sont jamais envoyés : les données bancaires, les habitudes, les notes personnelles
-              (« Mes notes ») et les mails sans lien avec une candidature.
+              (« Mes notes ») et les autres mails.
             </p>
           </Section>
 

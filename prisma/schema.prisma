@@ -36,6 +36,8 @@ model User {
   gmailConnection  GmailConnection?
   mailMatches      MailMatch[]
   mailUnsubscribes MailUnsubscribe[]
+  jobAlertSettings JobAlertSettings?
+  jobAlertMails    JobAlertMail[]
   certifications   Certification[]
   courses          Course[]
   xpEvents         XpEvent[]
@@ -220,6 +222,8 @@ model JobOffer {
   foundAt       DateTime      @default(now())
   decision      OfferDecision @default(PENDING)
   decidedAt     DateTime?
+  // Set when the offer came from a job-alert mail (« Veille automatique »).
+  importedAt    DateTime?
   description   String? // pasted offer text, needed for the analysis
   summary       String?
   remotePolicy  String?
@@ -961,4 +965,30 @@ model MailUnsubscribe {
 
   @@unique([userId, sender])
   @@map("mail_unsubscribes")
+}
+
+/// « Veille automatique »: the Gmail label holding job-alert mails, and the last import.
+model JobAlertSettings {
+  userId         String    @id
+  user           User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gmailLabelId   String?
+  gmailLabelName String?
+  lastSyncedAt   DateTime?
+  // French message of the last failed import, shown until the next success.
+  lastError      String?
+
+  @@map("job_alert_settings")
+}
+
+/// A job-alert mail already read, so it is sent to Gemini only once. Its content is not stored.
+model JobAlertMail {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  gmailMessageId String
+  offersFound    Int
+  processedAt    DateTime @default(now())
+
+  @@unique([userId, gmailMessageId])
+  @@map("job_alert_mails")
 }

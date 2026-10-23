@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import Link from 'next/link';
 import { PageHeader } from '@/components/app-shell/page-header';
 import { PlusIcon, SearchIcon } from '@/components/icons';
@@ -8,12 +9,16 @@ import { SidePanel } from '@/components/ui/side-panel';
 import { LoadingRegion, Skeleton } from '@/components/ui/skeleton';
 import { formatRelativeTime } from '@/lib/dates';
 import { describeWatch } from '@/lib/job-search';
+import { withGmail } from '@/lib/gmail/client';
+import { getMailState } from '@/lib/gmail/read';
 import { getWatchData } from '@/lib/job-search-data';
+import { prisma } from '@/lib/prisma';
 import { CONTRACT_LABELS } from '@/lib/job-search-schemas';
 import { requireUser } from '@/lib/session';
 import { JobSearchTabs } from './job-search-tabs';
 import { OfferCardActions, RestoreOfferButton } from './offer-actions-buttons';
 import { OfferForm } from './offer-form';
+import { JobAlertsControls } from './job-alerts';
 import { KeywordsList, SourcesList } from './watch-settings';
 
 const BASE_PATH = '/career/job-search/watch';
@@ -28,10 +33,17 @@ type OfferCardData = {
   source: string | null;
   tags: string[];
   foundAt: Date;
+  importedAt?: Date | null;
 };
 
 function OfferHeading({ offer, now }: { offer: OfferCardData; now: Date }) {
-  const meta = [offer.source, formatRelativeTime(offer.foundAt, now)].filter(Boolean).join(' · ');
+  const meta = [
+    offer.source,
+    formatRelativeTime(offer.foundAt, now),
+    offer.importedAt ? 'alerte e-mail' : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
   const chips = [
     offer.contractType ? CONTRACT_LABELS[offer.contractType] : null,
     offer.remotePolicy,
@@ -154,6 +166,15 @@ export async function WatchView() {
           <ModuleCard title="Mots-clés de la veille">
             <KeywordsList keywords={keywords} />
           </ModuleCard>
+          <Suspense
+            fallback={
+              <LoadingRegion label="Chargement des alertes e-mail…">
+                <Skeleton surface="card" className="h-40" />
+              </LoadingRegion>
+            }
+          >
+            <JobAlertsCard />
+          </Suspense>
         </div>
       </div>
 
@@ -175,4 +196,59 @@ export function WatchSkeleton() {
       </div>
     </LoadingRegion>
   );
+}
+
+// « Alertes e-mail »: offers read automatically from the job-alert mails of one Gmail label.
+async function JobAlertsCard() {
+  const user = await requireUser();
+  const [state, settings, imported] = await Promise.all([
+    getMailState(user.id),
+    prisma.jobAlertSettings.findUnique({ where: { userId: user.id } }),
+    prisma.jobOffer.count({ where: { userId: user.id, importedAt: { not: null } } }),
+  ]);
+  const now = new Date();
+
+  let content;
+  if (state.status !== 'connected') {
+    content = (
+      <p className="text-body-14 text-fg-2">
+        Connecte Gmail pour importer tes alertes d’offres automatiquement.{' '}
+        <Link href="/mail" className="font-semibold text-fg-1 underline underline-offset-2">
+          Aller dans Mails
+        </Link>
+      </p>
+    );
+  } else {
+    let labels: { id: string; name: string }[] = [];
+    try {
+      labels = await withGmail(user.id, async ({ gmail }) => {
+        const { data } = await gmail.users.labels.list({ userId: 'me' });
+        return (data.labels ?? [])
+          .filter((label) => label.type === 'user' && label.id && label.name)
+          .map((label) => ({ id: label.id!, name: label.name! }))
+          .sort((a, b) => a.name.localeCompare(b.name, 'fr'));
+      });
+    } catch {
+      labels = [];
+    }
+    content = (
+      <>
+        <p className="text-caption-12 text-fg-2">
+          Crée tes alertes sur LinkedIn, Welcome to the Jungle, HelloWork, Indeed… puis un filtre
+          Gmail qui les range dans un libellé. Leurs offres arrivent ici, sans doublons.
+        </p>
+        <JobAlertsControls labels={labels} labelId={settings?.gmailLabelId ?? null} />
+        {settings?.lastSyncedAt ? (
+          <p className="text-caption-12 text-fg-3">
+            Dernière synchronisation {formatRelativeTime(settings.lastSyncedAt, now)} · {imported}{' '}
+            offre{imported > 1 ? 's' : ''} importée{imported > 1 ? 's' : ''}.
+          </p>
+        ) : null}
+        {settings?.lastError ? (
+          <p className="text-caption-12 text-fg-2">Dernière erreur : {settings.lastError}</p>
+        ) : null}
+      </>
+    );
+  }
+  return <ModuleCard title="Alertes e-mail">{content}</ModuleCard>;
 }
