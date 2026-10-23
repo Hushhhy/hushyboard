@@ -45,7 +45,10 @@ const CALLBACK_ERRORS: Record<string, string> = {
   refresh:
     'Google n’a pas renvoyé d’accès durable. Retire Hushyboard des accès de ton compte Google, puis reconnecte-le.',
   scope: 'Coche l’autorisation de lire et modifier les mails sur l’écran de Google.',
-  exchange: 'Google a refusé la connexion. Réessaie dans un instant.',
+  exchange:
+    'Google a refusé l’échange du code. Vérifie GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET et l’URI de redirection http://localhost:3000/api/gmail/callback dans Google Cloud.',
+  api: 'Connecté à Google, mais l’API Gmail refuse l’accès. Vérifie qu’elle est activée dans Google Cloud (APIs & Services, Library, Gmail API).',
+  save: 'La connexion n’a pas pu être enregistrée. Vérifie TOKEN_ENCRYPTION_KEY et relance npx prisma generate.',
   config: 'Gmail n’est pas configuré sur ce serveur.',
 };
 
