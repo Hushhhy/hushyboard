@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { renderResumePdf, resumeFileName, resumeKeywords, resumeSectionOrder } from './pdf';
+import { renderToBuffer } from '@react-pdf/renderer';
+import {
+  countPdfPages,
+  joinDistinct,
+  renderResumePdf,
+  ResumeDocument,
+  resumeFileName,
+  resumeKeywords,
+  resumeSectionOrder,
+} from './pdf';
 import type { ResumeContent } from './schema';
 
 const sample: ResumeContent = {
@@ -92,5 +101,77 @@ describe('ATS layout', () => {
         skillGroups: [{ name: 'Web', items: ['TypeScript', 'React (en cours d’apprentissage)'] }],
       })
     ).toBe('TypeScript, React, PostgreSQL');
+  });
+});
+
+// As long as a real junior CV: 9 skill groups, 2 detailed projects, 2 jobs, 2 schools.
+const dense: ResumeContent = {
+  ...sample,
+  header: { ...sample.header, linkedin: 'linkedin.com/in/jean-test-0000', phone: '06 00 00 00 00' },
+  summary:
+    'Développeur ayant validé le tronc commun à 42 Paris, je recherche une opportunité en développement web full stack. Autonome, j’apprends vite de nouvelles technologies grâce à une pédagogie orientée projets.',
+  skillGroups: [
+    'Stack principale',
+    'Front-end',
+    'Back-end',
+    'Data science',
+    'Infra et data',
+    'Outils',
+    'Bureautique',
+    'Langages',
+    'Méthodes',
+  ].map((name) => ({ name, items: ['TypeScript', 'React', 'PostgreSQL', 'Docker', 'Git'] })),
+  projects: [0, 1].map((index) => ({
+    name: `Projet ${index + 1}`,
+    description: 'Conception et développement d’une application web en équipe. '.repeat(9),
+    technologies: ['TypeScript', 'React', 'Express', 'PostgreSQL', 'Docker'],
+    url: '',
+  })),
+  experiences: [0, 1].map((index) => ({
+    title: `Poste ${index + 1}`,
+    organization: 'Entreprise Exemple',
+    location: 'Paris',
+    start: 'janvier 2025',
+    end: 'mars 2026',
+    bullets: [
+      'Accueil et service des clients dans un environnement à fort flux.'.repeat(2),
+      'Travail en équipe.',
+      'Tenue de caisse.',
+    ],
+  })),
+  education: [0, 1].map((index) => ({
+    degree: `École ${index + 1}`,
+    school: 'Paris',
+    start: '2022',
+    end: '2023',
+    details: 'Paris, Île-de-France',
+  })),
+  languages: [
+    { name: 'Français', level: 'natif' },
+    { name: 'Anglais', level: 'B2' },
+    { name: 'Espagnol', level: 'A2' },
+  ],
+};
+
+describe('one-page CV', () => {
+  it('prints a dense junior CV on one page, tighter than normal', async () => {
+    const normal = await renderToBuffer(<ResumeDocument content={dense} title="CV" density={1} />);
+    expect(countPdfPages(normal)).toBeGreaterThan(1);
+    const fitted = await renderResumePdf(dense, 'CV');
+    expect(countPdfPages(fitted)).toBe(1);
+  }, 60_000);
+
+  it('keeps the normal size when it already fits', async () => {
+    expect(countPdfPages(await renderResumePdf(sample, 'CV'))).toBe(1);
+  }, 30_000);
+});
+
+describe('joinDistinct', () => {
+  it('prints a repeated name once', () => {
+    expect(joinDistinct('École 42', 'École 42')).toBe('École 42');
+    expect(joinDistinct('Game Master', 'You Have Sixty Minutes')).toBe(
+      'Game Master – You Have Sixty Minutes'
+    );
+    expect(joinDistinct('Tronc commun', '')).toBe('Tronc commun');
   });
 });

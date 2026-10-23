@@ -27,7 +27,7 @@ import {
 } from '@/lib/job-search-schemas';
 import { prisma } from '@/lib/prisma';
 import { guardAdaptedResume } from '@/lib/resume/adapt';
-import { parseResumeContent, resumeContentSchema } from '@/lib/resume/schema';
+import { coerceResumeContent, parseResumeContent, resumeContentSchema } from '@/lib/resume/schema';
 import { requireUser } from '@/lib/session';
 
 // Gemini work on a job offer: extraction, CV analysis, adapted CV, cover letter.
@@ -171,7 +171,9 @@ async function ensureAdaptedResume(
       userId,
       'cv-adapt',
       cvAdaptPrompt({ offer: offerForPrompt(offer), resume: content, analysis, skills }),
-      resumeContentSchema
+      resumeContentSchema,
+      [],
+      { coerce: (data) => coerceResumeContent(data, content.header.fullName) }
     );
     const guarded = guardAdaptedResume(content, adapted, {
       known: skills.filter((skill) => skill.level >= 1).map((skill) => skill.name),

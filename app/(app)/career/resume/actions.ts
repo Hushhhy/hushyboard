@@ -9,7 +9,12 @@ import { CV_IMPORT_PROMPT } from '@/lib/ai/prompts/cv-import';
 import { formatMonthKey, monthKeyInParis } from '@/lib/dates';
 import type { FormState } from '@/lib/forms';
 import { prisma } from '@/lib/prisma';
-import { EMPTY_RESUME, resumeContentSchema, type ResumeContent } from '@/lib/resume/schema';
+import {
+  EMPTY_RESUME,
+  coerceResumeContent,
+  resumeContentSchema,
+  type ResumeContent,
+} from '@/lib/resume/schema';
 import { requireUser } from '@/lib/session';
 
 const RESUME_PATH = '/career/resume';
@@ -52,9 +57,14 @@ export async function importResume(_: FormState, formData: FormData): Promise<Fo
 
   let content: ResumeContent;
   try {
-    content = await generateJson(user.id, 'cv-import', CV_IMPORT_PROMPT, resumeContentSchema, [
-      { mimeType: 'application/pdf', data: Buffer.from(await file.arrayBuffer()) },
-    ]);
+    content = await generateJson(
+      user.id,
+      'cv-import',
+      CV_IMPORT_PROMPT,
+      resumeContentSchema,
+      [{ mimeType: 'application/pdf', data: Buffer.from(await file.arrayBuffer()) }],
+      { coerce: (data) => coerceResumeContent(data, user.name) }
+    );
   } catch (error) {
     return { error: error instanceof AiError ? error.message : 'Import impossible. Réessaie.' };
   }
