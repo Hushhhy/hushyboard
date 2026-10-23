@@ -17,6 +17,7 @@ import {
 } from '@/components/icons';
 import { AccountMenu, AccountMenuPlaceholder } from './account-menu';
 import { NavLink } from './nav-link';
+import { SidebarFrame } from './sidebar-frame';
 import { getInboxUnread } from '@/lib/gmail/read';
 import { countOffersToSort } from '@/lib/job-search-data';
 import { prisma } from '@/lib/prisma';
@@ -67,7 +68,7 @@ async function JobSearchNavLink() {
 // Server component: the navigation is the same for every page, only NavLink needs the browser.
 export function Sidebar() {
   return (
-    <aside className="sticky top-0 flex h-dvh w-61 shrink-0 flex-col gap-0.5 border-r border-line-subtle bg-surface-sunken px-3 pt-5 pb-4">
+    <SidebarFrame>
       <p className="flex items-center gap-2.5 px-2.5 pb-4.5 font-display text-display-20">
         <CareerIcon className="size-5.5 text-career" />
         Hushyboard
@@ -127,6 +128,6 @@ export function Sidebar() {
           <AccountMenu />
         </Suspense>
       </div>
-    </aside>
+    </SidebarFrame>
   );
 }

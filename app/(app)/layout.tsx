@@ -43,7 +43,7 @@ async function PaletteWatch() {
 // The "(app)" folder is a route group: the parentheses keep it out of the URL.
 export default function AppLayout({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-dvh">
+    <div className="flex min-h-dvh flex-col md:flex-row">
       <Sidebar />
       <div className="min-w-0 flex-1">
         <RewardsProvider>

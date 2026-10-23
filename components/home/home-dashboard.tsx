@@ -41,7 +41,7 @@ export async function HomeDashboard() {
         title={buildSummary(habitsLeft, data.pendingOfferCount)}
       />
 
-      <div className="grid flex-1 grid-cols-12 grid-rows-[1.4fr_1fr_1fr] gap-3">
+      <div className="grid flex-1 grid-cols-1 gap-3 md:grid-cols-12 md:grid-rows-[1.4fr_1fr_1fr]">
         <CareerModule data={data} />
         <HabitsModule data={data} />
         <ApplicationsModule data={data} />
@@ -75,7 +75,7 @@ function CareerModule({ data }: { data: HomeData }) {
       accentClass="text-career"
       aside={<span className="text-fg-3 tabular">+{data.monthXp} XP ce mois</span>}
       focal
-      className="col-span-7"
+      className="md:col-span-7"
     >
       <div className="flex items-center gap-5">
         <LevelMedal level={level.level} />
@@ -150,7 +150,7 @@ function HabitsModule({ data }: { data: HomeData }) {
           <span className="tabular">{`${done} / ${habits.length} faites`}</span>
         ) : null
       }
-      className="col-span-5"
+      className="md:col-span-5"
     >
       {habits.length === 0 ? (
         <EmptyState
@@ -202,7 +202,7 @@ function ApplicationsModule({ data }: { data: HomeData }) {
       title="Candidatures"
       icon={<SearchIcon className="size-4" />}
       accentClass="text-career"
-      className="col-span-4"
+      className="md:col-span-4"
     >
       {applications.total === 0 ? (
         <EmptyState
@@ -280,7 +280,7 @@ function OfferModule({ data }: { data: HomeData }) {
           <span className="tabular">{data.pendingOfferCount} à trier</span>
         ) : null
       }
-      className="col-span-4"
+      className="md:col-span-4"
     >
       {offer ? (
         <>
@@ -318,7 +318,7 @@ function FinanceModule({ data, monthLabel }: { data: HomeData; monthLabel: strin
       icon={<FinanceIcon className="size-4" />}
       accentClass="text-finance"
       aside={<span className="text-fg-1 capitalize">{monthLabel}</span>}
-      className="col-span-4"
+      className="md:col-span-4"
     >
       {hasData ? (
         <>
@@ -366,7 +366,7 @@ function LeisureModule({ data }: { data: HomeData }) {
       icon={<LeisureIcon className="size-4" />}
       accentClass="text-leisure"
       aside="pas d'XP, juste le plaisir"
-      className="col-span-6"
+      className="md:col-span-6"
     >
       {game ? (
         <div className="flex flex-col gap-2">
@@ -409,7 +409,7 @@ function TrophiesModule({ data }: { data: HomeData }) {
       aside={
         <span className="tabular">{`${data.trophyCount} / ${TROPHY_KEYS.length} trophées`}</span>
       }
-      className="col-span-6"
+      className="md:col-span-6"
     >
       {recent.length === 0 ? (
         <p className="text-body-14 text-fg-2">
@@ -456,15 +456,15 @@ export function HomeDashboardSkeleton() {
   return (
     <LoadingRegion label="Chargement du tableau de bord…" className="flex flex-1 flex-col gap-4">
       <Skeleton surface="card" className="h-13 w-2/3" />
-      <div className="grid flex-1 grid-cols-12 grid-rows-[1.4fr_1fr_1fr] gap-3">
+      <div className="grid flex-1 grid-cols-1 gap-3 md:grid-cols-12 md:grid-rows-[1.4fr_1fr_1fr]">
         {[
-          'col-span-7',
-          'col-span-5',
-          'col-span-4',
-          'col-span-4',
-          'col-span-4',
-          'col-span-6',
-          'col-span-6',
+          'md:col-span-7',
+          'md:col-span-5',
+          'md:col-span-4',
+          'md:col-span-4',
+          'md:col-span-4',
+          'md:col-span-6',
+          'md:col-span-6',
         ].map((span, index) => (
           <Skeleton key={index} surface="card" className={span} />
         ))}
