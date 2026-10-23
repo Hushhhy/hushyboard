@@ -39,6 +39,19 @@ const TIMELINE = [
   },
 ];
 
+// Same list as DEFAULT_CATEGORIES in lib/finance.ts (this file runs with Node, without the @ alias).
+const FINANCE_CATEGORIES: { name: string; kind: 'EXPENSE' | 'INCOME' | 'SAVINGS' }[] = [
+  { name: 'Logement', kind: 'EXPENSE' },
+  { name: 'Alimentation', kind: 'EXPENSE' },
+  { name: 'Transports', kind: 'EXPENSE' },
+  { name: 'Abonnements', kind: 'EXPENSE' },
+  { name: 'Loisirs', kind: 'EXPENSE' },
+  { name: 'Santé', kind: 'EXPENSE' },
+  { name: 'Divers', kind: 'EXPENSE' },
+  { name: 'Revenus', kind: 'INCOME' },
+  { name: 'Épargne', kind: 'SAVINGS' },
+];
+
 const WATCH_KEYWORDS = [
   'développeur full stack',
   'fullstack',
@@ -103,6 +116,15 @@ async function main() {
         skipDuplicates: true,
       });
       console.log(`Seeded ${WATCH_KEYWORDS.length} watch keywords.`);
+    }
+
+    // Finance categories (editable afterwards), only when Alex has none at all.
+    if ((await prisma.financeCategory.count({ where: { userId } })) === 0) {
+      await prisma.financeCategory.createMany({
+        data: FINANCE_CATEGORIES.map((category, position) => ({ userId, position, ...category })),
+        skipDuplicates: true,
+      });
+      console.log(`Seeded ${FINANCE_CATEGORIES.length} finance categories.`);
     }
 
     if (await prisma.profileInfo.findUnique({ where: { userId } })) {

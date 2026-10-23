@@ -31,3 +31,52 @@ export function parseEurosToCents(input: string): number | null {
   const cents = Number(units) * 100 + Number(decimals.padEnd(2, '0'));
   return sign ? -cents : cents;
 }
+
+// --- Month summary (computed, never stored) --------------------------------------------
+
+export type SummaryLine = {
+  amountCents: number;
+  category: { id: string; name: string; kind: CategoryKind } | null;
+};
+
+export const UNCATEGORIZED = 'À classer';
+
+// Income and expenses of a month. A transfer to savings is neither: it is shown apart
+// (« Épargne ») and does not lower the balance. Money moved back from savings is not income.
+export function monthSummary(lines: SummaryLine[]) {
+  let income = 0;
+  let expenses = 0;
+  let savings = 0;
+  const byCategory = new Map<string, { name: string; cents: number }>();
+  for (const line of lines) {
+    if (line.category?.kind === 'SAVINGS') {
+      savings -= line.amountCents;
+      continue;
+    }
+    if (line.amountCents > 0) income += line.amountCents;
+    else {
+      expenses -= line.amountCents;
+      const name = line.category?.name ?? UNCATEGORIZED;
+      const entry = byCategory.get(name) ?? { name, cents: 0 };
+      entry.cents -= line.amountCents;
+      byCategory.set(name, entry);
+    }
+  }
+  return {
+    income,
+    expenses,
+    savings,
+    balance: income - expenses,
+    // Share of income spent, null without income.
+    spentShare: income > 0 ? Math.round((expenses / income) * 1000) / 10 : null,
+    byCategory: [...byCategory.values()].sort((a, b) => b.cents - a.cents),
+    uncategorized: lines.filter((line) => !line.category).length,
+  };
+}
+
+// "+412,30 €" / "−87,10 €": signed amount for balances.
+export function formatSignedEuros(amountCents: number): string {
+  const text = formatEuros(Math.abs(amountCents));
+  if (amountCents === 0) return text;
+  return `${amountCents > 0 ? '+' : '−'}${text}`;
+}
