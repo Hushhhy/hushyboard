@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { renderResumePdf, resumeFileName } from './pdf';
+import { renderResumePdf, resumeFileName, resumeKeywords, resumeSectionOrder } from './pdf';
 import type { ResumeContent } from './schema';
 
 const sample: ResumeContent = {
@@ -63,5 +63,34 @@ describe('resumeFileName', () => {
     expect(resumeFileName('Alexis Carpentier')).toBe('CV-Alexis-Carpentier.pdf');
     expect(resumeFileName('Élodie Ñúñez', 'Groupe Bel')).toBe('CV-Elodie-Nunez-Groupe-Bel.pdf');
     expect(resumeFileName('')).toBe('CV-Hushyboard.pdf');
+  });
+});
+
+describe('ATS layout', () => {
+  it('prints standard sections in reading order, skipping empty ones', () => {
+    expect(resumeSectionOrder(sample)).toEqual([
+      'summary',
+      'skills',
+      'projects',
+      'experiences',
+      'education',
+      'languages',
+      'interests',
+    ]);
+    expect(resumeSectionOrder({ ...sample, summary: '', interests: [], projects: [] })).toEqual([
+      'skills',
+      'experiences',
+      'education',
+      'languages',
+    ]);
+  });
+
+  it('lists every skill and technology once as PDF keywords', () => {
+    expect(
+      resumeKeywords({
+        ...sample,
+        skillGroups: [{ name: 'Web', items: ['TypeScript', 'React (en cours d’apprentissage)'] }],
+      })
+    ).toBe('TypeScript, React, PostgreSQL');
   });
 });
