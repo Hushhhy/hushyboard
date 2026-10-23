@@ -1,12 +1,19 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
-import { CareerIcon, CloseIcon } from '@/components/icons';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { CareerIcon, CloseIcon, SearchIcon } from '@/components/icons';
+import { openPalette } from '@/components/palette/command-palette';
 
 // Desktop: the sidebar stays on the left. Below 768px it collapses into a top bar with a menu
 // button that opens it as a drawer (closed by a link, Escape or a click on the scrim).
 export function SidebarFrame({ children }: { children: ReactNode }) {
   const [isOpen, setIsOpen] = useState(false);
+  const navRef = useRef<HTMLElement>(null);
+
+  // Opening the drawer moves focus to its first link.
+  useEffect(() => {
+    if (isOpen) navRef.current?.querySelector<HTMLElement>('a')?.focus();
+  }, [isOpen]);
 
   return (
     <>
@@ -35,10 +42,18 @@ export function SidebarFrame({ children }: { children: ReactNode }) {
             </svg>
           )}
         </button>
-        <p className="flex items-center gap-2 font-display text-display-20">
+        <p className="flex flex-1 items-center gap-2 font-display text-display-20">
           <CareerIcon className="size-5 text-career" />
           Hushyboard
         </p>
+        <button
+          type="button"
+          onClick={openPalette}
+          className="grid size-9 place-items-center rounded-control text-fg-2 hover:bg-surface-raised hover:text-fg-1"
+        >
+          <span className="sr-only">Cocher, ajouter, aller à…</span>
+          <SearchIcon className="size-5" />
+        </button>
       </div>
       {isOpen ? (
         <div
@@ -48,6 +63,7 @@ export function SidebarFrame({ children }: { children: ReactNode }) {
         />
       ) : null}
       <aside
+        ref={navRef}
         id="main-nav"
         onClick={(event) => {
           if ((event.target as HTMLElement).closest('a')) setIsOpen(false);

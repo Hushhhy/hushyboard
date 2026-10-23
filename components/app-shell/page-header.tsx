@@ -7,7 +7,7 @@ export function PageHeader({ breadcrumb, title }: { breadcrumb: string; title: s
     <header className="flex min-h-13 items-center gap-4">
       <div className="min-w-0 flex-1">
         <p className="text-label-12 text-fg-3 uppercase">{breadcrumb}</p>
-        <h1 className="truncate font-display text-display-24">{title}</h1>
+        <h1 className="font-display text-display-24 md:truncate">{title}</h1>
       </div>
       <PaletteTrigger />
     </header>

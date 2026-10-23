@@ -11,6 +11,10 @@ import { PALETTE_ADD, PALETTE_PAGES, paletteScore } from '@/lib/palette';
 
 const OPEN_EVENT = 'hushyboard:open-palette';
 
+export function openPalette() {
+  window.dispatchEvent(new Event(OPEN_EVENT));
+}
+
 export type PaletteHabit = { id: string; name: string; done: boolean };
 
 // "⌘K" on a Mac, "Ctrl K" elsewhere (read after hydration).
@@ -30,7 +34,7 @@ export function PaletteTrigger() {
     <button
       type="button"
       aria-keyshortcuts="Meta+K Control+K"
-      onClick={() => window.dispatchEvent(new Event(OPEN_EVENT))}
+      onClick={openPalette}
       className="hidden h-9 w-75 shrink-0 items-center gap-2 rounded-control border border-line-subtle bg-surface-default px-3 text-body-14 text-fg-3 transition-colors duration-(--duration-tick) hover:border-line-strong hover:text-fg-2 md:flex"
     >
       <SearchIcon className="size-4" />
@@ -91,7 +95,11 @@ export function CommandPalette({ habits }: { habits: PaletteHabit[] }) {
     const dialog = dialogRef.current;
     if (!dialog) return;
     // The browser gives focus back to the element that opened the dialog when it closes.
-    if (isOpen && !dialog.open) dialog.showModal();
+    if (isOpen && !dialog.open) {
+      dialog.showModal();
+      // Focus stays in the search field (the combobox) while the palette is open.
+      dialog.querySelector<HTMLInputElement>('[cmdk-input]')?.focus();
+    }
     if (!isOpen && dialog.open) dialog.close();
   }, [isOpen]);
 
@@ -130,7 +138,6 @@ export function CommandPalette({ habits }: { habits: PaletteHabit[] }) {
             <div className="flex items-center gap-2 border-b border-line-subtle px-4">
               <SearchIcon className="size-4 shrink-0 text-fg-3" />
               <Command.Input
-                autoFocus
                 value={search}
                 onValueChange={setSearch}
                 placeholder="Cocher, ajouter, aller à…"
