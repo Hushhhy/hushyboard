@@ -2,6 +2,9 @@ import { nextInFranchise } from '@/lib/games';
 import { prisma } from '@/lib/prisma';
 import { isoWeekdayInParis, monthRangeInParis, todayInParis } from '@/lib/dates';
 
+// Transfers to and from savings are neither income nor expenses (same rule as monthSummary).
+const NOT_SAVINGS = { NOT: { category: { is: { kind: 'SAVINGS' as const } } } };
+
 // Everything the home page needs, fetched in parallel (Promise.all) to keep it fast.
 export async function getHomeData(userId: string, now: Date) {
   const today = todayInParis(now);
@@ -43,11 +46,21 @@ export async function getHomeData(userId: string, now: Date) {
     }),
     prisma.jobOffer.count({ where: { userId, decision: 'PENDING' } }),
     prisma.transaction.aggregate({
-      where: { userId, date: { gte: month.start, lt: month.end }, amountCents: { gt: 0 } },
+      where: {
+        userId,
+        date: { gte: month.start, lt: month.end },
+        amountCents: { gt: 0 },
+        ...NOT_SAVINGS,
+      },
       _sum: { amountCents: true },
     }),
     prisma.transaction.aggregate({
-      where: { userId, date: { gte: month.start, lt: month.end }, amountCents: { lt: 0 } },
+      where: {
+        userId,
+        date: { gte: month.start, lt: month.end },
+        amountCents: { lt: 0 },
+        ...NOT_SAVINGS,
+      },
       _sum: { amountCents: true },
     }),
     prisma.game.findFirst({ where: { userId, status: 'PLAYING' }, orderBy: { updatedAt: 'desc' } }),

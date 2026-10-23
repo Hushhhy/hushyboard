@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatEuros, parseEurosToCents } from './finance';
+import { formatEuros, formatSignedEuros, monthSummary, parseEurosToCents } from './finance';
 
 describe('parseEurosToCents', () => {
   it('parses French and English decimal separators', () => {
@@ -30,5 +30,43 @@ describe('parseEurosToCents', () => {
 describe('formatEuros', () => {
   it('formats cents in French', () => {
     expect(formatEuros(123456).replace(/\s/g, ' ')).toBe('1 234,56 €');
+  });
+});
+
+describe('monthSummary', () => {
+  const cat = (name: string, kind: 'EXPENSE' | 'INCOME' | 'SAVINGS') => ({ id: name, name, kind });
+  it('splits income, expenses and savings, with expenses by category', () => {
+    const summary = monthSummary([
+      { amountCents: 122000, category: cat('Revenus', 'INCOME') },
+      { amountCents: 28000, category: cat('Revenus', 'INCOME') },
+      { amountCents: -52000, category: cat('Logement', 'EXPENSE') },
+      { amountCents: -2340, category: cat('Alimentation', 'EXPENSE') },
+      { amountCents: -1999, category: null },
+      { amountCents: -15000, category: cat('Épargne', 'SAVINGS') },
+    ]);
+    expect(summary).toMatchObject({
+      income: 150000,
+      expenses: 56339,
+      savings: 15000,
+      balance: 93661,
+      uncategorized: 1,
+    });
+    expect(summary.byCategory.map((row) => row.name)).toEqual([
+      'Logement',
+      'Alimentation',
+      'À classer',
+    ]);
+    expect(summary.spentShare).toBe(37.6);
+  });
+
+  it('has no share without income', () => {
+    expect(monthSummary([{ amountCents: -500, category: null }]).spentShare).toBeNull();
+  });
+});
+
+describe('formatSignedEuros', () => {
+  it('writes the sign', () => {
+    expect(formatSignedEuros(41230)).toMatch(/^\+412,30\s€$/);
+    expect(formatSignedEuros(-8710)).toMatch(/^−87,10\s€$/);
   });
 });

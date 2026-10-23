@@ -3,7 +3,7 @@ import { requireUser } from '@/lib/session';
 import { getHomeData, type HomeData } from '@/lib/home-data';
 import { formatLongDate, formatMonth } from '@/lib/dates';
 import { getLevelInfo, LEVEL_TITLES } from '@/lib/xp';
-import { formatEuros } from '@/lib/finance';
+import { formatEuros, formatSignedEuros } from '@/lib/finance';
 import { ModuleCard } from '@/components/ui/module-card';
 import { Ruler } from '@/components/ui/ruler';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -301,12 +301,11 @@ function FinanceModule({ data, monthLabel }: { data: HomeData; monthLabel: strin
       {hasData ? (
         <>
           <p className={`text-kpi-30 tabular ${balance >= 0 ? 'text-finance' : ''}`}>
-            {balance > 0 ? '+' : ''}
-            {formatEuros(balance)}
+            {formatSignedEuros(balance)}
           </p>
           <p className="text-caption-12 text-fg-3">Solde du mois</p>
           <BarChart
-            caption={`Revenus et dépenses de ${monthLabel}`}
+            caption={`Revenus et dépenses, ${monthLabel}`}
             valueHeader="Montant"
             rows={[
               {
