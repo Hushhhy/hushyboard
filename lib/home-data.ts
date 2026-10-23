@@ -23,6 +23,9 @@ export async function getHomeData(userId: string, now: Date) {
     expenses,
     currentGame,
     trophyCount,
+    recentTrophies,
+    followUpsDue,
+    recruiterReplies,
   ] = await Promise.all([
     prisma.xpEvent.aggregate({ where: { userId }, _sum: { amount: true } }),
     prisma.xpEvent.aggregate({
@@ -65,6 +68,24 @@ export async function getHomeData(userId: string, now: Date) {
     }),
     prisma.game.findFirst({ where: { userId, status: 'PLAYING' }, orderBy: { updatedAt: 'desc' } }),
     prisma.trophyUnlock.count({ where: { userId } }),
+    prisma.trophyUnlock.findMany({
+      where: { userId },
+      orderBy: { unlockedAt: 'desc' },
+      take: 3,
+      select: { trophyKey: true, unlockedAt: true },
+    }),
+    // Same rule as the « À relancer » filter of the applications.
+    prisma.application.count({
+      where: {
+        userId,
+        status: { in: ['SENT', 'WAITING', 'NO_RESPONSE', 'FOLLOWED_UP'] },
+        followUpAt: { lte: now },
+      },
+    }),
+    // Recruiter replies detected in Gmail that Alex has not handled yet.
+    prisma.mailMatch.count({
+      where: { userId, classification: { in: ['INTERVIEW', 'REJECTION'] }, decision: null },
+    }),
   ]);
 
   // Next game in the same franchise, in story order (same rule as /leisure/games).
@@ -104,9 +125,10 @@ export async function getHomeData(userId: string, now: Date) {
         'TECH_INTERVIEW',
         'OFFER',
         'REJECTED',
-        'NO_RESPONSE'
+        'NO_RESPONSE',
+        'FOLLOWED_UP'
       ),
-      noResponse: count('SENT', 'WAITING', 'NO_RESPONSE'),
+      noResponse: count('SENT', 'WAITING', 'NO_RESPONSE', 'FOLLOWED_UP'),
       interviews: count('HR_INTERVIEW', 'TECH_INTERVIEW'),
       rejected: count('REJECTED'),
       offers: count('OFFER'),
@@ -120,6 +142,9 @@ export async function getHomeData(userId: string, now: Date) {
     currentGame,
     nextGame,
     trophyCount,
+    recentTrophies,
+    followUpsDue,
+    recruiterReplies,
   };
 }
 

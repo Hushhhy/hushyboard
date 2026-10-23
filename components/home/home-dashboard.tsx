@@ -2,7 +2,10 @@ import Link from 'next/link';
 import { PageHeader } from '@/components/app-shell/page-header';
 import { requireUser } from '@/lib/session';
 import { getHomeData, type HomeData } from '@/lib/home-data';
-import { formatLongDate, formatMonth } from '@/lib/dates';
+import { formatLongDate, formatMonth, formatShortDate } from '@/lib/dates';
+import { TROPHIES, TROPHY_KEYS } from '@/lib/trophies';
+import { DOMAIN_CLASSES } from '@/components/ui/domain';
+import { DomainIcon } from '@/components/trophies/trophy-icon';
 import { getLevelInfo, LEVEL_TITLES } from '@/lib/xp';
 import { formatEuros, formatSignedEuros } from '@/lib/finance';
 import { ModuleCard } from '@/components/ui/module-card';
@@ -237,6 +240,28 @@ function ApplicationsModule({ data }: { data: HomeData }) {
               },
             ]}
           />
+          {data.followUpsDue > 0 || data.recruiterReplies > 0 ? (
+            <ul className="mt-auto flex flex-col gap-0.5 border-t border-line-subtle pt-2 text-body-14">
+              {data.recruiterReplies > 0 ? (
+                <li>
+                  <Link href="/mail" className="text-fg-1 underline hover:text-career">
+                    {data.recruiterReplies} réponse{data.recruiterReplies > 1 ? 's' : ''} de
+                    recruteur à traiter
+                  </Link>
+                </li>
+              ) : null}
+              {data.followUpsDue > 0 ? (
+                <li>
+                  <Link
+                    href="/career/job-search?filter=followUp"
+                    className="text-fg-1 underline hover:text-career"
+                  >
+                    {data.followUpsDue} relance{data.followUpsDue > 1 ? 's' : ''} à faire
+                  </Link>
+                </li>
+              ) : null}
+            </ul>
+          ) : null}
         </>
       )}
     </ModuleCard>
@@ -375,23 +400,53 @@ function LeisureModule({ data }: { data: HomeData }) {
 }
 
 function TrophiesModule({ data }: { data: HomeData }) {
+  const recent = data.recentTrophies.filter((unlock) => TROPHIES[unlock.trophyKey]);
   return (
     <ModuleCard
       title="Vitrine"
       icon={<TrophyIcon className="size-4" />}
       accentClass="text-career"
       aside={
-        <span className="tabular">
-          {data.trophyCount} trophée{data.trophyCount > 1 ? 's' : ''}
-        </span>
+        <span className="tabular">{`${data.trophyCount} / ${TROPHY_KEYS.length} trophées`}</span>
       }
       className="col-span-6"
     >
-      <p className="text-body-14 text-fg-2">
-        {data.trophyCount === 0
-          ? 'Ta vitrine est vide pour l’instant. Ton premier trophée arrive avec ta première série ou ta première candidature.'
-          : 'Tes derniers trophées apparaîtront ici.'}
-      </p>
+      {recent.length === 0 ? (
+        <p className="text-body-14 text-fg-2">
+          Ta vitrine est vide pour l’instant. Ton premier trophée arrive avec ta première série ou
+          ta première candidature.
+        </p>
+      ) : (
+        <ul className="grid grid-cols-3 gap-2 border-b-2 border-surface-overlay pb-2">
+          {recent.map((unlock) => {
+            const trophy = TROPHIES[unlock.trophyKey];
+            return (
+              <li key={unlock.trophyKey}>
+                <Link
+                  href={`/trophies?panel=trophy-${unlock.trophyKey}`}
+                  className="flex items-center gap-2 rounded-control p-1.5 hover:bg-surface-raised"
+                >
+                  <span aria-hidden="true" className={DOMAIN_CLASSES[trophy.domain].text}>
+                    <DomainIcon domain={trophy.domain} className="size-5" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-body-14 font-semibold">{trophy.name}</span>
+                    <span className="block text-caption-12 text-fg-2">
+                      {formatShortDate(unlock.unlockedAt).replace(/ d{4}$/, '')}
+                    </span>
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      <Link
+        href="/trophies"
+        className="self-start text-body-14 text-fg-2 underline hover:text-fg-1"
+      >
+        Voir la vitrine
+      </Link>
     </ModuleCard>
   );
 }
