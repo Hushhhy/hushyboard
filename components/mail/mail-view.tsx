@@ -134,7 +134,12 @@ export async function MailView({ searchParams }: { searchParams: Promise<Search>
   } catch (error) {
     return (
       <>
-        <PageHeader breadcrumb="Mails · Gmail" title="Gmail ne répond pas." />
+        <PageHeader
+          breadcrumb="Mails · Gmail"
+          title={
+            error instanceof GmailExpiredError ? 'Connexion Gmail expirée.' : 'Gmail ne répond pas.'
+          }
+        />
         {error instanceof GmailExpiredError ? (
           expiredBanner
         ) : (
