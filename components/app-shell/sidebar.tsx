@@ -17,7 +17,9 @@ import {
 } from '@/components/icons';
 import { AccountMenu, AccountMenuPlaceholder } from './account-menu';
 import { NavLink } from './nav-link';
+import { getInboxUnread } from '@/lib/gmail/read';
 import { countOffersToSort } from '@/lib/job-search-data';
+import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/session';
 
 function GroupLabel({
@@ -43,6 +45,18 @@ const JOB_SEARCH_LINK = {
   label: 'Recherches pro',
 };
 
+const MAIL_LINK = { href: '/mail', icon: <MailIcon />, label: 'Mails' };
+
+// « Mails » with the Gmail inbox unread count (cached 60 s), when Gmail is connected.
+async function MailNavLink() {
+  const user = await requireUser();
+  const connected = await prisma.gmailConnection.count({
+    where: { userId: user.id, lastErrorAt: null },
+  });
+  const count = connected ? await getInboxUnread(user.id) : null;
+  return <NavLink {...MAIL_LINK} count={count ?? undefined} />;
+}
+
 // « Recherches pro » with the number of offers to sort (read per request).
 async function JobSearchNavLink() {
   const user = await requireUser();
@@ -61,7 +75,9 @@ export function Sidebar() {
 
       <nav aria-label="Navigation principale" className="flex flex-col gap-0.5">
         <NavLink href="/" icon={<HomeIcon />} label="Accueil" />
-        <NavLink href="/mail" icon={<MailIcon />} label="Mails" />
+        <Suspense fallback={<NavLink {...MAIL_LINK} />}>
+          <MailNavLink />
+        </Suspense>
 
         <GroupLabel
           icon={<CareerIcon className="size-3.5" />}
