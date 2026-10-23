@@ -40,4 +40,12 @@ describe('parseEnv', () => {
   it('rejects a non-numeric GitHub id', () => {
     expect(() => parseEnv({ ...valid, ALLOWED_GITHUB_ID: 'Hushhhy' })).toThrow(/ALLOWED_GITHUB_ID/);
   });
+
+  it('accepts a 32-byte base64 encryption key and rejects a short one', () => {
+    const key = Buffer.alloc(32, 7).toString('base64');
+    expect(parseEnv({ ...valid, TOKEN_ENCRYPTION_KEY: key }).TOKEN_ENCRYPTION_KEY).toBe(key);
+    expect(() => parseEnv({ ...valid, TOKEN_ENCRYPTION_KEY: 'c2hvcnQ=' })).toThrow(
+      /TOKEN_ENCRYPTION_KEY/
+    );
+  });
 });
