@@ -24,9 +24,18 @@ function parseMailto(value: string): { address: string; subject: string; body: s
   }
 }
 
-function isHttps(value: string): boolean {
+// Public https addresses only: the server POSTs to this URL, so a mail must not be able to
+// point it at localhost, an IP address or an internal name (SSRF).
+export function isPublicHttpsUrl(value: string): boolean {
   try {
-    return new URL(value).protocol === 'https:';
+    const url = new URL(value);
+    if (url.protocol !== 'https:' || url.username || url.password) return false;
+    const host = url.hostname.toLowerCase();
+    if (host.startsWith('[') || /^[\d.]+$/.test(host)) return false;
+    if (!host.includes('.') || /(^|\.)(localhost|local|internal|lan|home|corp)$/.test(host)) {
+      return false;
+    }
+    return url.port === '' || url.port === '443';
   } catch {
     return false;
   }
@@ -47,7 +56,7 @@ export function unsubscribePlan(
   postHeader: string | null | undefined
 ): UnsubscribePlan | null {
   const uris = listUnsubscribeUris(header);
-  const https = uris.find(isHttps);
+  const https = uris.find(isPublicHttpsUrl);
   const oneClick = /List-Unsubscribe\s*=\s*One-Click/i.test(postHeader ?? '');
   if (https && oneClick) return { method: 'one-click', url: https };
   for (const uri of uris) {

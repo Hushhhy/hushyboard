@@ -140,3 +140,19 @@ export function formatMailDate(date: Date, now: Date): string {
 export function formatMailDateTime(date: Date): string {
   return `${timeFormat.format(date)} · ${dayMonthFormat.format(date)}`;
 }
+
+// Plain text of a mail (for the recruiter-reply classification): the text part, else the HTML
+// without tags. Whitespace collapsed.
+export function mailPlainText(bodies: { html: string | null; text: string | null }): string {
+  const source =
+    bodies.text ??
+    sanitizeHtml(bodies.html ?? '', {
+      allowedTags: [],
+      allowedAttributes: {},
+      nonTextTags: ['style', 'script', 'head', 'title'],
+    });
+  return source
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}

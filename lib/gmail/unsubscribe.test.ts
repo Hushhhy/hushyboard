@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { listUnsubscribeUris, unsubscribeMail, unsubscribePlan } from './unsubscribe';
+import {
+  isPublicHttpsUrl,
+  listUnsubscribeUris,
+  unsubscribeMail,
+  unsubscribePlan,
+} from './unsubscribe';
 
 describe('listUnsubscribeUris', () => {
   it('reads bracketed and bare values, keeping only web and mail links', () => {
@@ -65,5 +70,24 @@ describe('unsubscribeMail', () => {
     expect(text).toContain('To: leave@list.example.com');
     expect(text).toContain('Subject: =?UTF-8?B?');
     expect(text.endsWith('\r\n\r\nunsubscribe')).toBe(true);
+  });
+});
+
+describe('isPublicHttpsUrl', () => {
+  it('accepts public https addresses only', () => {
+    expect(isPublicHttpsUrl('https://news.example.com/u?id=1')).toBe(true);
+    expect(isPublicHttpsUrl('http://news.example.com/u')).toBe(false);
+    expect(isPublicHttpsUrl('https://127.0.0.1/u')).toBe(false);
+    expect(isPublicHttpsUrl('https://169.254.169.254/latest')).toBe(false);
+    expect(isPublicHttpsUrl('https://[::1]/u')).toBe(false);
+    expect(isPublicHttpsUrl('https://localhost/u')).toBe(false);
+    expect(isPublicHttpsUrl('https://db.internal/u')).toBe(false);
+    expect(isPublicHttpsUrl('https://intranet/u')).toBe(false);
+    expect(isPublicHttpsUrl('https://user:pw@example.com/u')).toBe(false);
+    expect(isPublicHttpsUrl('https://example.com:8443/u')).toBe(false);
+  });
+
+  it('never plans a one-click POST to a private address', () => {
+    expect(unsubscribePlan('<https://10.0.0.5/u>', 'List-Unsubscribe=One-Click')).toBeNull();
   });
 });

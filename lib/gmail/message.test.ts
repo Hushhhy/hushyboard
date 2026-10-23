@@ -6,6 +6,7 @@ import {
   hasRemoteImages,
   header,
   mailDocument,
+  mailPlainText,
   sanitizeMailHtml,
 } from './message';
 
@@ -100,5 +101,17 @@ describe('formatMailDate', () => {
     expect(formatMailDate(new Date('2026-10-21T23:30:00+02:00'), now)).toBe('hier');
     expect(formatMailDate(new Date('2026-10-19T09:00:00+02:00'), now)).toBe('lun.');
     expect(formatMailDate(new Date('2026-10-01T09:00:00+02:00'), now)).toBe('1 oct.');
+  });
+});
+
+describe('mailPlainText', () => {
+  it('prefers the text part, else strips the HTML', () => {
+    expect(mailPlainText({ html: '<p>x</p>', text: 'Bonjour\n\nAlexis' })).toBe('Bonjour Alexis');
+    expect(
+      mailPlainText({
+        html: '<style>p{color:red}</style><p>Nous aimerions&nbsp;<b>échanger</b></p>',
+        text: null,
+      })
+    ).toBe('Nous aimerions échanger');
   });
 });
