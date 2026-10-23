@@ -58,9 +58,7 @@ export function Trophy({
         </span>
       </span>
       <span className="min-w-0">
-        <span
-          className={`block truncate text-body-14 font-semibold ${unlocked ? '' : 'text-fg-2'}`}
-        >
+        <span className={`block text-body-14 font-semibold ${unlocked ? '' : 'text-fg-2'}`}>
           {unlocked ? null : <span className="sr-only">Verrouillé : </span>}
           {name}
         </span>

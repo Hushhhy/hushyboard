@@ -84,7 +84,7 @@ export async function ApplicationsView({ searchParams }: { searchParams: Promise
       <JobSearchTabs />
 
       <div className="flex flex-wrap items-center gap-3">
-        <form role="search" action={BASE_PATH} className="relative">
+        <form role="search" action={BASE_PATH} className="relative min-w-0 flex-1 sm:flex-none">
           {filter !== 'all' ? <input type="hidden" name="filter" value={filter} /> : null}
           <label htmlFor="application-search" className="sr-only">
             Chercher une entreprise, un poste
@@ -96,10 +96,13 @@ export async function ApplicationsView({ searchParams }: { searchParams: Promise
             type="search"
             defaultValue={query}
             placeholder="Chercher une entreprise, un poste…"
-            className="h-9 w-72 max-w-full rounded-control border border-line-strong bg-surface-sunken pr-3 pl-8 text-body-14"
+            className="h-9 w-full rounded-control sm:w-72 border border-line-strong bg-surface-sunken pr-3 pl-8 text-body-14"
           />
         </form>
-        <nav aria-label="Filtrer les candidatures" className="flex flex-1 flex-wrap gap-1.5">
+        <nav
+          aria-label="Filtrer les candidatures"
+          className="order-last flex w-full flex-wrap gap-1.5"
+        >
           {APPLICATION_FILTERS.map((item) => {
             const count = searched.filter((application) =>
               matchesApplicationFilter(application, item.value, today)

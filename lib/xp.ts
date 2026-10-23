@@ -76,3 +76,74 @@ export function detectLevelUp(before: number, after: number): LevelUp | null {
     xpToNext: next.xpForLevel - next.xpIntoLevel,
   };
 }
+
+export type XpEntry = { amount: number; occurredAt: Date };
+
+// The day each level was reached, from the XP journal (oldest first). Level 1 is the start.
+export function levelHistory(
+  events: XpEntry[]
+): { level: number; title: string; reachedAt: Date }[] {
+  const sorted = [...events].sort((a, b) => a.occurredAt.getTime() - b.occurredAt.getTime());
+  const reached: { level: number; title: string; reachedAt: Date }[] = [];
+  let total = 0;
+  for (const event of sorted) {
+    const before = getLevelInfo(total).level;
+    total += event.amount;
+    const after = getLevelInfo(total);
+    for (let level = before + 1; level <= after.level; level += 1) {
+      reached.push({
+        level,
+        title: LEVEL_TITLES[Math.min(level, LEVEL_TITLES.length) - 1],
+        reachedAt: event.occurredAt,
+      });
+    }
+  }
+  return reached;
+}
+
+// Total XP needed to reach a level: level 1 = 0, level 2 = 50, level 3 = 250…
+export function xpForLevel(level: number): number {
+  let total = 0;
+  for (let current = 1; current < level; current += 1) total += xpToNextLevel(current);
+  return total;
+}
+
+// ISO week number of a "YYYY-MM-DD" day (S42…).
+export function isoWeekNumber(dayKey: string): number {
+  const date = new Date(`${dayKey}T00:00:00.000Z`);
+  const weekday = date.getUTCDay() || 7;
+  // The Thursday of the same week decides the year of the week.
+  date.setUTCDate(date.getUTCDate() + 4 - weekday);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  return Math.ceil(((date.getTime() - yearStart.getTime()) / 86_400_000 + 1) / 7);
+}
+
+// XP earned per week (Monday to Sunday, Paris days), oldest first, ending with this week.
+export function weeklyXp(
+  events: XpEntry[],
+  todayKey: string,
+  weeks: number,
+  dayKeyOf: (date: Date) => string
+): { week: number; start: string; xp: number }[] {
+  const shift = (key: string, days: number) => {
+    const date = new Date(`${key}T00:00:00.000Z`);
+    date.setUTCDate(date.getUTCDate() + days);
+    return date.toISOString().slice(0, 10);
+  };
+  const today = new Date(`${todayKey}T00:00:00.000Z`);
+  const monday = shift(todayKey, 1 - (today.getUTCDay() || 7));
+  const result = Array.from({ length: weeks }, (_, index) => {
+    const start = shift(monday, -7 * (weeks - 1 - index));
+    return { week: isoWeekNumber(start), start, xp: 0 };
+  });
+  for (const event of events) {
+    const day = dayKeyOf(event.occurredAt);
+    for (let index = result.length - 1; index >= 0; index -= 1) {
+      if (day >= result[index].start) {
+        if (index < result.length - 1 || day <= shift(monday, 6)) result[index].xp += event.amount;
+        break;
+      }
+    }
+  }
+  return result;
+}

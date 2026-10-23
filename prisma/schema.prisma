@@ -609,11 +609,13 @@ model CsvImport {
 // =============================================================================
 
 model TrophyUnlock {
-  id         String   @id @default(cuid())
+  id         String    @id @default(cuid())
   userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   trophyKey  String // e.g. "first-interview", "habit-streak-7"
-  unlockedAt DateTime @default(now())
+  unlockedAt DateTime  @default(now())
+  // Set once the toast has announced it (a trophy can unlock outside the current page).
+  seenAt     DateTime?
 
   @@unique([userId, trophyKey])
   @@map("trophy_unlocks")

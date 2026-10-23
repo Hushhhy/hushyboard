@@ -124,7 +124,7 @@ export async function WatchView() {
               {pending.map((offer) => (
                 <li
                   key={offer.id}
-                  className="flex flex-wrap items-center gap-4 rounded-card bg-surface-default p-4.5"
+                  className="flex flex-col gap-4 rounded-card bg-surface-default p-4.5 sm:flex-row sm:items-center"
                 >
                   <OfferHeading offer={offer} now={now} />
                   <OfferCardActions offerId={offer.id} />
@@ -140,7 +140,7 @@ export async function WatchView() {
                 {recentlyDecided.map((offer) => (
                   <li
                     key={offer.id}
-                    className="flex flex-wrap items-center gap-4 rounded-card bg-surface-default p-4.5 opacity-80"
+                    className="flex flex-col gap-4 rounded-card bg-surface-default p-4.5 sm:flex-row sm:items-center opacity-80"
                   >
                     <OfferHeading offer={offer} now={now} />
                     <div className="flex items-center gap-2 text-body-14 text-fg-2">

@@ -112,7 +112,7 @@ export async function SkillView({ params, searchParams }: SkillViewProps) {
     <>
       {header}
       <RoadmapProvider tiers={tiers}>
-        <div className="grid items-start gap-3 lg:grid-cols-[23.75rem_minmax(0,1fr)]">
+        <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-3 lg:grid-cols-[23.75rem_minmax(0,1fr)]">
           <div className="flex flex-col gap-3">
             <RoadmapColumn skillSlug={skill.slug} selectedId={selectedId} />
             <LinkedCard data={data} />
@@ -146,7 +146,7 @@ export function SkillSkeleton() {
     <LoadingRegion label="Chargement de la compétence…" className="flex flex-col gap-4">
       <Skeleton surface="card" className="h-13 w-2/3" />
       <Skeleton surface="card" className="h-14" />
-      <div className="grid gap-3 lg:grid-cols-[23.75rem_minmax(0,1fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3 lg:grid-cols-[23.75rem_minmax(0,1fr)]">
         <Skeleton surface="card" className="h-160" />
         <Skeleton surface="card" className="h-140" />
       </div>

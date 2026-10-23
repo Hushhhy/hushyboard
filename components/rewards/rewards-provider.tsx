@@ -25,6 +25,8 @@ type RewardsContextValue = {
   announce: (rewards: Reward | Reward[]) => void;
 };
 
+const CELEBRATED_KEY = 'hushyboard:level-celebrated';
+
 const RewardsContext = createContext<RewardsContextValue | null>(null);
 
 export function useRewards(): RewardsContextValue {
@@ -35,15 +37,29 @@ export function useRewards(): RewardsContextValue {
 
 export function RewardsProvider({ children }: { children: ReactNode }) {
   const [rewards, setRewards] = useState<Reward[]>([]);
+  const [celebrate, setCelebrate] = useState(false);
 
   const announce = useCallback((next: Reward | Reward[]) => {
-    setRewards((current) => [...current, ...(Array.isArray(next) ? next : [next])]);
+    const list = Array.isArray(next) ? next : [next];
+    // The level-up celebration plays at most once per session (then the toast alone).
+    if (list.some((reward) => reward.kind === 'level')) {
+      try {
+        if (!sessionStorage.getItem(CELEBRATED_KEY)) {
+          sessionStorage.setItem(CELEBRATED_KEY, '1');
+          setCelebrate(true);
+        }
+      } catch {
+        // Storage blocked: no celebration, the toast is enough.
+      }
+    }
+    setRewards((current) => [...current, ...list]);
   }, []);
 
   const value = useMemo(() => ({ announce }), [announce]);
 
   function close() {
     setRewards([]);
+    setCelebrate(false);
     // Give focus back to a stable element: the page title.
     const heading = document.querySelector<HTMLElement>('#content h1');
     if (heading) {
@@ -60,14 +76,24 @@ export function RewardsProvider({ children }: { children: ReactNode }) {
         aria-live="polite"
         className="fixed top-20 right-6 z-40 w-85 max-w-[calc(100vw-2rem)]"
       >
-        {rewards.length > 0 ? <RewardToast rewards={rewards} onClose={close} /> : null}
+        {rewards.length > 0 ? (
+          <RewardToast rewards={rewards} celebrate={celebrate} onClose={close} />
+        ) : null}
       </div>
       {children}
     </RewardsContext>
   );
 }
 
-function RewardToast({ rewards, onClose }: { rewards: Reward[]; onClose: () => void }) {
+function RewardToast({
+  rewards,
+  celebrate,
+  onClose,
+}: {
+  rewards: Reward[];
+  celebrate: boolean;
+  onClose: () => void;
+}) {
   const first = rewards[0];
   const isGroup = rewards.length > 1;
   const showsLevel = rewards.some((reward) => reward.kind === 'level');
@@ -81,7 +107,7 @@ function RewardToast({ rewards, onClose }: { rewards: Reward[]; onClose: () => v
       onKeyDown={handleKeyDown}
       className="grid animate-toast-in grid-cols-[52px_1fr] gap-3 rounded-panel bg-surface-overlay p-4 shadow-overlay"
     >
-      <RewardEmblem reward={first} />
+      <RewardEmblem reward={first} celebrate={celebrate} />
       <div className="flex min-w-0 flex-col gap-1">
         {isGroup ? (
           <>
@@ -98,7 +124,13 @@ function RewardToast({ rewards, onClose }: { rewards: Reward[]; onClose: () => v
         ) : (
           <>
             <p className="text-label-12 text-career uppercase">{rewardLabel(first)}</p>
-            <p className="font-display text-display-20">{rewardTitle(first)}</p>
+            <p className="overflow-hidden font-display text-display-20">
+              <span
+                className={`block ${celebrate ? 'animate-title-up [animation-delay:420ms]' : ''}`}
+              >
+                {rewardTitle(first)}
+              </span>
+            </p>
             <p className="text-body-14 text-fg-2">{first.text}</p>
           </>
         )}
@@ -126,8 +158,17 @@ function rewardTitle(reward: Reward): string {
   return reward.kind === 'level' ? reward.title : reward.name;
 }
 
-function RewardEmblem({ reward }: { reward: Reward }) {
-  if (reward.kind === 'level') return <LevelMedal level={reward.level} size="small" />;
+function RewardEmblem({ reward, celebrate }: { reward: Reward; celebrate: boolean }) {
+  if (reward.kind === 'level') {
+    if (!celebrate) return <LevelMedal level={reward.level} size="small" />;
+    // Celebration (reduced motion: the states change at once, see globals.css).
+    return (
+      <span aria-hidden="true" className="relative grid place-items-center [perspective:400px]">
+        <span className="absolute inset-0 animate-level-ring rounded-full border-2 border-career [animation-delay:300ms] no-motion:hidden" />
+        <LevelMedal level={reward.level} size="small" className="animate-medal-flip" />
+      </span>
+    );
+  }
   const colors = DOMAIN_CLASSES[reward.domain];
   return (
     <span aria-hidden="true" className="relative grid h-14 w-13 place-items-center">

@@ -1,7 +1,11 @@
 import Link from 'next/link';
+import { PageHeader } from '@/components/app-shell/page-header';
 import { requireUser } from '@/lib/session';
 import { getHomeData, type HomeData } from '@/lib/home-data';
-import { formatLongDate, formatMonth } from '@/lib/dates';
+import { formatLongDate, formatMonth, formatShortDate } from '@/lib/dates';
+import { TROPHIES, TROPHY_KEYS } from '@/lib/trophies';
+import { DOMAIN_CLASSES } from '@/components/ui/domain';
+import { DomainIcon } from '@/components/trophies/trophy-icon';
 import { getLevelInfo, LEVEL_TITLES } from '@/lib/xp';
 import { formatEuros, formatSignedEuros } from '@/lib/finance';
 import { ModuleCard } from '@/components/ui/module-card';
@@ -32,16 +36,12 @@ export async function HomeDashboard() {
 
   return (
     <>
-      <header className="flex h-13 items-center gap-4">
-        <div className="min-w-0 flex-1">
-          <p className="text-label-12 text-fg-3 uppercase">{formatLongDate(now)}</p>
-          <h1 className="truncate font-display text-display-24">
-            {buildSummary(habitsLeft, data.pendingOfferCount)}
-          </h1>
-        </div>
-      </header>
+      <PageHeader
+        breadcrumb={formatLongDate(now)}
+        title={buildSummary(habitsLeft, data.pendingOfferCount)}
+      />
 
-      <div className="grid flex-1 grid-cols-12 grid-rows-[1.4fr_1fr_1fr] gap-3">
+      <div className="grid flex-1 grid-cols-1 gap-3 md:grid-cols-12 md:grid-rows-[1.4fr_1fr_1fr]">
         <CareerModule data={data} />
         <HabitsModule data={data} />
         <ApplicationsModule data={data} />
@@ -75,7 +75,7 @@ function CareerModule({ data }: { data: HomeData }) {
       accentClass="text-career"
       aside={<span className="text-fg-3 tabular">+{data.monthXp} XP ce mois</span>}
       focal
-      className="col-span-7"
+      className="md:col-span-7"
     >
       <div className="flex items-center gap-5">
         <LevelMedal level={level.level} />
@@ -150,7 +150,7 @@ function HabitsModule({ data }: { data: HomeData }) {
           <span className="tabular">{`${done} / ${habits.length} faites`}</span>
         ) : null
       }
-      className="col-span-5"
+      className="md:col-span-5"
     >
       {habits.length === 0 ? (
         <EmptyState
@@ -202,7 +202,7 @@ function ApplicationsModule({ data }: { data: HomeData }) {
       title="Candidatures"
       icon={<SearchIcon className="size-4" />}
       accentClass="text-career"
-      className="col-span-4"
+      className="md:col-span-4"
     >
       {applications.total === 0 ? (
         <EmptyState
@@ -240,6 +240,28 @@ function ApplicationsModule({ data }: { data: HomeData }) {
               },
             ]}
           />
+          {data.followUpsDue > 0 || data.recruiterReplies > 0 ? (
+            <ul className="mt-auto flex flex-col gap-0.5 border-t border-line-subtle pt-2 text-body-14">
+              {data.recruiterReplies > 0 ? (
+                <li>
+                  <Link href="/mail" className="text-fg-1 underline hover:text-career">
+                    {data.recruiterReplies} réponse{data.recruiterReplies > 1 ? 's' : ''} de
+                    recruteur à traiter
+                  </Link>
+                </li>
+              ) : null}
+              {data.followUpsDue > 0 ? (
+                <li>
+                  <Link
+                    href="/career/job-search?filter=followUp"
+                    className="text-fg-1 underline hover:text-career"
+                  >
+                    {data.followUpsDue} relance{data.followUpsDue > 1 ? 's' : ''} à faire
+                  </Link>
+                </li>
+              ) : null}
+            </ul>
+          ) : null}
         </>
       )}
     </ModuleCard>
@@ -258,7 +280,7 @@ function OfferModule({ data }: { data: HomeData }) {
           <span className="tabular">{data.pendingOfferCount} à trier</span>
         ) : null
       }
-      className="col-span-4"
+      className="md:col-span-4"
     >
       {offer ? (
         <>
@@ -296,7 +318,7 @@ function FinanceModule({ data, monthLabel }: { data: HomeData; monthLabel: strin
       icon={<FinanceIcon className="size-4" />}
       accentClass="text-finance"
       aside={<span className="text-fg-1 capitalize">{monthLabel}</span>}
-      className="col-span-4"
+      className="md:col-span-4"
     >
       {hasData ? (
         <>
@@ -344,7 +366,7 @@ function LeisureModule({ data }: { data: HomeData }) {
       icon={<LeisureIcon className="size-4" />}
       accentClass="text-leisure"
       aside="pas d'XP, juste le plaisir"
-      className="col-span-6"
+      className="md:col-span-6"
     >
       {game ? (
         <div className="flex flex-col gap-2">
@@ -378,23 +400,53 @@ function LeisureModule({ data }: { data: HomeData }) {
 }
 
 function TrophiesModule({ data }: { data: HomeData }) {
+  const recent = data.recentTrophies.filter((unlock) => TROPHIES[unlock.trophyKey]);
   return (
     <ModuleCard
       title="Vitrine"
       icon={<TrophyIcon className="size-4" />}
       accentClass="text-career"
       aside={
-        <span className="tabular">
-          {data.trophyCount} trophée{data.trophyCount > 1 ? 's' : ''}
-        </span>
+        <span className="tabular">{`${data.trophyCount} / ${TROPHY_KEYS.length} trophées`}</span>
       }
-      className="col-span-6"
+      className="md:col-span-6"
     >
-      <p className="text-body-14 text-fg-2">
-        {data.trophyCount === 0
-          ? 'Ta vitrine est vide pour l’instant. Ton premier trophée arrive avec ta première série ou ta première candidature.'
-          : 'Tes derniers trophées apparaîtront ici.'}
-      </p>
+      {recent.length === 0 ? (
+        <p className="text-body-14 text-fg-2">
+          Ta vitrine est vide pour l’instant. Ton premier trophée arrive avec ta première série ou
+          ta première candidature.
+        </p>
+      ) : (
+        <ul className="grid grid-cols-3 gap-2 border-b-2 border-surface-overlay pb-2">
+          {recent.map((unlock) => {
+            const trophy = TROPHIES[unlock.trophyKey];
+            return (
+              <li key={unlock.trophyKey}>
+                <Link
+                  href={`/trophies?panel=trophy-${unlock.trophyKey}`}
+                  className="flex items-center gap-2 rounded-control p-1.5 hover:bg-surface-raised"
+                >
+                  <span aria-hidden="true" className={DOMAIN_CLASSES[trophy.domain].text}>
+                    <DomainIcon domain={trophy.domain} className="size-5" />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-body-14 font-semibold">{trophy.name}</span>
+                    <span className="block text-caption-12 text-fg-2">
+                      {formatShortDate(unlock.unlockedAt).replace(/ d{4}$/, '')}
+                    </span>
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+      <Link
+        href="/trophies"
+        className="self-start text-body-14 text-fg-2 underline hover:text-fg-1"
+      >
+        Voir la vitrine
+      </Link>
     </ModuleCard>
   );
 }
@@ -404,15 +456,15 @@ export function HomeDashboardSkeleton() {
   return (
     <LoadingRegion label="Chargement du tableau de bord…" className="flex flex-1 flex-col gap-4">
       <Skeleton surface="card" className="h-13 w-2/3" />
-      <div className="grid flex-1 grid-cols-12 grid-rows-[1.4fr_1fr_1fr] gap-3">
+      <div className="grid flex-1 grid-cols-1 gap-3 md:grid-cols-12 md:grid-rows-[1.4fr_1fr_1fr]">
         {[
-          'col-span-7',
-          'col-span-5',
-          'col-span-4',
-          'col-span-4',
-          'col-span-4',
-          'col-span-6',
-          'col-span-6',
+          'md:col-span-7',
+          'md:col-span-5',
+          'md:col-span-4',
+          'md:col-span-4',
+          'md:col-span-4',
+          'md:col-span-6',
+          'md:col-span-6',
         ].map((span, index) => (
           <Skeleton key={index} surface="card" className={span} />
         ))}
