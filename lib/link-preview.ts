@@ -73,6 +73,28 @@ export function isFetchableUrl(value: string): boolean {
   return true;
 }
 
+// Follows redirects by hand: every hop is checked before it is requested, so a public page
+// cannot send the server to an internal address. Returns the response and its final URL.
+async function fetchPublic(
+  url: string,
+  init: RequestInit,
+  maxRedirects = 3
+): Promise<{ response: Response; url: string } | null> {
+  let current = url;
+  for (let hop = 0; hop <= maxRedirects; hop += 1) {
+    if (!isFetchableUrl(current)) return null;
+    const response = await fetch(current, { ...init, redirect: 'manual' });
+    const location = response.headers.get('location');
+    if (response.status >= 300 && response.status < 400 && location) {
+      await response.body?.cancel().catch(() => {});
+      current = new URL(location, current).toString();
+      continue;
+    }
+    return { response, url: current };
+  }
+  return null;
+}
+
 const IMAGE_EXTENSIONS = /\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i;
 const MAX_BYTES = 1_000_000;
 
@@ -82,14 +104,14 @@ export async function fetchPreviewImage(credentialUrl: string): Promise<string |
   if (!isFetchableUrl(credentialUrl)) return null;
   if (IMAGE_EXTENSIONS.test(new URL(credentialUrl).pathname)) return credentialUrl;
   try {
-    const response = await fetch(credentialUrl, {
+    const fetched = await fetchPublic(credentialUrl, {
       signal: AbortSignal.timeout(5000),
-      redirect: 'follow',
       headers: { Accept: 'text/html', 'User-Agent': 'Hushyboard link preview' },
     });
-    if (!response.ok || !isFetchableUrl(response.url || credentialUrl)) return null;
+    if (!fetched || !fetched.response.ok) return null;
+    const { response, url: finalUrl } = fetched;
     const type = response.headers.get('content-type') ?? '';
-    if (type.startsWith('image/')) return response.url || credentialUrl;
+    if (type.startsWith('image/')) return finalUrl;
     if (!type.includes('html') || !response.body) return null;
 
     // Read at most 1 MB: the metadata is in the <head>.
@@ -104,7 +126,7 @@ export async function fetchPreviewImage(credentialUrl: string): Promise<string |
     }
     await reader.cancel().catch(() => {});
     const html = new TextDecoder().decode(Buffer.concat(chunks));
-    return extractPreviewImage(html, response.url || credentialUrl);
+    return extractPreviewImage(html, finalUrl);
   } catch {
     return null;
   }

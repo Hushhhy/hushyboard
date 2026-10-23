@@ -8,7 +8,8 @@ import {
 } from '@/lib/trophies';
 import { getLevelInfo } from '@/lib/xp';
 
-// Counts the trophy conditions are checked against (a few small queries, run in parallel).
+// Counts the trophy conditions are checked against (small queries, run in parallel; the
+// transactions are counted per day by the database, never loaded one by one).
 export async function getTrophyStats(userId: string): Promise<TrophyStats> {
   const eventCount = (status: 'HR_INTERVIEW' | 'TECH_INTERVIEW' | 'OFFER') =>
     prisma.applicationEvent.count({ where: { status, application: { userId } } });
@@ -23,7 +24,8 @@ export async function getTrophyStats(userId: string): Promise<TrophyStats> {
     goalsAchieved,
     games,
     csvImports,
-    transactions,
+    days,
+    uncategorizedDays,
   ] = await Promise.all([
     prisma.application.count({ where: { userId } }),
     eventCount('HR_INTERVIEW'),
@@ -35,8 +37,16 @@ export async function getTrophyStats(userId: string): Promise<TrophyStats> {
     prisma.goal.count({ where: { userId, achievedAt: { not: null } } }),
     prisma.game.findMany({ where: { userId }, select: { franchise: true, status: true } }),
     prisma.csvImport.count({ where: { userId } }),
-    prisma.transaction.findMany({ where: { userId }, select: { date: true, categoryId: true } }),
+    prisma.transaction.groupBy({ by: ['date'], where: { userId }, _count: { _all: true } }),
+    prisma.transaction.groupBy({
+      by: ['date'],
+      where: { userId, categoryId: null },
+      _count: { _all: true },
+    }),
   ]);
+  const uncategorized = new Map(
+    uncategorizedDays.map((day) => [day.date.getTime(), day._count._all])
+  );
   return {
     applications,
     interviews: hrInterviews + techInterviews,
@@ -49,29 +59,43 @@ export async function getTrophyStats(userId: string): Promise<TrophyStats> {
     gamesFinished: games.filter((game) => game.status === 'FINISHED').length,
     franchisesCompleted: completedFranchises(games),
     csvImports,
-    ...financeMonths(transactions),
+    ...financeMonths(
+      days.map((day) => ({
+        date: day.date,
+        count: day._count._all,
+        uncategorized: uncategorized.get(day.date.getTime()) ?? 0,
+      }))
+    ),
   };
 }
 
-// Unlocks every trophy whose condition is met (idempotent, never takes one back).
-export async function syncTrophies(userId: string): Promise<void> {
-  const keys = earnedTrophies(await getTrophyStats(userId));
-  if (keys.length === 0) return;
-  await prisma.trophyUnlock.createMany({
-    data: keys.map((trophyKey) => ({ userId, trophyKey })),
-    skipDuplicates: true,
-  });
-}
-
-// Unlocked trophies the toast has not announced yet.
-export async function getUnseenTrophies(userId: string) {
-  const unlocks = await prisma.trophyUnlock.findMany({
-    where: { userId, seenAt: null },
-    orderBy: { unlockedAt: 'asc' },
-    select: { id: true, trophyKey: true },
-  });
-  return unlocks
-    .filter((unlock) => TROPHIES[unlock.trophyKey])
+// Unlocks every trophy whose condition is met (idempotent, never takes one back) and returns
+// those the toast has not announced yet. Runs on each page render: it only writes when a new
+// trophy is earned.
+export async function syncTrophies(userId: string) {
+  const [stats, unlocks] = await Promise.all([
+    getTrophyStats(userId),
+    prisma.trophyUnlock.findMany({
+      where: { userId },
+      select: { id: true, trophyKey: true, seenAt: true, unlockedAt: true },
+    }),
+  ]);
+  const owned = new Set(unlocks.map((unlock) => unlock.trophyKey));
+  const fresh = earnedTrophies(stats).filter((key) => !owned.has(key));
+  let all = unlocks;
+  if (fresh.length > 0) {
+    await prisma.trophyUnlock.createMany({
+      data: fresh.map((trophyKey) => ({ userId, trophyKey })),
+      skipDuplicates: true,
+    });
+    all = await prisma.trophyUnlock.findMany({
+      where: { userId },
+      select: { id: true, trophyKey: true, seenAt: true, unlockedAt: true },
+    });
+  }
+  return all
+    .filter((unlock) => !unlock.seenAt && TROPHIES[unlock.trophyKey])
+    .sort((a, b) => a.unlockedAt.getTime() - b.unlockedAt.getTime())
     .map((unlock) => ({
       id: unlock.id,
       name: TROPHIES[unlock.trophyKey].name,

@@ -1,5 +1,5 @@
-import { describe, expect, it } from 'vitest';
-import { extractPreviewImage, isFetchableUrl } from './link-preview';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { extractPreviewImage, fetchPreviewImage, isFetchableUrl } from './link-preview';
 
 const PAGE = 'https://www.coursera.org/account/accomplishments/certificate/ABC123';
 
@@ -72,5 +72,37 @@ describe('isFetchableUrl', () => {
     ]) {
       expect(isFetchableUrl(url), url).toBe(false);
     }
+  });
+});
+
+describe('fetchPreviewImage redirects', () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('never follows a redirect to an internal address', async () => {
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(null, { status: 302, headers: { location: 'http://127.0.0.1/admin' } })
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    expect(await fetchPreviewImage('https://www.credly.com/badges/abc')).toBeNull();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('follows a public redirect and reads the final page', async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        new Response(null, { status: 301, headers: { location: '/badges/abc/public' } })
+      )
+      .mockResolvedValueOnce(
+        new Response('<meta property="og:image" content="/img/badge.png">', {
+          headers: { 'content-type': 'text/html' },
+        })
+      );
+    vi.stubGlobal('fetch', fetchMock);
+    expect(await fetchPreviewImage('https://www.credly.com/badges/abc')).toBe(
+      'https://www.credly.com/img/badge.png'
+    );
+    expect(fetchMock.mock.calls[1][0]).toBe('https://www.credly.com/badges/abc/public');
   });
 });

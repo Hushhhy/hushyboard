@@ -168,9 +168,10 @@ export default function LegalPage() {
 
           <Section title="Cookies">
             <p>
-              Uniquement des cookies techniques, nécessaires à la connexion (session). Aucun cookie
-              de mesure d’audience ni publicitaire : aucun bandeau de consentement n’est donc
-              requis.
+              Uniquement des cookies techniques, nécessaires à la connexion : le jeton de session
+              (httpOnly, sécurisé) et une copie signée de la session gardée 5 minutes pour éviter
+              une requête en base à chaque page. Aucun cookie de mesure d’audience ni publicitaire :
+              aucun bandeau de consentement n’est donc requis.
             </p>
           </Section>
         </div>

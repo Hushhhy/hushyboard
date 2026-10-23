@@ -5,6 +5,8 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'Hushyboard',
   description: 'Personal life dashboard',
+  // Private app: search engines must not list the login or legal pages either.
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({ children }: LayoutProps<'/'>) {
