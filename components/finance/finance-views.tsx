@@ -147,57 +147,67 @@ function NoCategories() {
 
 // --- Month -------------------------------------------------------------------------------
 
+const shortMonth = new Intl.DateTimeFormat('fr-FR', { timeZone: 'UTC', month: 'short' });
+
 // Month-end balance of the last 6 months, as a line (finance color) with a table for
 // screen readers.
 function BalanceTrend({ points }: { points: { month: string; balance: number }[] }) {
-  const width = 320;
-  const height = 120;
-  const pad = 8;
+  // Positions in % of the plot: the line stretches with the card, the dots and labels stay round.
   const values = points.map((point) => point.balance);
   const top = Math.max(0, ...values);
   const bottom = Math.min(0, ...values);
   const span = top - bottom || 1;
-  const x = (index: number) => pad + (index * (width - 2 * pad)) / Math.max(1, points.length - 1);
-  const y = (value: number) => pad + ((top - value) * (height - 2 * pad)) / span;
+  const x = (index: number) => 5 + (index * 90) / Math.max(1, points.length - 1);
+  const y = (value: number) => 8 + ((top - value) * 84) / span;
   const path = points
     .map((point, index) => `${index ? 'L' : 'M'}${x(index)},${y(point.balance)}`)
     .join(' ');
   return (
     <figure className="flex flex-col gap-2">
       <figcaption className="sr-only">Solde de chaque mois, sur les 6 derniers mois</figcaption>
-      <svg
-        viewBox={`0 0 ${width} ${height}`}
-        aria-hidden="true"
-        className="h-32 w-full overflow-visible"
-      >
-        <line
-          x1={pad}
-          x2={width - pad}
-          y1={y(0)}
-          y2={y(0)}
-          className="stroke-line-strong"
-          strokeDasharray="3 3"
-        />
-        <path
-          d={path}
-          fill="none"
-          className="stroke-finance"
-          strokeWidth={2}
-          strokeLinejoin="round"
-        />
+      <div aria-hidden="true" className="relative h-32">
+        <svg
+          viewBox="0 0 100 100"
+          preserveAspectRatio="none"
+          className="absolute inset-0 size-full overflow-visible"
+        >
+          <line
+            x1={5}
+            x2={95}
+            y1={y(0)}
+            y2={y(0)}
+            className="stroke-line-strong"
+            strokeDasharray="3 3"
+            vectorEffect="non-scaling-stroke"
+          />
+          <path
+            d={path}
+            fill="none"
+            className="stroke-finance"
+            strokeWidth={2}
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
+        </svg>
         {points.map((point, index) => (
-          <circle
+          <span
             key={point.month}
-            cx={x(index)}
-            cy={y(point.balance)}
-            r={index === points.length - 1 ? 4 : 2.5}
-            className="fill-finance"
+            className={`absolute -translate-1/2 rounded-full bg-finance ${
+              index === points.length - 1 ? 'size-2.5' : 'size-1.5'
+            }`}
+            style={{ left: `${x(index)}%`, top: `${y(point.balance)}%` }}
           />
         ))}
-      </svg>
-      <div aria-hidden="true" className="flex justify-between text-caption-12 text-fg-3">
-        {points.map((point) => (
-          <span key={point.month}>{formatMonthKeyName(point.month).slice(0, 4)}.</span>
+      </div>
+      <div aria-hidden="true" className="relative h-4 text-caption-12 text-fg-3">
+        {points.map((point, index) => (
+          <span
+            key={point.month}
+            className="absolute -translate-x-1/2"
+            style={{ left: `${x(index)}%` }}
+          >
+            {shortMonth.format(new Date(`${point.month}-01T00:00:00.000Z`))}
+          </span>
         ))}
       </div>
       <table className="sr-only">
@@ -335,7 +345,7 @@ export async function MonthView({ searchParams }: { searchParams: SearchParams }
           ) : (
             <>
               <BarChart
-                caption={`Dépenses de ${formatMonthKey(month)} par catégorie`}
+                caption={`Dépenses par catégorie, ${formatMonthKey(month)}`}
                 valueHeader="Montant"
                 rows={summary.byCategory.map((category) => ({
                   key: category.name,

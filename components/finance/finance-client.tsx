@@ -16,7 +16,7 @@ import { Button, buttonClasses } from '@/components/ui/button';
 import { ErrorState } from '@/components/ui/error-state';
 import { SelectField, TextField } from '@/components/ui/text-field';
 import { toDateInputValue } from '@/lib/dates';
-import { formatEuros } from '@/lib/finance';
+import { formatSignedEuros } from '@/lib/finance';
 import {
   guessMapping,
   mapRows,
@@ -346,13 +346,13 @@ export function ImportWizard() {
               <caption className="sr-only">Aperçu des premières lignes</caption>
               <thead>
                 <tr className="text-left text-caption-12 text-fg-3">
-                  <th scope="col" className="py-2 font-medium">
+                  <th scope="col" className="py-2 pr-3 font-medium">
                     Ligne
                   </th>
-                  <th scope="col" className="py-2 font-medium">
+                  <th scope="col" className="py-2 pr-3 font-medium">
                     Date
                   </th>
-                  <th scope="col" className="py-2 font-medium">
+                  <th scope="col" className="py-2 pr-3 font-medium">
                     Libellé
                   </th>
                   <th scope="col" className="py-2 text-right font-medium">
@@ -369,15 +369,15 @@ export function ImportWizard() {
                   const status = statuses && validIndex !== -1 ? statuses[validIndex] : null;
                   return (
                     <tr key={line.line} className="border-t border-line-subtle">
-                      <td className="py-2 text-fg-3 tabular">{line.line}</td>
+                      <td className="py-2 pr-3 text-fg-3 tabular">{line.line}</td>
                       {line.ok ? (
                         <>
-                          <td className="py-2 tabular">
+                          <td className="py-2 pr-3 whitespace-nowrap tabular">
                             {line.date.split('-').reverse().join('/')}
                           </td>
-                          <td className="max-w-80 truncate py-2">{line.label}</td>
+                          <td className="max-w-80 truncate py-2 pr-3">{line.label}</td>
                           <td className="py-2 text-right tabular">
-                            {formatEuros(line.amountCents)}
+                            {formatSignedEuros(line.amountCents)}
                           </td>
                           <td
                             className={`py-2 pl-4 text-caption-12 ${status === 'new' ? 'text-success' : 'text-fg-3'}`}
