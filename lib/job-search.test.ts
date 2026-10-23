@@ -8,10 +8,12 @@ import {
   displayUrl,
   followUpDate,
   isFollowUpDue,
+  isOfferExpired,
   isoWeek,
   jobSearchStats,
   matchesApplicationFilter,
   median,
+  offerCutoff,
   statusXpReason,
   type StatsApplication,
 } from './job-search';
@@ -162,5 +164,18 @@ describe('displayUrl', () => {
     expect(displayUrl('https://www.qonto.com/careers/')).toBe('qonto.com/careers');
     expect(displayUrl('https://alan.com')).toBe('alan.com');
     expect(displayUrl('not a url')).toBe('not a url');
+  });
+});
+
+describe('offer freshness', () => {
+  const now = new Date('2026-10-23T12:00:00Z');
+  it('expires offers older than 7 days unless applied to', () => {
+    expect(offerCutoff(now).toISOString()).toBe('2026-10-16T12:00:00.000Z');
+    const old = new Date('2026-10-16T11:59:00Z');
+    const recent = new Date('2026-10-16T12:01:00Z');
+    expect(isOfferExpired({ decision: 'PENDING', foundAt: old }, now)).toBe(true);
+    expect(isOfferExpired({ decision: 'DISMISSED', foundAt: old }, now)).toBe(true);
+    expect(isOfferExpired({ decision: 'APPLIED', foundAt: old }, now)).toBe(false);
+    expect(isOfferExpired({ decision: 'PENDING', foundAt: recent }, now)).toBe(false);
   });
 });

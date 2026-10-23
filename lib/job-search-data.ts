@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { offerCutoff } from '@/lib/job-search';
 import { computeSkillLevel } from '@/lib/skills';
 
 // Reads of the « Recherches pro » pages. Every query filters by userId.
@@ -40,14 +41,19 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 export async function getWatchData(userId: string, now: Date) {
   const weekAgo = new Date(now.getTime() - 7 * DAY_MS);
+  const cutoff = offerCutoff(now);
   const [pending, recentlyDecided, sources, keywords, weekOffers] = await Promise.all([
     prisma.jobOffer.findMany({
-      where: { userId, decision: 'PENDING' },
+      where: { userId, decision: 'PENDING', foundAt: { gte: cutoff } },
       orderBy: { foundAt: 'desc' },
     }),
     // Sorted during the last week: shown below, with « Annuler ».
     prisma.jobOffer.findMany({
-      where: { userId, decision: { not: 'PENDING' }, decidedAt: { gte: weekAgo } },
+      where: {
+        userId,
+        decidedAt: { gte: weekAgo },
+        OR: [{ decision: 'APPLIED' }, { decision: 'DISMISSED', foundAt: { gte: cutoff } }],
+      },
       orderBy: { decidedAt: 'desc' },
       take: 10,
     }),
@@ -89,7 +95,9 @@ export function getOffer(userId: string, offerId: string) {
 export type OfferWithExtras = NonNullable<Awaited<ReturnType<typeof getOffer>>>;
 
 export function countOffersToSort(userId: string) {
-  return prisma.jobOffer.count({ where: { userId, decision: 'PENDING' } });
+  return prisma.jobOffer.count({
+    where: { userId, decision: 'PENDING', foundAt: { gte: offerCutoff(new Date()) } },
+  });
 }
 
 // Skills with their computed level, for the CV analysis and adaptation prompts.

@@ -240,3 +240,21 @@ export function displayUrl(url: string): string {
     return url;
   }
 }
+
+// --- Watch freshness -------------------------------------------------------------------
+
+// The watch only shows offers of the last 7 days (Alex's rule, 23/10/2026): an offer not
+// applied to is deleted after that. The age counts from foundAt (the alert mail's date for
+// an imported offer, the day it was added otherwise).
+export const OFFER_MAX_AGE_DAYS = 7;
+
+export function offerCutoff(now: Date): Date {
+  return new Date(now.getTime() - OFFER_MAX_AGE_DAYS * DAY_MS);
+}
+
+export function isOfferExpired(
+  offer: { decision: 'PENDING' | 'APPLIED' | 'DISMISSED'; foundAt: Date },
+  now: Date
+): boolean {
+  return offer.decision !== 'APPLIED' && offer.foundAt.getTime() < offerCutoff(now).getTime();
+}

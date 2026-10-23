@@ -56,6 +56,13 @@ Claude Code s'arrête et te renvoie ici quand il a besoin de toi. Coche au fur e
 6. Mets les mêmes 3 variables sur Vercel (Production), puis redéploie.
 7. À savoir : en mode Testing, Google te déconnecte tous les 7 jours, et il suffit de cliquer sur « Reconnecter ». Si ça t'agace, passe l'app en « In production ». Google affichera alors un écran « app non vérifiée » : clique sur Paramètres avancés, puis sur Continuer.
 
+## Phase 4b · Alertes d'offres
+
+1. Sur chaque site (LinkedIn, Welcome to the Jungle, HelloWork, Indeed, France Travail, APEC…), crée une alerte e-mail avec tes mots-clés de veille, envoyée sur ton Gmail.
+2. Dans Gmail, crée un libellé, par exemple « Alertes emploi ».
+3. Crée un filtre Gmail (Paramètres, Filtres et adresses bloquées, Créer un filtre) avec dans « De » : `jobalerts-noreply@linkedin.com OR welcometothejungle.com OR hellowork.com OR indeed.com OR francetravail.fr OR apec.fr`, puis « Appliquer le libellé : Alertes emploi » (et « Ne pas afficher dans la boîte de réception » si tu veux).
+4. Dans Hushyboard, ouvre Recherches pro, Veille, et choisis ce libellé dans la carte « Alertes e-mail ».
+
 ## À chaque fin de phase
 
 - [ ] Lis la PR et suis la checklist « Comment tester » en local (`npm run db:up` puis `npm run dev`).
