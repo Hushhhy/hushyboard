@@ -134,7 +134,7 @@ export async function ProgressView() {
             title="XP gagnés par semaine"
             icon={<AnalyticsIcon className="size-4" />}
             accentClass="text-career"
-            aside={`plafond : ${DAILY_APPLICATION_XP_CAP} XP / jour sur les candidatures`}
+            aside={`plafond : ${DAILY_APPLICATION_XP_CAP} XP / jour`}
           >
             <figure className="flex flex-col gap-2">
               <figcaption className="sr-only">XP gagnés sur les 8 dernières semaines</figcaption>

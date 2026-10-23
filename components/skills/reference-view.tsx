@@ -174,7 +174,7 @@ export async function ReferenceView({ params, searchParams }: ReferenceViewProps
       </div>
 
       <ReferenceProvider rows={rows}>
-        <div className="grid items-start gap-3 lg:grid-cols-[27.5rem_minmax(0,1fr)]">
+        <div className="grid grid-cols-[minmax(0,1fr)] items-start gap-3 lg:grid-cols-[27.5rem_minmax(0,1fr)]">
           <ReferenceList
             skillSlug={skill.slug}
             selectedId={selectedId}
@@ -214,7 +214,7 @@ export function ReferenceSkeleton() {
     <LoadingRegion label="Chargement de la référence…" className="flex flex-col gap-4">
       <Skeleton surface="card" className="h-13 w-2/3" />
       <Skeleton surface="card" className="h-14" />
-      <div className="grid gap-3 lg:grid-cols-[27.5rem_minmax(0,1fr)]">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3 lg:grid-cols-[27.5rem_minmax(0,1fr)]">
         <Skeleton surface="card" className="h-160" />
         <Skeleton surface="card" className="h-110" />
       </div>
