@@ -6,12 +6,18 @@ import { usePathname } from 'next/navigation';
 
 export type TabItem = { href: string; label: string };
 
-type TabsProps = { label: string; items: TabItem[] };
+type TabsProps = {
+  label: string;
+  items: TabItem[];
+  // Forces the active tab when the URL is not under it (e.g. an offer page under « Veille »).
+  activeHref?: string;
+};
 
 // Link tabs: one URL per tab (back button and sharing work, no ARIA tab pattern).
 // Client component: it needs the current URL to mark the active tab. The URL read sits in
 // <Suspense> so dynamic routes keep a static shell (fallback = no active tab).
 export function Tabs(props: TabsProps) {
+  if (props.activeHref) return <TabsBody {...props} active={props.activeHref} />;
   return (
     <Suspense fallback={<TabsBody {...props} active={undefined} />}>
       <ActiveTabs {...props} />

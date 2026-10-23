@@ -29,6 +29,8 @@ model User {
   resumes        Resume[]
   applications   Application[]
   jobOffers      JobOffer[]
+  watchSources   WatchSource[]
+  watchKeywords  WatchKeyword[]
   certifications Certification[]
   courses        Course[]
   xpEvents       XpEvent[]
@@ -127,6 +129,12 @@ enum ApplicationStatus {
   OFFER
   REJECTED
   NO_RESPONSE
+  FOLLOWED_UP // « Relancée »
+}
+
+enum ApplicationKind {
+  OFFER
+  SPONTANEOUS
 }
 
 enum ContractType {
@@ -178,6 +186,12 @@ model Resume {
   fileUrl      String? // unused: original PDFs are never stored
   content      Json? // ResumeContent, validated by lib/resume/schema.ts
   isDefault    Boolean       @default(false)
+  // An adapted version derives from a base CV and belongs to one offer.
+  basedOnId    String?
+  basedOn      Resume?       @relation("ResumeAdaptations", fields: [basedOnId], references: [id], onDelete: SetNull)
+  adaptations  Resume[]      @relation("ResumeAdaptations")
+  jobOfferId   String?       @unique
+  jobOffer     JobOffer?     @relation("AdaptedResume", fields: [jobOfferId], references: [id], onDelete: Cascade)
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   applications Application[]
@@ -188,19 +202,28 @@ model Resume {
 
 /// A job offer spotted during the watch ("Veille" tab), before deciding to apply or not.
 model JobOffer {
-  id           String        @id @default(cuid())
-  userId       String
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  title        String
-  company      String
-  location     String?
-  contractType ContractType?
-  source       String?
-  url          String?
-  tags         String[]
-  foundAt      DateTime      @default(now())
-  decision     OfferDecision @default(PENDING)
-  application  Application?
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title         String
+  company       String
+  location      String?
+  contractType  ContractType?
+  source        String?
+  url           String?
+  tags          String[]
+  foundAt       DateTime      @default(now())
+  decision      OfferDecision @default(PENDING)
+  decidedAt     DateTime?
+  description   String? // pasted offer text, needed for the analysis
+  summary       String?
+  remotePolicy  String?
+  // { score, strengths[], gaps[], changes[], baseResumeId, model }
+  analysis      Json?
+  analyzedAt    DateTime?
+  application   Application?
+  adaptedResume Resume?       @relation("AdaptedResume")
+  coverLetter   CoverLetter?
 
   @@index([userId, decision])
   @@map("job_offers")
@@ -212,8 +235,10 @@ model Application {
   id           String             @id @default(cuid())
   userId       String
   user         User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind         ApplicationKind    @default(OFFER)
   company      String
-  position     String
+  position     String? // a spontaneous application may have none
+  careersUrl   String? // spontaneous: the company's careers page
   contractType ContractType?
   location     String?
   source       String?
@@ -833,4 +858,40 @@ model ReferenceEntry {
   @@unique([skillId, kind, name])
   @@index([skillId, group])
   @@map("reference_entries")
+}
+
+model CoverLetter {
+  id         String    @id @default(cuid())
+  jobOfferId String    @unique
+  jobOffer   JobOffer  @relation(fields: [jobOfferId], references: [id], onDelete: Cascade)
+  content    String
+  model      String
+  editedAt   DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@map("cover_letters")
+}
+
+/// A site Alex follows for offers (« Sources suivies »). Offers match it by name.
+model WatchSource {
+  id       String  @id @default(cuid())
+  userId   String
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name     String
+  url      String?
+  position Int     @default(0)
+
+  @@unique([userId, name])
+  @@map("watch_sources")
+}
+
+model WatchKeyword {
+  id     String @id @default(cuid())
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  label  String
+
+  @@unique([userId, label])
+  @@map("watch_keywords")
 }

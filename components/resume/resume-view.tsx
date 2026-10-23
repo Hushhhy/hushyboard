@@ -24,9 +24,15 @@ export async function ResumeView({
   const [user, params] = await Promise.all([requireUser(), searchParams]);
   const resumes = await prisma.resume.findMany({
     where: { userId: user.id },
-    include: { _count: { select: { applications: true } } },
+    include: {
+      _count: { select: { applications: true } },
+      jobOffer: { select: { id: true, title: true, company: true } },
+    },
     orderBy: [{ isDefault: 'desc' }, { updatedAt: 'desc' }],
   });
+  // CVs adapted to one offer (phase 4) are listed apart, under « Versions adaptées ».
+  const baseVersions = resumes.filter((resume) => !resume.jobOffer);
+  const adaptedVersions = resumes.filter((resume) => resume.jobOffer);
   const now = new Date();
 
   if (resumes.length === 0) {
@@ -67,42 +73,55 @@ export async function ResumeView({
               Nouvelle version
             </Link>
           </div>
-          <ul className="flex flex-col gap-2">
-            {resumes.map((resume) => {
-              const isSelected = resume.id === selected.id;
-              return (
-                <li key={resume.id}>
-                  <Link
-                    href={`${BASE_PATH}?v=${resume.id}`}
-                    aria-current={isSelected ? 'true' : undefined}
-                    className={`flex items-center gap-3 rounded-card p-3 transition-colors duration-(--duration-tick) ${
-                      isSelected
-                        ? 'border border-line-strong bg-surface-raised'
-                        : 'border border-transparent bg-surface-default hover:bg-surface-raised'
-                    }`}
-                  >
-                    <span
-                      aria-hidden="true"
-                      className="grid size-10 shrink-0 place-items-center rounded-control bg-surface-sunken text-fg-2"
-                    >
-                      <ResumeIcon />
-                    </span>
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate font-semibold">{resume.name}</span>
-                      <span className="block text-caption-12 text-fg-2">
-                        mis à jour le {formatShortDate(resume.updatedAt)}
-                      </span>
-                      <span className="block text-caption-12 text-fg-3">
-                        utilisé pour {resume._count.applications} candidature
-                        {resume._count.applications > 1 ? 's' : ''}
-                      </span>
-                    </span>
-                    {resume.isDefault ? <Tag tone="career">Par défaut</Tag> : null}
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
+          {[
+            { key: 'base', heading: null, items: baseVersions },
+            { key: 'adapted', heading: 'Versions adaptées', items: adaptedVersions },
+          ]
+            .filter((list) => list.items.length > 0)
+            .map((list) => (
+              <div key={list.key} className="flex flex-col gap-2">
+                {list.heading ? (
+                  <h3 className="mt-2 text-label-12 text-fg-3 uppercase">{list.heading}</h3>
+                ) : null}
+                <ul className="flex flex-col gap-2">
+                  {list.items.map((resume) => {
+                    const isSelected = resume.id === selected.id;
+                    return (
+                      <li key={resume.id}>
+                        <Link
+                          href={`${BASE_PATH}?v=${resume.id}`}
+                          aria-current={isSelected ? 'true' : undefined}
+                          className={`flex items-center gap-3 rounded-card p-3 transition-colors duration-(--duration-tick) ${
+                            isSelected
+                              ? 'border border-line-strong bg-surface-raised'
+                              : 'border border-transparent bg-surface-default hover:bg-surface-raised'
+                          }`}
+                        >
+                          <span
+                            aria-hidden="true"
+                            className="grid size-10 shrink-0 place-items-center rounded-control bg-surface-sunken text-fg-2"
+                          >
+                            <ResumeIcon />
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block truncate font-semibold">{resume.name}</span>
+                            <span className="block text-caption-12 text-fg-2">
+                              mis à jour le {formatShortDate(resume.updatedAt)}
+                            </span>
+                            <span className="block text-caption-12 text-fg-3">
+                              {resume.jobOffer
+                                ? `pour ${resume.jobOffer.title} · ${resume.jobOffer.company}`
+                                : `utilisé pour ${resume._count.applications} candidature${resume._count.applications > 1 ? 's' : ''}`}
+                            </span>
+                          </span>
+                          {resume.isDefault ? <Tag tone="career">Par défaut</Tag> : null}
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ))}
           <p className="text-caption-12 text-fg-3">
             Astuce : une version par type de poste. La candidature garde la trace de la version
             envoyée.
@@ -120,6 +139,18 @@ export async function ResumeView({
               </h2>
               <p className="text-caption-12 text-fg-2">
                 {selected.isDefault ? 'Version par défaut · ' : ''}
+                {selected.jobOffer ? (
+                  <>
+                    Adaptée à{' '}
+                    <Link
+                      href={`/career/job-search/offers/${selected.jobOffer.id}`}
+                      className="underline underline-offset-2"
+                    >
+                      {selected.jobOffer.title} · {selected.jobOffer.company}
+                    </Link>{' '}
+                    ·{' '}
+                  </>
+                ) : null}
                 mise à jour le {formatShortDate(selected.updatedAt)}
               </p>
             </div>
@@ -128,7 +159,7 @@ export async function ResumeView({
                 Dupliquer
               </Button>
             </form>
-            {selected.isDefault ? null : (
+            {selected.isDefault || selected.jobOffer ? null : (
               <form action={setDefaultResume.bind(null, selected.id)}>
                 <Button type="submit" variant="quiet">
                   Définir par défaut

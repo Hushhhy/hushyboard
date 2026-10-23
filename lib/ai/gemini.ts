@@ -1,4 +1,10 @@
-import { ApiError, GoogleGenAI, type GenerateContentResponse, type Part } from '@google/genai';
+import {
+  ApiError,
+  GoogleGenAI,
+  ThinkingLevel,
+  type GenerateContentResponse,
+  type Part,
+} from '@google/genai';
 import type { z } from 'zod';
 import { env } from '@/lib/env';
 import { prisma } from '@/lib/prisma';
@@ -76,6 +82,21 @@ export function isQuotaError(error: unknown): boolean {
   return status === 429 || /RESOURCE_EXHAUSTED|quota|rate limit/i.test(message);
 }
 
+// A model over its quota sometimes hangs instead of answering 429: each attempt gets a time
+// limit, so a slow model gives way to the next one well within the 60 s of a Vercel function.
+export const ATTEMPT_TIMEOUT_MS = 25_000;
+// Below this, another attempt is not worth starting.
+const MIN_ATTEMPT_MS = 6_000;
+
+export function isTimeout(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    (error.name === 'TimeoutError' ||
+      error.name === 'AbortError' ||
+      /aborted|timed? ?out/i.test(error.message))
+  );
+}
+
 // Maps any SDK or network error to a French message for Alex.
 export function toAiError(error: unknown): AiError {
   if (error instanceof AiError) return error;
@@ -84,7 +105,7 @@ export function toAiError(error: unknown): AiError {
   if (isQuotaError(error)) {
     return new AiError(/PerDay/.test(message) ? AI_DAILY_QUOTA_MESSAGE : AI_QUOTA_MESSAGE);
   }
-  if (status === 503 || /UNAVAILABLE|overloaded|high demand/i.test(message)) {
+  if (status === 503 || isTimeout(error) || /UNAVAILABLE|overloaded|high demand/i.test(message)) {
     return new AiError(AI_BUSY_MESSAGE);
   }
   return new AiError(AI_FAILURE_MESSAGE);
@@ -113,18 +134,71 @@ export async function withRetry<T>(
   }
 }
 
-// Tries each model of the chain; moves to the next one only when a model is out of quota.
+// Models that just ran out of quota or hung are skipped for a while (per server instance),
+// so the next requests go straight to a model that answers.
+const SKIP_MS = 10 * 60 * 1000;
+const skippedUntil = new Map<string, number>();
+
+// Whole chain budget: a Vercel function stops at 60 s.
+const CHAIN_DEADLINE_MS = 50_000;
+
+// Tries each model of the chain; moves to the next one when a model is out of quota or too slow.
+// Each attempt gets the time left in the budget, at most ATTEMPT_TIMEOUT_MS.
 export async function withFallback<T>(
   models: string[],
-  call: (model: string) => Promise<T>
+  call: (model: string, timeoutMs: number) => Promise<T>,
+  now: () => number = Date.now
 ): Promise<{ result: T; model: string }> {
+  const start = now();
+  const available = models.filter((model) => (skippedUntil.get(model) ?? 0) <= start);
+  // Every model skipped: try them all again rather than fail without a call.
+  const chain = available.length > 0 ? available : models;
   for (let index = 0; ; index += 1) {
-    const model = models[index];
+    const model = chain[index];
     try {
-      return { result: await withRetry(() => call(model)), model };
+      const left = CHAIN_DEADLINE_MS - (now() - start);
+      const timeoutMs = Math.min(ATTEMPT_TIMEOUT_MS, left);
+      return { result: await withRetry(() => call(model, timeoutMs)), model };
     } catch (error) {
-      if (index >= models.length - 1 || !isQuotaError(error)) throw error;
+      // Out of quota, too slow, or still overloaded after the retry: another model may answer.
+      const exhausted = isQuotaError(error) || isTimeout(error);
+      const moveOn = exhausted || isRetryable(error);
+      if (exhausted) skippedUntil.set(model, now() + SKIP_MS);
+      const last = index >= chain.length - 1;
+      const outOfTime = CHAIN_DEADLINE_MS - (now() - start) < MIN_ATTEMPT_MS;
+      // Server log only (model and reason, never content), to follow the free quotas.
+      const status = error instanceof ApiError ? ` ${error.status}` : '';
+      const reason = isTimeout(error) ? 'timeout' : isQuotaError(error) ? 'quota' : 'error';
+      console.warn(
+        `[gemini] ${model} failed (${reason}${status})${moveOn && !last && !outOfTime ? ', trying the next model' : ''}`
+      );
+      if (!moveOn || last || outOfTime) throw error;
     }
+  }
+}
+
+// Tests only: forget the skipped models.
+export function resetSkippedModels() {
+  skippedUntil.clear();
+}
+
+type RequestConfig = Record<string, unknown>;
+
+async function callModel(model: string, parts: Part[], config: RequestConfig, timeoutMs: number) {
+  const request = (extra: RequestConfig) =>
+    getClient().models.generateContent({
+      model,
+      contents: parts,
+      config: { ...config, ...extra, abortSignal: AbortSignal.timeout(timeoutMs) },
+    });
+  try {
+    return await request({ thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : '';
+    if (error instanceof ApiError && error.status === 400 && /think/i.test(message)) {
+      return request({});
+    }
+    throw error;
   }
 }
 
@@ -171,25 +245,35 @@ export async function generateJson<T>(
   schema: z.ZodType<T>,
   files: InlineFile[] = []
 ): Promise<T> {
+  return (await generateJsonWithModel(userId, feature, prompt, schema, files)).data;
+}
+
+// Same, plus the model that answered (shown under generated content).
+export async function generateJsonWithModel<T>(
+  userId: string,
+  feature: AiFeature,
+  prompt: string,
+  schema: z.ZodType<T>,
+  files: InlineFile[] = []
+): Promise<{ data: T; model: string }> {
   let raw: string | undefined;
+  let usedModel: string;
   try {
-    const { result: response, model } = await withFallback(modelChain(feature), (model) =>
-      getClient().models.generateContent({
-        model,
-        contents: contents(prompt, files),
-        config: {
-          responseMimeType: 'application/json',
-          responseJsonSchema: toGeminiSchema(schema),
-          temperature: 0.2,
-        },
-      })
+    const config = {
+      responseMimeType: 'application/json',
+      responseJsonSchema: toGeminiSchema(schema),
+      temperature: 0.2,
+    };
+    const { result: response, model } = await withFallback(modelChain(feature), (model, timeout) =>
+      callModel(model, contents(prompt, files), config, timeout)
     );
     await logUsage(userId, feature, model, response.usageMetadata);
     raw = response.text;
+    usedModel = model;
   } catch (error) {
     throw toAiError(error);
   }
-  return parseJsonAnswer(raw, schema);
+  return { data: parseJsonAnswer(raw, schema), model: usedModel };
 }
 
 // Free text (cover letter).
@@ -198,18 +282,22 @@ export async function generateText(
   feature: AiFeature,
   prompt: string
 ): Promise<string> {
+  return (await generateTextWithModel(userId, feature, prompt)).text;
+}
+
+export async function generateTextWithModel(
+  userId: string,
+  feature: AiFeature,
+  prompt: string
+): Promise<{ text: string; model: string }> {
   try {
-    const { result: response, model } = await withFallback(modelChain(feature), (model) =>
-      getClient().models.generateContent({
-        model,
-        contents: contents(prompt, []),
-        config: { temperature: 0.6 },
-      })
+    const { result: response, model } = await withFallback(modelChain(feature), (model, timeout) =>
+      callModel(model, contents(prompt, []), { temperature: 0.6 }, timeout)
     );
     await logUsage(userId, feature, model, response.usageMetadata);
     const text = response.text?.trim();
     if (!text) throw new AiError(AI_INVALID_MESSAGE);
-    return text;
+    return { text, model };
   } catch (error) {
     throw toAiError(error);
   }

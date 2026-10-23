@@ -7,6 +7,7 @@ import {
   formatMonthKeyName,
   formatRelativeDay,
   formatRelativeTime,
+  formatDayMonth,
   formatShortDate,
   isMonthKey,
   isoWeekdayInParis,
@@ -168,5 +169,11 @@ describe('formatRelativeTime', () => {
     expect(formatRelativeTime(new Date('2026-10-22T09:56:00Z'), now)).toBe('il y a 4 min');
     expect(formatRelativeTime(new Date('2026-10-22T07:30:00Z'), now)).toBe('il y a 2 h');
     expect(formatRelativeTime(new Date('2026-10-21T20:00:00Z'), now)).toBe('hier');
+  });
+});
+
+describe('formatDayMonth', () => {
+  it('writes a calendar day as dd/mm', () => {
+    expect(formatDayMonth(new Date('2026-10-05T00:00:00.000Z'))).toBe('05/10');
   });
 });

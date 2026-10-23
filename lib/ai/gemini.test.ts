@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { ApiError } from '@google/genai';
 import { z } from 'zod';
 import { resumeContentSchema, EMPTY_RESUME } from '@/lib/resume/schema';
@@ -10,8 +10,10 @@ import {
   AI_QUOTA_MESSAGE,
   AiError,
   FEATURE_TIERS,
+  isTimeout,
   modelChain,
   parseJsonAnswer,
+  resetSkippedModels,
   toAiError,
   withFallback,
   withRetry,
@@ -149,6 +151,11 @@ describe('modelChain', () => {
 });
 
 describe('withFallback', () => {
+  beforeEach(() => {
+    resetSkippedModels();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
   it('moves to the next model when the first one is out of quota', async () => {
     const tried: string[] = [];
     const { result, model } = await withFallback(['flash', 'flash-lite'], async (name) => {
@@ -180,5 +187,95 @@ describe('withFallback', () => {
         throw new ApiError({ message: 'quota PerDay', status: 429 });
       })
     ).rejects.toThrow('quota');
+  });
+});
+
+describe('withFallback and slow models', () => {
+  beforeEach(() => {
+    resetSkippedModels();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  it('moves to the next model when one times out', async () => {
+    const tried: string[] = [];
+    const { model } = await withFallback(['flash', 'flash-lite'], async (name) => {
+      tried.push(name);
+      if (name === 'flash') throw new DOMException('The operation timed out.', 'TimeoutError');
+      return 'ok';
+    });
+    expect(model).toBe('flash-lite');
+    expect(tried).toEqual(['flash', 'flash-lite']);
+  });
+
+  it('says the AI is busy after a timeout', () => {
+    expect(toAiError(new DOMException('aborted', 'TimeoutError')).message).toBe(AI_BUSY_MESSAGE);
+    expect(isTimeout(new Error('bad request'))).toBe(false);
+  });
+});
+
+describe('withFallback memory and deadline', () => {
+  beforeEach(() => {
+    resetSkippedModels();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+  const quota = () => {
+    throw new ApiError({ message: 'quota PerDay', status: 429 });
+  };
+
+  it('skips a model that just ran out of quota', async () => {
+    await withFallback(['flash', 'lite'], async (name) => (name === 'flash' ? quota() : 'ok'));
+    const tried: string[] = [];
+    await withFallback(['flash', 'lite'], async (name) => {
+      tried.push(name);
+      return 'ok';
+    });
+    expect(tried).toEqual(['lite']);
+  });
+
+  it('tries every model again when all are skipped', async () => {
+    await expect(withFallback(['flash', 'lite'], async () => quota())).rejects.toThrow('quota');
+    const tried: string[] = [];
+    await withFallback(['flash', 'lite'], async (name) => {
+      tried.push(name);
+      return 'ok';
+    });
+    expect(tried).toEqual(['flash']);
+  });
+
+  it('gives each attempt the time left, and stops before the function time limit', async () => {
+    let clock = 0;
+    const tried: string[] = [];
+    await expect(
+      withFallback(
+        ['a', 'b', 'c', 'd'],
+        async (name, timeoutMs) => {
+          tried.push(`${name}:${timeoutMs}`);
+          clock += name === 'a' ? 25_000 : 18_000;
+          throw new DOMException('timed out', 'TimeoutError');
+        },
+        () => clock
+      )
+    ).rejects.toThrow('timed out');
+    // 50 s budget: a gets 25 s, b 25 s, c the 7 s left; nothing left for d.
+    expect(tried).toEqual(['a:25000', 'b:25000', 'c:7000']);
+  });
+});
+
+describe('withFallback and overloaded models', () => {
+  beforeEach(() => {
+    resetSkippedModels();
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+
+  it('moves to the next model when one stays overloaded after the retry', async () => {
+    const tried: string[] = [];
+    const { model } = await withFallback(['flash', 'lite'], async (name) => {
+      tried.push(name);
+      if (name === 'flash') throw new ApiError({ message: 'busy', status: 503 });
+      return 'ok';
+    });
+    expect(model).toBe('lite');
+    // The overloaded model is retried once (withRetry), then the next one answers.
+    expect(tried).toEqual(['flash', 'flash', 'lite']);
   });
 });

@@ -37,8 +37,12 @@ export function GenerateOnOpen({
 
   function generate() {
     startTransition(async () => {
-      const result = await action();
-      setError(result.error ?? null);
+      try {
+        const result = await action();
+        setError(result.error ?? null);
+      } catch {
+        setError('La requête n’a pas abouti (réseau ou délai dépassé). Réessaie.');
+      }
     });
   }
 
