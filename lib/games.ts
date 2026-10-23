@@ -105,3 +105,24 @@ export function describeGames(current: { title: string } | null, total: number):
   if (total === 0) return 'Aucun jeu pour l’instant.';
   return `${total} jeu${total > 1 ? 'x' : ''}, aucun en cours.`;
 }
+
+// With nothing being played: the game to start next, the first one not started after the
+// last one finished or dropped (in story order).
+export function upNext<T extends GameLite>(games: T[]): T | null {
+  const ordered = storyOrder(games);
+  const lastDone = Math.max(
+    Number.NEGATIVE_INFINITY,
+    ...ordered
+      .filter(
+        (game) =>
+          (game.status === 'FINISHED' || game.status === 'DROPPED') && game.storyOrder !== null
+      )
+      .map((game) => game.storyOrder!)
+  );
+  const notStarted = ordered.filter((game) => game.status === 'NOT_STARTED');
+  return (
+    notStarted.find((game) => game.storyOrder !== null && game.storyOrder > lastDone) ??
+    notStarted[0] ??
+    null
+  );
+}

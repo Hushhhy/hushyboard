@@ -18,6 +18,7 @@ import {
   nextInFranchise,
   NO_FRANCHISE,
   storyOrder,
+  upNext,
 } from '@/lib/games';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/session';
@@ -42,9 +43,12 @@ export async function GamesView({ searchParams }: { searchParams: Promise<Search
   const inFranchise = storyOrder(
     games.filter((game) => (game.franchise?.trim() || NO_FRANCHISE) === selected)
   );
-  // The focal game of this franchise: the one being played, else a paused one.
+  // The focal game of this franchise: the one being played, else a paused one, else the one
+  // to start next.
   const focal =
-    currentGame(inFranchise) ?? inFranchise.find((game) => game.status === 'PAUSED') ?? null;
+    currentGame(inFranchise) ??
+    inFranchise.find((game) => game.status === 'PAUSED') ??
+    upNext(inFranchise);
   const next = nextInFranchise(inFranchise, focal);
   const panel = one(params.panel);
   const listHref = selected ? `${BASE_PATH}?franchise=${encodeURIComponent(selected)}` : BASE_PATH;
@@ -123,7 +127,8 @@ export async function GamesView({ searchParams }: { searchParams: Promise<Search
               )}
               <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                 <p className="text-label-12 text-fg-3 uppercase">
-                  {GAME_STATUS_LABELS[focal.status]} · ordre de l’histoire
+                  {focal.status === 'NOT_STARTED' ? 'À suivre' : GAME_STATUS_LABELS[focal.status]} ·
+                  ordre de l’histoire
                 </p>
                 <h2 id="focal-game" className="font-display text-display-24">
                   {focal.title}

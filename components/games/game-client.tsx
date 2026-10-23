@@ -205,7 +205,7 @@ export function CurrentGameControls({
           pending={isPending}
           onClick={() => act(() => setGameStatus(gameId, 'PLAYING'))}
         >
-          Reprendre
+          {status === 'NOT_STARTED' ? 'Commencer' : 'Reprendre'}
         </Button>
       )}
       {hasProgress ? (

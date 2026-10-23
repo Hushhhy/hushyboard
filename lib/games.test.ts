@@ -7,6 +7,7 @@ import {
   nextInFranchise,
   parsePlayTime,
   storyOrder,
+  upNext,
   type GameLite,
 } from './games';
 
@@ -90,5 +91,17 @@ describe('describeGames', () => {
     expect(describeGames({ title: 'Black Flag' }, 7)).toBe('En cours : Black Flag.');
     expect(describeGames(null, 3)).toBe('3 jeux, aucun en cours.');
     expect(describeGames(null, 0)).toBe('Aucun jeu pour l’instant.');
+  });
+});
+
+describe('upNext', () => {
+  it('suggests the first game not started after the last one finished', () => {
+    const finished = ac.map((item) =>
+      item.title === 'Black Flag' ? { ...item, status: 'FINISHED' as const } : item
+    );
+    const assassins = finished.filter((item) => item.franchise === "Assassin's Creed");
+    expect(upNext(assassins)?.title).toBe('Rogue');
+    expect(upNext([game({ title: 'Solo' })])?.title).toBe('Solo');
+    expect(upNext([game({ title: 'Done', status: 'FINISHED' })])).toBeNull();
   });
 });
