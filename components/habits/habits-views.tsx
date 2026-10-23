@@ -520,7 +520,7 @@ export async function GoalsView({
       ? Math.ceil((goal.deadline.getTime() - today.getTime()) / 86_400_000)
       : null;
     return [
-      `${left} ${progress.unit} restant${left > 1 ? 's' : ''}`,
+      `Encore ${left} ${progress.unit}`.trim(),
       daysLeft !== null
         ? daysLeft >= 0
           ? `${daysLeft} jour${daysLeft > 1 ? 's' : ''}`
