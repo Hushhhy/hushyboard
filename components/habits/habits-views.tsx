@@ -137,6 +137,7 @@ export async function TodayView({
           done={row.done}
           quantity={row.habit.quantities.get(today) ?? null}
           paused={row.pausedUntil}
+          today={today}
         />
       </div>
       <Link

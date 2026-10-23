@@ -61,6 +61,7 @@ export function HabitRow({
   done,
   quantity,
   paused,
+  today,
 }: {
   habit: { id: string; name: string; unit: string | null };
   // « Tous les jours », « Lun–ven · en pause jusqu’au 19 oct. »
@@ -72,6 +73,8 @@ export function HabitRow({
   quantity: number | null;
   // Paused today: nothing to check, the streak is frozen.
   paused: string | null;
+  // Today's day key: its cell follows the optimistic check.
+  today: string;
 }) {
   const { announce } = useRewards();
   const [optimisticDone, setOptimisticDone] = useOptimistic(done);
@@ -89,7 +92,7 @@ export function HabitRow({
     });
   }
 
-  const todayIndex = week.findIndex((day) => day.status === 'todo' || day.status === 'done');
+  const todayIndex = week.findIndex((day) => day.key === today);
   const shownWeek = week.map((day, index) =>
     index === todayIndex && !paused ? { ...day, status: optimisticDone ? 'done' : 'todo' } : day
   ) as WeekDay[];
