@@ -4,6 +4,7 @@ import { requireUser } from '@/lib/session';
 import { getHomeData, type HomeData } from '@/lib/home-data';
 import { formatLongDate, formatMonth, formatShortDate } from '@/lib/dates';
 import { TROPHIES, TROPHY_KEYS } from '@/lib/trophies';
+import { formatPlayTime } from '@/lib/games';
 import { DOMAIN_CLASSES } from '@/components/ui/domain';
 import { DomainIcon } from '@/components/trophies/trophy-icon';
 import { getLevelInfo, LEVEL_TITLES } from '@/lib/xp';
@@ -372,7 +373,12 @@ function LeisureModule({ data }: { data: HomeData }) {
         <div className="flex flex-col gap-2">
           <p className="text-caption-12 text-fg-3">Jeux vidéo · en cours</p>
           <p className="font-semibold">{game.title}</p>
-          {game.progressCurrent !== null && game.progressTotal ? (
+          {game.endless ? (
+            <p className="text-caption-12 text-fg-2">
+              Jeu sans fin
+              {game.minutesPlayed ? ` · ${formatPlayTime(game.minutesPlayed)} de jeu` : ''}
+            </p>
+          ) : game.progressCurrent !== null && game.progressTotal ? (
             <Ruler
               value={game.progressCurrent}
               max={game.progressTotal}
@@ -391,7 +397,7 @@ function LeisureModule({ data }: { data: HomeData }) {
       ) : (
         <EmptyState
           title="Aucun jeu en cours."
-          description="Ajoute tes jeux par franchise, dans l'ordre de l'histoire."
+          description="Ajoute tes jeux, par franchise dans l'ordre de l'histoire ou à part."
           action={{ label: 'Ajouter un jeu', href: '/leisure/games' }}
         />
       )}

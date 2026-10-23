@@ -69,6 +69,16 @@ describe('completedFranchises', () => {
       ])
     ).toBe(1);
   });
+
+  it('ignores endless games (an MMO cannot block « Saga complète »)', () => {
+    expect(
+      completedFranchises([
+        { franchise: 'Final Fantasy', status: 'FINISHED' },
+        { franchise: 'Final Fantasy', status: 'FINISHED' },
+        { franchise: 'Final Fantasy', status: 'PLAYING', endless: true },
+      ])
+    ).toBe(1);
+  });
 });
 
 describe('financeMonths', () => {

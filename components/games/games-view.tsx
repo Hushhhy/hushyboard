@@ -14,12 +14,14 @@ import {
   describeGames,
   formatPlayTime,
   franchises as listFranchises,
-  GAME_STATUS_LABELS,
+  gameStatusLabel,
   nextInFranchise,
   NO_FRANCHISE,
+  standaloneOrder,
   storyOrder,
   upNext,
 } from '@/lib/games';
+import { Tag } from '@/components/ui/chip';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/session';
 import { CurrentGameControls, GameForm } from './game-client';
@@ -40,9 +42,10 @@ export async function GamesView({ searchParams }: { searchParams: Promise<Search
     (requested && chips.some((chip) => chip.name === requested) ? requested : null) ??
     (playing ? playing.franchise?.trim() || NO_FRANCHISE : chips[0]?.name) ??
     null;
-  const inFranchise = storyOrder(
-    games.filter((game) => (game.franchise?.trim() || NO_FRANCHISE) === selected)
-  );
+  // Games without a franchise have no story: no order column, the one being played first.
+  const standalone = selected === NO_FRANCHISE;
+  const inSelection = games.filter((game) => (game.franchise?.trim() || NO_FRANCHISE) === selected);
+  const inFranchise = standalone ? standaloneOrder(inSelection) : storyOrder(inSelection);
   // The focal game of this franchise: the one being played, else a paused one, else the one
   // to start next.
   const focal =
@@ -98,7 +101,7 @@ export async function GamesView({ searchParams }: { searchParams: Promise<Search
           variant="block"
           icon={<GamesIcon className="size-5 text-leisure" />}
           title="Aucun jeu pour l’instant."
-          description="Ajoute tes jeux avec leur franchise et leur place dans l’histoire : le suivant est proposé tout seul. Pas d’XP pour les loisirs, juste le plaisir."
+          description="Ajoute tes jeux, avec leur franchise s’ils en ont une : le suivant de la série est proposé tout seul. Un MMO ou un jeu en ligne se suit au temps de jeu. Pas d’XP pour les loisirs, juste le plaisir."
           action={{ label: 'Ajouter un jeu', href: panelHref('game-new') }}
         />
       ) : (
@@ -127,8 +130,15 @@ export async function GamesView({ searchParams }: { searchParams: Promise<Search
               )}
               <div className="flex min-w-0 flex-1 flex-col gap-1.5">
                 <p className="text-label-12 text-fg-3 uppercase">
-                  {focal.status === 'NOT_STARTED' ? 'À suivre' : GAME_STATUS_LABELS[focal.status]} ·
-                  ordre de l’histoire
+                  {[
+                    focal.status === 'NOT_STARTED'
+                      ? 'À suivre'
+                      : gameStatusLabel(focal.status, focal.endless),
+                    focal.endless ? 'jeu sans fin' : null,
+                    focal.franchise ? 'ordre de l’histoire' : null,
+                  ]
+                    .filter(Boolean)
+                    .join(' · ')}
                 </p>
                 <h2 id="focal-game" className="font-display text-display-24">
                   {focal.title}
@@ -164,7 +174,8 @@ export async function GamesView({ searchParams }: { searchParams: Promise<Search
                 key={focal.id}
                 gameId={focal.id}
                 status={focal.status}
-                hasProgress={focal.progressTotal !== null}
+                hasProgress={!focal.endless && focal.progressTotal !== null}
+                endless={focal.endless}
               />
             </section>
           ) : null}
@@ -174,12 +185,16 @@ export async function GamesView({ searchParams }: { searchParams: Promise<Search
             className="overflow-x-auto rounded-card bg-surface-default"
           >
             <table className="w-full min-w-150 text-body-14">
-              <caption className="sr-only">{selected}, dans l’ordre de l’histoire</caption>
+              <caption className="sr-only">
+                {standalone ? 'Jeux sans franchise' : `${selected}, dans l’ordre de l’histoire`}
+              </caption>
               <thead>
                 <tr className="text-left text-label-12 text-fg-3 uppercase">
-                  <th scope="col" className="w-16 px-4.5 py-3 font-semibold">
-                    Ordre
-                  </th>
+                  {standalone ? null : (
+                    <th scope="col" className="w-16 px-4.5 py-3 font-semibold">
+                      Ordre
+                    </th>
+                  )}
                   <th scope="col" className="px-4.5 py-3 font-semibold">
                     Jeu
                   </th>
@@ -203,7 +218,11 @@ export async function GamesView({ searchParams }: { searchParams: Promise<Search
                       key={game.id}
                       className={`relative border-t border-line-subtle ${isFocal ? 'bg-surface-raised' : 'hover:bg-surface-raised'}`}
                     >
-                      <td className="px-4.5 py-2.5 text-fg-3 tabular">{game.storyOrder ?? '—'}</td>
+                      {standalone ? null : (
+                        <td className="px-4.5 py-2.5 text-fg-3 tabular">
+                          {game.storyOrder ?? '—'}
+                        </td>
+                      )}
                       <td
                         className={`px-4.5 py-2.5 font-medium ${game.status === 'FINISHED' ? 'text-fg-2' : ''}`}
                       >
@@ -214,6 +233,11 @@ export async function GamesView({ searchParams }: { searchParams: Promise<Search
                         >
                           {game.title}
                         </Link>
+                        {game.endless ? (
+                          <span className="ml-2 align-middle">
+                            <Tag>Sans fin</Tag>
+                          </span>
+                        ) : null}
                       </td>
                       <td className="px-4.5 py-2.5 text-caption-12 text-fg-2 tabular">
                         {game.setting ?? '—'}
@@ -227,7 +251,7 @@ export async function GamesView({ searchParams }: { searchParams: Promise<Search
                               : 'text-fg-3'
                         }`}
                       >
-                        {isNext ? 'Ensuite' : GAME_STATUS_LABELS[game.status]}
+                        {isNext ? 'Ensuite' : gameStatusLabel(game.status, game.endless)}
                       </td>
                       <td className="px-4.5 py-2.5 text-right text-caption-12 text-fg-2 tabular">
                         {formatPlayTime(game.minutesPlayed)}
@@ -239,8 +263,11 @@ export async function GamesView({ searchParams }: { searchParams: Promise<Search
             </table>
           </section>
           <p className="text-caption-12 text-fg-3">
-            Les jeux se rangent par franchise, dans l’ordre de l’histoire ; « Ensuite » est proposé
-            tout seul.
+            {standalone
+              ? 'Les jeux sans franchise se rangent par statut : celui en cours d’abord.'
+              : 'Les jeux se rangent par franchise, dans l’ordre de l’histoire ; « Ensuite » est proposé tout seul.'}{' '}
+            Un jeu sans fin (MMO, jeu en ligne) n’a ni fin ni avancée : seul son temps de jeu
+            compte.
           </p>
         </>
       )}
