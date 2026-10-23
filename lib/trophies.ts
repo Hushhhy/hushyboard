@@ -198,12 +198,15 @@ export function earnedTrophies(stats: TrophyStats): TrophyKey[] {
   });
 }
 
-// Franchises of at least 2 games, all finished.
-export function completedFranchises(games: { franchise: string | null; status: string }[]): number {
+// Franchises of at least 2 games that can end, all finished.
+export function completedFranchises(
+  games: { franchise: string | null; status: string; endless?: boolean }[]
+): number {
   const byFranchise = new Map<string, { total: number; finished: number }>();
   for (const game of games) {
     const name = game.franchise?.trim().toLowerCase();
-    if (!name) continue;
+    // An endless game (MMO) cannot be finished: it does not block the franchise.
+    if (!name || game.endless) continue;
     const entry = byFranchise.get(name) ?? { total: 0, finished: 0 };
     entry.total += 1;
     if (game.status === 'FINISHED') entry.finished += 1;

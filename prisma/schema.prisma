@@ -517,6 +517,8 @@ model Game {
   setting         String? // in-game era, e.g. "1715"
   platform        String?
   status          GameStatus @default(NOT_STARTED)
+  // MMO, online game: no end and no progress, only play time (never FINISHED).
+  endless         Boolean    @default(false)
   progressCurrent Int? // e.g. sequence 6…
   progressTotal   Int? // …of 13
   minutesPlayed   Int?

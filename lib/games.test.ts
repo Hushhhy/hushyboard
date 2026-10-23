@@ -4,8 +4,11 @@ import {
   describeGames,
   formatPlayTime,
   franchises,
+  gameStatusLabel,
+  gameStatusOptions,
   nextInFranchise,
   parsePlayTime,
+  standaloneOrder,
   storyOrder,
   upNext,
   type GameLite,
@@ -103,5 +106,33 @@ describe('upNext', () => {
     expect(upNext(assassins)?.title).toBe('Rogue');
     expect(upNext([game({ title: 'Solo' })])?.title).toBe('Solo');
     expect(upNext([game({ title: 'Done', status: 'FINISHED' })])).toBeNull();
+  });
+});
+
+describe('endless games', () => {
+  it('never offers « Terminé » for an endless game, and calls a drop « Arrêté »', () => {
+    expect(gameStatusOptions(true)).not.toContain('FINISHED');
+    expect(gameStatusOptions(false)).toContain('FINISHED');
+    expect(gameStatusLabel('DROPPED', true)).toBe('Arrêté');
+    expect(gameStatusLabel('DROPPED', false)).toBe('Abandonné');
+  });
+});
+
+describe('standaloneOrder', () => {
+  it('puts the game being played first, then paused, to start, finished, dropped', () => {
+    const standalone = [
+      game({ title: 'Zelda', franchise: null, status: 'FINISHED' }),
+      game({ title: 'Wow', franchise: null, status: 'PLAYING', endless: true }),
+      game({ title: 'Celeste', franchise: null }),
+      game({ title: 'Hades', franchise: null, status: 'PAUSED' }),
+      game({ title: 'Apex', franchise: null }),
+    ];
+    expect(standaloneOrder(standalone).map((item) => item.title)).toEqual([
+      'Wow',
+      'Hades',
+      'Apex',
+      'Celeste',
+      'Zelda',
+    ]);
   });
 });

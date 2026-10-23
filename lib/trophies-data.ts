@@ -35,7 +35,10 @@ export async function getTrophyStats(userId: string): Promise<TrophyStats> {
     prisma.certification.count({ where: { userId, status: 'OBTAINED' } }),
     prisma.xpEvent.aggregate({ where: { userId }, _sum: { amount: true } }),
     prisma.goal.count({ where: { userId, achievedAt: { not: null } } }),
-    prisma.game.findMany({ where: { userId }, select: { franchise: true, status: true } }),
+    prisma.game.findMany({
+      where: { userId },
+      select: { franchise: true, status: true, endless: true },
+    }),
     prisma.csvImport.count({ where: { userId } }),
     prisma.transaction.groupBy({ by: ['date'], where: { userId }, _count: { _all: true } }),
     prisma.transaction.groupBy({

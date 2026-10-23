@@ -12,7 +12,12 @@ import { Button } from '@/components/ui/button';
 import { ErrorState } from '@/components/ui/error-state';
 import { SelectField, TextField } from '@/components/ui/text-field';
 import { EMPTY_FORM_STATE } from '@/lib/forms';
-import { formatPlayTime, GAME_STATUS_LABELS, GAME_STATUSES, type GameStatusKey } from '@/lib/games';
+import {
+  formatPlayTime,
+  gameStatusLabel,
+  gameStatusOptions,
+  type GameStatusKey,
+} from '@/lib/games';
 
 export type GameFormValue = {
   id: string;
@@ -22,6 +27,7 @@ export type GameFormValue = {
   setting: string | null;
   platform: string | null;
   status: GameStatusKey;
+  endless: boolean;
   progressCurrent: number | null;
   progressTotal: number | null;
   minutesPlayed: number | null;
@@ -46,6 +52,17 @@ export function GameForm({
   const id = useId();
   const value = (name: string, fallback: string | number | null | undefined) =>
     state.values?.[name] ?? (fallback === null || fallback === undefined ? '' : String(fallback));
+  // An endless game (MMO) has no « Terminé » and no progress; a game without a franchise has
+  // no place in a story.
+  const [endless, setEndless] = useState(
+    state.values ? state.values.endless === 'on' : (game?.endless ?? false)
+  );
+  const [hasFranchise, setHasFranchise] = useState(
+    Boolean(value('franchise', game ? game.franchise : defaultFranchise).trim())
+  );
+  const [status, setStatus] = useState<GameStatusKey>(
+    (value('status', game?.status ?? 'NOT_STARTED') as GameStatusKey) || 'NOT_STARTED'
+  );
 
   return (
     <form action={formAction} className="flex flex-col gap-3" noValidate>
@@ -57,24 +74,28 @@ export function GameForm({
         defaultValue={value('title', game?.title)}
         error={state.fieldErrors?.title}
       />
-      <div className="grid grid-cols-[1fr_7rem] gap-3">
+      <div className={`grid gap-3 ${hasFranchise ? 'grid-cols-[1fr_7rem]' : 'grid-cols-1'}`}>
         <TextField
           name="franchise"
-          label="Franchise"
+          label="Franchise (facultatif)"
           list={`${id}-franchises`}
           autoComplete="off"
           placeholder="Assassin’s Creed"
+          hint={hasFranchise ? undefined : 'Laisse vide pour un jeu à part.'}
           defaultValue={value('franchise', game ? game.franchise : defaultFranchise)}
+          onChange={(event) => setHasFranchise(Boolean(event.target.value.trim()))}
           error={state.fieldErrors?.franchise}
         />
-        <TextField
-          name="storyOrder"
-          label="Ordre"
-          inputMode="numeric"
-          hint="Dans l’histoire"
-          defaultValue={value('storyOrder', game?.storyOrder)}
-          error={state.fieldErrors?.storyOrder}
-        />
+        {hasFranchise ? (
+          <TextField
+            name="storyOrder"
+            label="Ordre"
+            inputMode="numeric"
+            hint="Dans l’histoire"
+            defaultValue={value('storyOrder', game?.storyOrder)}
+            error={state.fieldErrors?.storyOrder}
+          />
+        ) : null}
       </div>
       <datalist id={`${id}-franchises`}>
         {franchises.map((name) => (
@@ -97,32 +118,56 @@ export function GameForm({
           error={state.fieldErrors?.platform}
         />
       </div>
+      <label className="flex items-start gap-2 text-body-14">
+        <input
+          type="checkbox"
+          name="endless"
+          checked={endless}
+          onChange={(event) => {
+            setEndless(event.target.checked);
+            if (event.target.checked && status === 'FINISHED') setStatus('DROPPED');
+          }}
+          className="mt-0.5 size-4 accent-leisure"
+        />
+        <span>
+          <span className="font-medium">Jeu sans fin</span>
+          <span className="block text-caption-12 text-fg-2">
+            MMO, jeu en ligne : pas de fin ni d’avancée, seulement le temps de jeu.
+          </span>
+        </span>
+      </label>
       <SelectField
         name="status"
         label="Statut"
-        options={GAME_STATUSES.map((status) => ({
-          value: status,
-          label: GAME_STATUS_LABELS[status],
+        options={gameStatusOptions(endless).map((option) => ({
+          value: option,
+          label: gameStatusLabel(option, endless),
         }))}
-        defaultValue={value('status', game?.status ?? 'NOT_STARTED')}
+        value={status}
+        onChange={(event) => setStatus(event.target.value as GameStatusKey)}
+        error={state.fieldErrors?.status}
       />
-      <div className="grid grid-cols-3 gap-3">
-        <TextField
-          name="progressCurrent"
-          label="Avancée"
-          inputMode="numeric"
-          placeholder="6"
-          defaultValue={value('progressCurrent', game?.progressCurrent)}
-          error={state.fieldErrors?.progressCurrent}
-        />
-        <TextField
-          name="progressTotal"
-          label="Sur"
-          inputMode="numeric"
-          placeholder="13"
-          defaultValue={value('progressTotal', game?.progressTotal)}
-          error={state.fieldErrors?.progressTotal}
-        />
+      <div className={`grid gap-3 ${endless ? 'grid-cols-1' : 'grid-cols-3'}`}>
+        {endless ? null : (
+          <>
+            <TextField
+              name="progressCurrent"
+              label="Avancée"
+              inputMode="numeric"
+              placeholder="6"
+              defaultValue={value('progressCurrent', game?.progressCurrent)}
+              error={state.fieldErrors?.progressCurrent}
+            />
+            <TextField
+              name="progressTotal"
+              label="Sur"
+              inputMode="numeric"
+              placeholder="13"
+              defaultValue={value('progressTotal', game?.progressTotal)}
+              error={state.fieldErrors?.progressTotal}
+            />
+          </>
+        )}
         <TextField
           name="playTime"
           label="Temps de jeu"
@@ -167,10 +212,12 @@ export function CurrentGameControls({
   gameId,
   status,
   hasProgress,
+  endless,
 }: {
   gameId: string;
   status: GameStatusKey;
   hasProgress: boolean;
+  endless: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
   const [time, setTime] = useState('');
@@ -182,7 +229,20 @@ export function CurrentGameControls({
 
   return (
     <div className="flex flex-col items-stretch gap-2 sm:w-56">
-      {status === 'PLAYING' ? (
+      {status === 'PLAYING' && endless ? (
+        <>
+          <Button disabled={isPending} onClick={() => act(() => setGameStatus(gameId, 'PAUSED'))}>
+            Mettre en pause
+          </Button>
+          <Button
+            variant="quiet"
+            disabled={isPending}
+            onClick={() => act(() => setGameStatus(gameId, 'DROPPED'))}
+          >
+            Arrêter
+          </Button>
+        </>
+      ) : status === 'PLAYING' ? (
         <>
           <Button
             variant="primary"
@@ -237,7 +297,13 @@ export function CurrentGameControls({
           placeholder="1 h 30"
           className="h-8 min-w-0 flex-1 rounded-control border border-line-subtle bg-surface-sunken px-2 text-body-14"
         />
-        <Button type="submit" variant="quiet" small disabled={!time.trim() || isPending}>
+        <Button
+          type="submit"
+          // For an endless game being played, adding time is the main action of the card.
+          variant={endless && status === 'PLAYING' ? 'primary' : 'quiet'}
+          small
+          disabled={!time.trim() || isPending}
+        >
           Ajouter du temps
         </Button>
       </form>

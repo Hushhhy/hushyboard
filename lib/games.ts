@@ -13,6 +13,16 @@ export const GAME_STATUS_LABELS: Record<GameStatusKey, string> = {
 
 export const GAME_STATUSES = Object.keys(GAME_STATUS_LABELS) as GameStatusKey[];
 
+// An endless game (MMO, online game) has no end: it is never « Terminé », and one stops it
+// rather than drops it.
+export function gameStatusOptions(endless: boolean): GameStatusKey[] {
+  return endless ? GAME_STATUSES.filter((status) => status !== 'FINISHED') : GAME_STATUSES;
+}
+
+export function gameStatusLabel(status: GameStatusKey, endless: boolean): string {
+  return endless && status === 'DROPPED' ? 'Arrêté' : GAME_STATUS_LABELS[status];
+}
+
 export type GameLite = {
   id: string;
   title: string;
@@ -20,6 +30,7 @@ export type GameLite = {
   storyOrder: number | null;
   status: GameStatusKey;
   updatedAt: Date;
+  endless?: boolean;
 };
 
 export const NO_FRANCHISE = 'Sans franchise';
@@ -39,6 +50,23 @@ export function franchises(games: GameLite[]): { name: string; count: number }[]
         b.count - a.count ||
         a.name.localeCompare(b.name, 'fr')
     );
+}
+
+// Games without a franchise have no story: the one being played first, then paused, to start,
+// finished, dropped; then by title.
+const STANDALONE_RANK: Record<GameStatusKey, number> = {
+  PLAYING: 0,
+  PAUSED: 1,
+  NOT_STARTED: 2,
+  FINISHED: 3,
+  DROPPED: 4,
+};
+
+export function standaloneOrder<T extends GameLite>(games: T[]): T[] {
+  return [...games].sort(
+    (a, b) =>
+      STANDALONE_RANK[a.status] - STANDALONE_RANK[b.status] || a.title.localeCompare(b.title, 'fr')
+  );
 }
 
 // Story order first (games without a position at the end), then title.

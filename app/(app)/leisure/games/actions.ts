@@ -43,6 +43,8 @@ const gameSchema = z
     setting: optionalText(60),
     platform: optionalText(40),
     status: z.enum(GAME_STATUSES as [GameStatusKey, ...GameStatusKey[]]),
+    // Checkbox « Jeu sans fin » (MMO, online game).
+    endless: z.string().transform((value) => value === 'on'),
     progressCurrent: optionalInt('Avancée'),
     progressTotal: optionalInt('Total'),
     playTime: z
@@ -66,7 +68,18 @@ const gameSchema = z
       data.progressTotal === null ||
       data.progressCurrent <= data.progressTotal,
     { path: ['progressCurrent'], message: 'L’avancée dépasse le total.' }
-  );
+  )
+  .refine((data) => !(data.endless && data.status === 'FINISHED'), {
+    path: ['status'],
+    message: 'Un jeu sans fin ne se termine pas : choisis « Arrêté » si tu n’y joues plus.',
+  })
+  // No franchise, no place in a story; no end, no progress.
+  .transform((data) => ({
+    ...data,
+    storyOrder: data.franchise ? data.storyOrder : null,
+    progressCurrent: data.endless ? null : data.progressCurrent,
+    progressTotal: data.endless ? null : data.progressTotal,
+  }));
 
 // Dates follow the status: started on the first « En cours », finished on « Terminé ».
 function datesFor(
@@ -97,6 +110,7 @@ export async function saveGame(_: FormState, formData: FormData): Promise<FormSt
     playTime: '',
     coverUrl: '',
     notes: '',
+    endless: '',
     ...values,
   });
   if (!parsed.success) return { fieldErrors: fieldErrors(parsed.error), values };
@@ -122,6 +136,8 @@ export async function setGameStatus(gameId: string, status: GameStatusKey): Prom
   const user = await requireUser();
   const next = z.enum(GAME_STATUSES as [GameStatusKey, ...GameStatusKey[]]).parse(status);
   const game = await ownedGame(user.id, gameId);
+  // An endless game is never finished.
+  if (game.endless && next === 'FINISHED') return;
   await prisma.game.update({
     where: { id: game.id },
     data: {
@@ -138,6 +154,7 @@ export async function setGameStatus(gameId: string, status: GameStatusKey): Prom
 export async function stepProgress(gameId: string, delta: 1 | -1): Promise<void> {
   const user = await requireUser();
   const game = await ownedGame(user.id, gameId);
+  if (game.endless) return;
   const current = (game.progressCurrent ?? 0) + (delta === 1 ? 1 : -1);
   const bounded = Math.max(0, game.progressTotal ? Math.min(game.progressTotal, current) : current);
   await prisma.game.update({ where: { id: game.id }, data: { progressCurrent: bounded } });
