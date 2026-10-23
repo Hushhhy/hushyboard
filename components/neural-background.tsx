@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { animationsEnabled } from '@/lib/animations';
 
 // "Calm" settings validated on the login mockup.
 const SETTINGS = {
@@ -40,9 +41,7 @@ export function NeuralBackground() {
     const styles = getComputedStyle(document.documentElement);
     const domainColors = DOMAIN_TOKENS.map((token) => styles.getPropertyValue(token).trim());
     const neutralColor = styles.getPropertyValue(NEUTRAL_TOKEN).trim();
-    const reducedMotion =
-      window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
-      document.documentElement.dataset.animations === 'off';
+    const reducedMotion = !animationsEnabled();
 
     let width = 0;
     let height = 0;

@@ -6,14 +6,13 @@ import { TrophyAnnouncer } from '@/components/rewards/trophy-announcer';
 import { todayInParis } from '@/lib/dates';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/session';
-import { getUnseenTrophies, syncTrophies } from '@/lib/trophies-data';
+import { syncTrophies } from '@/lib/trophies-data';
 
 // Unlocks the trophies earned by the last actions (pages re-render after each Server Action)
 // and hands the new ones to the reward toast.
 async function TrophyWatch() {
   const user = await requireUser();
-  await syncTrophies(user.id);
-  return <TrophyAnnouncer trophies={await getUnseenTrophies(user.id)} />;
+  return <TrophyAnnouncer trophies={await syncTrophies(user.id)} />;
 }
 
 // The palette lists today's habits (« Cocher Sport » / « Décocher Sport »).

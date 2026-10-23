@@ -8,6 +8,10 @@ export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   baseURL: env.BETTER_AUTH_URL,
   database: prismaAdapter(prisma, { provider: 'postgresql' }),
+  // The session is also kept 5 min in a signed cookie: the proxy and the pages read it without
+  // a database round trip. Signing out clears it; a session revoked from elsewhere stays valid
+  // up to those 5 minutes.
+  session: { cookieCache: { enabled: true, maxAge: 5 * 60 } },
   socialProviders: {
     github: {
       clientId: env.GITHUB_CLIENT_ID,

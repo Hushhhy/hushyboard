@@ -73,17 +73,19 @@ describe('completedFranchises', () => {
 
 describe('financeMonths', () => {
   it('counts tracked months and fully sorted months of 10+ lines', () => {
-    const october = Array.from({ length: 10 }, (_, index) => ({
-      date: new Date(`2026-10-${String(index + 1).padStart(2, '0')}T00:00:00.000Z`),
-      categoryId: 'c',
-    }));
-    const september = [
-      ...october.map((line) => ({ ...line, date: new Date('2026-09-05T00:00:00.000Z') })),
-      { date: new Date('2026-09-06T00:00:00.000Z'), categoryId: null },
-    ];
+    const day = (date: string, count: number, uncategorized = 0) => ({
+      date: new Date(`${date}T00:00:00.000Z`),
+      count,
+      uncategorized,
+    });
+    const october = [day('2026-10-01', 6), day('2026-10-15', 4)];
+    const september = [day('2026-09-05', 10), day('2026-09-06', 1, 1)];
+    const august = [day('2026-08-02', 3)];
     expect(financeMonths([...october, ...september])).toEqual({
       trackedMonths: 2,
       sortedMonths: 1,
     });
+    // Fewer than 10 lines: tracked, not counted as sorted.
+    expect(financeMonths(august)).toEqual({ trackedMonths: 1, sortedMonths: 0 });
   });
 });

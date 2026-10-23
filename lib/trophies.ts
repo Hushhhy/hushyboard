@@ -213,21 +213,22 @@ export function completedFranchises(games: { franchise: string | null; status: s
     .length;
 }
 
-// Month counts from transactions: tracked months, and months fully sorted (10+ lines).
-export function financeMonths(lines: { date: Date; categoryId: string | null }[]): {
+// Month counts from transactions counted per day (a database group by, not every line):
+// tracked months, and months fully sorted (10+ lines, none uncategorized).
+export function financeMonths(days: { date: Date; count: number; uncategorized: number }[]): {
   trackedMonths: number;
   sortedMonths: number;
 } {
-  const months = new Map<string, { total: number; sorted: number }>();
-  for (const line of lines) {
-    const key = line.date.toISOString().slice(0, 7);
-    const entry = months.get(key) ?? { total: 0, sorted: 0 };
-    entry.total += 1;
-    if (line.categoryId) entry.sorted += 1;
+  const months = new Map<string, { total: number; uncategorized: number }>();
+  for (const day of days) {
+    const key = day.date.toISOString().slice(0, 7);
+    const entry = months.get(key) ?? { total: 0, uncategorized: 0 };
+    entry.total += day.count;
+    entry.uncategorized += day.uncategorized;
     months.set(key, entry);
   }
   return {
     trackedMonths: months.size,
-    sortedMonths: [...months.values()].filter((m) => m.total >= 10 && m.sorted === m.total).length,
+    sortedMonths: [...months.values()].filter((m) => m.total >= 10 && m.uncategorized === 0).length,
   };
 }
