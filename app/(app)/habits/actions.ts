@@ -136,7 +136,8 @@ export async function setCheckIn(habitId: string, done: boolean): Promise<{ rewa
   const fresh = keys.filter((key) => !already.some((item) => item.trophyKey === key));
   if (fresh.length > 0) {
     await prisma.trophyUnlock.createMany({
-      data: fresh.map((trophyKey) => ({ userId: user.id, trophyKey })),
+      // Announced right away by the client, with the habit name.
+      data: fresh.map((trophyKey) => ({ userId: user.id, trophyKey, seenAt: new Date() })),
       skipDuplicates: true,
     });
   }
