@@ -18,6 +18,7 @@ import { SelectField, TextField } from '@/components/ui/text-field';
 import { toDateInputValue } from '@/lib/dates';
 import { formatSignedEuros } from '@/lib/finance';
 import {
+  detectFormat,
   guessMapping,
   mapRows,
   parseCsv,
@@ -226,7 +227,12 @@ export function ImportWizard() {
 
   const lines: ParsedLine[] = table && mapping ? mapRows(table.rows, mapping) : [];
   const valid = lines.filter((line): line is Extract<ParsedLine, { ok: true }> => line.ok);
-  const invalid = lines.filter((line): line is Extract<ParsedLine, { ok: false }> => !line.ok);
+  const invalid = lines.filter(
+    (line): line is Extract<ParsedLine, { ok: false; ignored?: false }> => !line.ok && !line.ignored
+  );
+  // 0,00 € lines (card checks, cancelled payments): set aside, not errors.
+  const zero = lines.filter((line) => !line.ok && line.ignored).length;
+  const format = table ? detectFormat(table.headers) : null;
   const payload = valid.map(({ date, label, amountCents }) => ({ date, label, amountCents }));
 
   function reset() {
@@ -249,7 +255,7 @@ export function ImportWizard() {
     }
     setFileName(file.name);
     setTable(parsed);
-    setMapping(guessMapping(parsed.headers));
+    setMapping(guessMapping(parsed.headers, parsed.rows));
   }
 
   function preview(nextMapping: CsvMapping) {
@@ -333,6 +339,13 @@ export function ImportWizard() {
               {fileName} · {table.rows.length} ligne{table.rows.length > 1 ? 's' : ''}
             </span>
           </h2>
+          {format === 'revolut' ? (
+            <p className="text-caption-12 text-fg-2">
+              Relevé Revolut reconnu : colonnes date, description et « Argent entrant/sortant »
+              choisies, solde et frais écartés. Seul le premier tableau du fichier (le compte
+              principal) est lu.
+            </p>
+          ) : null}
           <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {columnSelect('date', 'Date')}
             {columnSelect('label', 'Libellé')}
@@ -386,8 +399,11 @@ export function ImportWizard() {
                           </td>
                         </>
                       ) : (
-                        <td colSpan={4} className="py-2 text-caption-12 text-danger">
-                          Illisible : {line.error}
+                        <td
+                          colSpan={4}
+                          className={`py-2 text-caption-12 ${line.ignored ? 'text-fg-3' : 'text-danger'}`}
+                        >
+                          {line.ignored ? 'Ignorée' : 'Illisible'} : {line.error}
                         </td>
                       )}
                     </tr>
@@ -397,6 +413,11 @@ export function ImportWizard() {
             </table>
           </div>
 
+          {zero > 0 ? (
+            <p className="text-caption-12 text-fg-2">
+              {zero} ligne{zero > 1 ? 's' : ''} ignorée{zero > 1 ? 's' : ''} : montant nul (0,00 €).
+            </p>
+          ) : null}
           {invalid.length > 0 ? (
             <ErrorState
               title={`${invalid.length} ligne${invalid.length > 1 ? 's' : ''} ne peu${invalid.length > 1 ? 'vent' : 't'} pas être importée${invalid.length > 1 ? 's' : ''}.`}
