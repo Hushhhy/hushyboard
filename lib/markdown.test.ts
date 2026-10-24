@@ -53,3 +53,63 @@ describe('renderMarkdown', () => {
     );
   });
 });
+
+describe('renderMarkdown styles', () => {
+  it('colors, fonts and sizes from the fixed list, combined', () => {
+    expect(renderMarkdown('[Attention]{rouge grand}')).toContain(
+      '<span class="md-color-red md-size-large">Attention</span>'
+    );
+    expect(renderMarkdown('[npm install]{code vert}')).toContain(
+      '<span class="md-font-mono md-color-green">npm install</span>'
+    );
+    expect(renderMarkdown('[**gras** en or]{or}')).toContain(
+      '<span class="md-color-gold"><strong>gras</strong> en or</span>'
+    );
+  });
+
+  it('keeps the text plain with an unknown style, and leaves links alone', () => {
+    const html = renderMarkdown('[texte]{fluo} et [lien](https://example.com)');
+    expect(html).toContain('<p>texte et <a href="https://example.com"');
+    expect(html).not.toContain('<span');
+  });
+
+  it('renders highlight, underline, sub and superscript, keys; ~~ stays struck', () => {
+    const html = renderMarkdown('==clé== ++souligné++ x^2^ H~2~O ~~barré~~ [[Ctrl]]+[[C]]');
+    expect(html).toContain('<mark>clé</mark>');
+    expect(html).toContain('<u>souligné</u>');
+    expect(html).toContain('x<sup>2</sup>');
+    expect(html).toContain('H<sub>2</sub>O');
+    expect(html).toContain('<del>barré</del>');
+    expect(html).toContain('<kbd>Ctrl</kbd>+<kbd>C</kbd>');
+  });
+
+  it('does not touch C++ or a lone ^', () => {
+    const html = renderMarkdown('Le C++ et le C++, 2 ^ 3');
+    expect(html).toContain('Le C++ et le C++, 2 ^ 3');
+  });
+
+  it('renders callouts with their title, French or GitHub names; a plain quote stays a quote', () => {
+    const tip = renderMarkdown('> [!ASTUCE]\n> Utilise **map()**.');
+    expect(tip).toContain('<div class="md-callout md-callout-tip">');
+    expect(tip).toContain('<p class="md-callout-title">Astuce</p>');
+    expect(tip).toContain('<strong>map()</strong>');
+    expect(renderMarkdown('> [!WARNING] Piège classique\n> texte')).toContain(
+      '<p class="md-callout-title">Piège classique</p>'
+    );
+    expect(renderMarkdown('> une citation')).toContain('<blockquote>');
+  });
+
+  it('renders collapsible blocks', () => {
+    const html = renderMarkdown('+++ Voir la solution\nLe `code` caché.\n+++');
+    expect(html).toContain('<details><summary>Voir la solution</summary>');
+    expect(html).toContain('<code>code</code>');
+  });
+
+  it('keeps only the listed classes and never inline styles or handlers', () => {
+    const html = renderMarkdown(
+      '<span class="md-color-red evil" style="color:#f00" onclick="x()">a</span> <div class="evil">b</div>'
+    );
+    expect(html).toContain('<span class="md-color-red">a</span>');
+    expect(html).not.toMatch(/style=|onclick|evil/);
+  });
+});
