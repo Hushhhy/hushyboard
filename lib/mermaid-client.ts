@@ -2,9 +2,13 @@
 // only downloaded when a page has a ```mermaid block. Strict security: no scripts, no click
 // handlers, labels sanitized by Mermaid itself.
 
+import { readableMermaidSource } from './mermaid-source';
+
 type Mermaid = typeof import('mermaid').default;
 
 let loading: Promise<Mermaid> | null = null;
+// Dark text for light boxes of a diagram written for a light theme (see mermaid-source.ts).
+let darkText = '#000000';
 let counter = 0;
 
 // Theme tokens are oklch(); Mermaid computes its shades from hex colors only: the browser
@@ -22,6 +26,7 @@ function themeVariables() {
   const context = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
   if (!context) return {};
   const color = (name: string) => tokenHex(`--color-${name}`, context);
+  darkText = color('surface-sunken');
   return {
     darkMode: true,
     background: color('surface-default'),
@@ -63,7 +68,7 @@ export async function renderMermaidBlocks(root: HTMLElement, isCancelled: () => 
   for (const code of blocks) {
     const pre = code.parentElement;
     if (!pre || isCancelled()) return;
-    const source = code.textContent ?? '';
+    const source = readableMermaidSource(code.textContent ?? '', darkText);
     try {
       await mermaid.parse(source);
       const { svg } = await mermaid.render(`mermaid-diagram-${++counter}`, source);
