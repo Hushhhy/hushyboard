@@ -69,6 +69,47 @@ function TextArea({
   );
 }
 
+const sameItems = (a: string[], b: string[]) =>
+  a.length === b.length && a.every((item, index) => item === b[index]);
+
+// A list edited as text. The text is kept exactly as typed ("React, " or a new empty line
+// survive until the next character); the list sent up is parsed from it. The text follows
+// the list only when the list changes from elsewhere (item moved, another version loaded).
+function ListInput({
+  kind,
+  items,
+  onItems,
+  label,
+  hint,
+  rows,
+}: {
+  kind: 'comma' | 'lines';
+  items: string[];
+  onItems: (items: string[]) => void;
+  label: string;
+  hint: string;
+  // A textarea when set, else a one-line field.
+  rows?: number;
+}) {
+  const format = kind === 'comma' ? toCommaText : toLines;
+  const parse = kind === 'comma' ? fromCommaText : fromLines;
+  const [text, setText] = useState(() => format(items));
+  const [lastItems, setLastItems] = useState(items);
+  if (lastItems !== items) {
+    setLastItems(items);
+    if (!sameItems(parse(text), items)) setText(format(items));
+  }
+  const change = (next: string) => {
+    setText(next);
+    onItems(parse(next));
+  };
+  return rows ? (
+    <TextArea label={label} hint={hint} rows={rows} value={text} onChange={change} />
+  ) : (
+    <TextField label={label} hint={hint} value={text} onChange={(e) => change(e.target.value)} />
+  );
+}
+
 function Section({ title, children }: { title: string; children: ReactNode }) {
   const id = `section-${title}`;
   return (
@@ -285,12 +326,13 @@ export function ResumeEditor({
                 value={group.name}
                 onChange={(e) => update({ name: e.target.value })}
               />
-              <TextArea
+              <ListInput
+                kind="comma"
                 label="Compétences"
                 hint="Séparées par des virgules."
                 rows={2}
-                value={toCommaText(group.items)}
-                onChange={(value) => update({ items: fromCommaText(value) })}
+                items={group.items}
+                onItems={(items) => update({ items })}
               />
             </>
           )}
@@ -337,11 +379,13 @@ export function ResumeEditor({
                   />
                 </div>
               </div>
-              <TextArea
+              <ListInput
+                kind="lines"
                 label="Réalisations"
                 hint="Une par ligne."
-                value={toLines(item.bullets)}
-                onChange={(value) => update({ bullets: fromLines(value) })}
+                rows={3}
+                items={item.bullets}
+                onItems={(bullets) => update({ bullets })}
               />
             </>
           )}
@@ -375,11 +419,12 @@ export function ResumeEditor({
                 onChange={(value) => update({ description: value })}
                 rows={2}
               />
-              <TextField
+              <ListInput
+                kind="comma"
                 label="Technologies"
                 hint="Séparées par des virgules."
-                value={toCommaText(item.technologies)}
-                onChange={(e) => update({ technologies: fromCommaText(e.target.value) })}
+                items={item.technologies}
+                onItems={(technologies) => update({ technologies })}
               />
             </>
           )}
@@ -452,11 +497,12 @@ export function ResumeEditor({
       </Section>
 
       <Section title="Centres d’intérêt">
-        <TextField
+        <ListInput
+          kind="comma"
           label="Centres d’intérêt"
           hint="Séparés par des virgules."
-          value={toCommaText(content.interests)}
-          onChange={(e) => set('interests', fromCommaText(e.target.value))}
+          items={content.interests}
+          onItems={(interests) => set('interests', interests)}
         />
       </Section>
 
