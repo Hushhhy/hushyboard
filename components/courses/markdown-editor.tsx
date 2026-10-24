@@ -10,6 +10,7 @@ import {
   wrapSelection,
   type Edit,
 } from '@/lib/markdown-format';
+import { MarkdownContent } from '@/components/ui/markdown-content';
 
 const COLORS = ['or', 'bleu', 'vert', 'orange', 'rouge', 'rose', 'violet', 'gris'];
 const FONTS = [
@@ -207,7 +208,7 @@ export function MarkdownEditor({
           {isPending ? (
             <p className="text-caption-12 text-fg-3">Préparation de l’aperçu…</p>
           ) : html ? (
-            <div className="markdown" dangerouslySetInnerHTML={{ __html: html }} />
+            <MarkdownContent html={html} />
           ) : (
             <p className="text-caption-12 text-fg-3">Rien à afficher pour l’instant.</p>
           )}
@@ -227,6 +228,7 @@ export function MarkdownEditor({
           <li>==surligné== · ++souligné++ · x^2^ · H~2~O · [[Ctrl]]+[[C]]</li>
           <li>&gt; [!ASTUCE] puis &gt; texte : encadrés NOTE, ASTUCE, ATTENTION, IMPORTANT</li>
           <li>+++ Titre … +++ : bloc repliable</li>
+          <li>```mermaid … ``` : diagramme (flowchart, séquence, gantt…), dessiné dans l’aperçu</li>
         </ul>
       </details>
       {error ? <FieldError id={`${id}-error`}>{error}</FieldError> : null}

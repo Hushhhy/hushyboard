@@ -10,6 +10,7 @@ import { renderMarkdown } from '@/lib/markdown';
 import { getProjectBySlug } from '@/lib/projects-data';
 import { requireUser } from '@/lib/session';
 import { CopyButton } from './copy-button';
+import { MarkdownContent } from '@/components/ui/markdown-content';
 
 function TreeList({
   nodes,
@@ -94,9 +95,7 @@ function FileBody({ file, path, githubUrl }: { file: FileView; path: string; git
     );
   }
   if (file.language === 'markdown') {
-    return (
-      <div className="markdown" dangerouslySetInnerHTML={{ __html: renderMarkdown(file.text) }} />
-    );
+    return <MarkdownContent html={renderMarkdown(file.text)} />;
   }
   return <div className="code-view" dangerouslySetInnerHTML={{ __html: file.html }} />;
 }

@@ -473,6 +473,32 @@
     font-weight: 600;
     color: var(--callout);
   }
+  /* Mermaid diagram (lib/mermaid-client.ts): scrolls sideways when wider than the note. */
+  .markdown .md-mermaid {
+    background: var(--color-surface-sunken);
+    border-radius: var(--radius-control);
+    padding: --spacing(3);
+  }
+  .markdown .md-mermaid > [role='img'] {
+    overflow-x: auto;
+  }
+  .markdown .md-mermaid svg {
+    display: block;
+    margin-inline: auto;
+    max-width: 100%;
+    height: auto;
+  }
+  .markdown .md-mermaid details {
+    margin-top: --spacing(2);
+    border: 0;
+    padding: 0;
+    font-size: var(--text-caption-12);
+    color: var(--color-fg-3);
+  }
+  .markdown .md-mermaid-error {
+    font-size: var(--text-caption-12);
+    color: var(--color-danger);
+  }
 }
 
 /* --------------------------------------------------------------------------

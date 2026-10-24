@@ -113,3 +113,11 @@ describe('renderMarkdown styles', () => {
     expect(html).not.toMatch(/style=|onclick|evil/);
   });
 });
+
+describe('renderMarkdown mermaid blocks', () => {
+  it('keeps a ```mermaid block as code for the browser to draw, arrows escaped', () => {
+    const html = renderMarkdown('```mermaid\nflowchart LR\n  A["Début"] --> B\n```');
+    expect(html).toContain('<code class="language-mermaid">');
+    expect(html).toContain('A["Début"] --&gt; B');
+  });
+});

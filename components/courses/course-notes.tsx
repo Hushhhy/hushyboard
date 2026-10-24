@@ -13,6 +13,7 @@ import { TextField } from '@/components/ui/text-field';
 import { formatShortDate } from '@/lib/dates';
 import { EMPTY_FORM_STATE } from '@/lib/forms';
 import { MarkdownEditor } from './markdown-editor';
+import { MarkdownContent } from '@/components/ui/markdown-content';
 
 // A note with its Markdown already rendered and sanitized on the server.
 export type RenderedNote = {
@@ -124,7 +125,7 @@ export function CourseNotes({
                       {formatShortDate(note.updatedAt)}
                     </span>
                   </div>
-                  <div className="markdown" dangerouslySetInnerHTML={{ __html: note.html }} />
+                  <MarkdownContent html={note.html} />
                   <div className="flex gap-1">
                     <Button variant="quiet" small onClick={() => setEditingId(note.id)}>
                       Modifier
