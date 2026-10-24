@@ -21,6 +21,7 @@ import { ActionButton } from './action-button';
 import { GenerateOnOpen } from './generate-on-open';
 import { ReferenceEditor } from './reference-editor';
 import { EntryToggles } from './reference-list';
+import { MarkdownContent } from '@/components/ui/markdown-content';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -92,9 +93,9 @@ export async function ReferenceEntryPanel({
         />
       ) : (
         <>
-          <div
-            className="markdown max-w-[68ch] text-fg-2"
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(details.description) }}
+          <MarkdownContent
+            className="max-w-[68ch] text-fg-2"
+            html={renderMarkdown(details.description)}
           />
           {details.syntax.trim() ? (
             <Section title="Syntaxe">

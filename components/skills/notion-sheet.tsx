@@ -14,6 +14,7 @@ import { NotesField } from './notes-field';
 import { KnownCheckbox } from './roadmap';
 import { SheetEditor } from './sheet-editor';
 import type { TierView } from './tier-view';
+import { MarkdownContent } from '@/components/ui/markdown-content';
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
@@ -89,9 +90,9 @@ export async function NotionSheetPanel({
         />
       ) : (
         <>
-          <div
-            className="markdown max-w-[68ch] text-fg-2"
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(sheet.summary) }}
+          <MarkdownContent
+            className="max-w-[68ch] text-fg-2"
+            html={renderMarkdown(sheet.summary)}
           />
           <Section title="Syntaxe">
             <CodeBlock {...sheet.syntax} skillSlug={skill.slug} />
