@@ -15,7 +15,8 @@ import { COURSE_STATUS_LABELS, getCourseWithNotes, getProjectOptions } from '@/l
 import { renderMarkdownWithCode } from '@/lib/markdown';
 import { requireUser } from '@/lib/session';
 import { CourseNotes } from './course-notes';
-import { CoursePlan, type PlanModule } from './course-plan';
+import type { PlanModule } from './course-plan';
+import { ContinueCard, ModuleCards } from './module-cards';
 import { ModuleEditor } from './module-editor';
 import { ProjectLinkForm } from './project-link-form';
 
@@ -224,7 +225,10 @@ export async function CoursePage({
             action={{ label: 'Construire le plan', href: `${pagePath}?edit=1` }}
           />
         ) : (
-          <CoursePlan courseId={course.id} modules={planModules} />
+          <>
+            <ContinueCard courseId={course.id} modules={planModules} />
+            <ModuleCards courseId={course.id} modules={planModules} />
+          </>
         )}
       </section>
 

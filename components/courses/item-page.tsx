@@ -6,7 +6,7 @@ import { ChevronLeftIcon, ChevronRightIcon } from '@/components/icons';
 import { buttonClasses } from '@/components/ui/button';
 import { Tag, type ChipTone } from '@/components/ui/chip';
 import { LoadingRegion, Skeleton } from '@/components/ui/skeleton';
-import { adjacentItems, COURSE_ITEM_LABELS, itemPath } from '@/lib/course-progress';
+import { adjacentItems, COURSE_ITEM_LABELS, itemPath, modulePath } from '@/lib/course-progress';
 import { getCourseItemPage } from '@/lib/learning-data';
 import { renderMarkdownWithCode } from '@/lib/markdown';
 import { requireUser } from '@/lib/session';
@@ -40,10 +40,21 @@ export async function ItemPage({
 
   return (
     <>
-      <Link href={coursePath} className={`${buttonClasses({ variant: 'quiet' })} -ml-2 self-start`}>
-        <ChevronLeftIcon className="size-4" />
-        {course.title}
-      </Link>
+      <nav aria-label="Fil d’Ariane" className="-ml-2 flex flex-wrap items-center gap-1">
+        <Link href={coursePath} className={buttonClasses({ variant: 'quiet' })}>
+          <ChevronLeftIcon className="size-4" />
+          {course.title}
+        </Link>
+        <span aria-hidden="true" className="text-fg-3">
+          /
+        </span>
+        <Link
+          href={modulePath(course.id, data.module.id)}
+          className={buttonClasses({ variant: 'quiet' })}
+        >
+          Module {moduleIndex + 1} · {data.module.title}
+        </Link>
+      </nav>
       <PageHeader
         breadcrumb={`Cours · Module ${moduleIndex + 1} · ${data.module.title}`}
         title={item.title}

@@ -4,14 +4,14 @@ import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import type { CourseStatus } from '@/generated/prisma/client';
 import { setCourseStatus } from '@/app/(app)/career/courses/actions';
-import { CourseIcon } from '@/components/icons';
+import { ChevronRightIcon, CourseIcon } from '@/components/icons';
 import { levelUpReward } from '@/components/rewards/use-form-done';
 import { useRewards } from '@/components/rewards/rewards-provider';
 import { Button, buttonClasses } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Ruler } from '@/components/ui/ruler';
 import { UndoStatus } from '@/components/ui/undo-status';
-import { COURSE_ITEM_LABELS } from '@/lib/course-progress';
+import { COURSE_ITEM_LABELS, itemPath } from '@/lib/course-progress';
 import { formatShortDate } from '@/lib/dates';
 import type { CourseListEntry } from '@/lib/learning-data';
 
@@ -74,20 +74,25 @@ export function CourseList({
       {courses.length === 0 ? (
         <EmptyState variant="block" title={empty.title} description={empty.description} />
       ) : (
-        courses.map((course) => (
-          <CourseCard
-            key={course.id}
-            course={course}
-            basePath={basePath}
-            isPending={pendingId === course.id}
-            onStatus={changeStatus}
-          />
-        ))
+        <ul className="grid gap-3 lg:grid-cols-2">
+          {courses.map((course) => (
+            <li key={course.id}>
+              <CourseCard
+                course={course}
+                basePath={basePath}
+                isPending={pendingId === course.id}
+                onStatus={changeStatus}
+              />
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );
 }
 
+// A course as a card: the whole card opens the course; « Continuer » jumps straight to the
+// next part; the status buttons and « Modifier » sit above the card link.
 function CourseCard({
   course,
   basePath,
@@ -106,7 +111,7 @@ function CourseCard({
   return (
     <article
       aria-labelledby={titleId}
-      className="flex flex-col gap-3 rounded-card bg-surface-default p-4"
+      className="group relative flex h-full flex-col gap-3 rounded-card bg-surface-default p-4 transition-colors duration-(--duration-tick) hover:bg-surface-raised"
     >
       <div className="flex items-start gap-3">
         <CourseIcon className="mt-0.5 size-4.5 shrink-0 text-career" />
@@ -114,48 +119,14 @@ function CourseCard({
           <h2 id={titleId} className="text-title-18">
             <Link
               href={`/career/courses/${course.id}`}
-              className="hover:underline hover:decoration-line-strong hover:underline-offset-3"
+              className="after:absolute after:inset-0 after:rounded-card"
             >
               {course.title}
             </Link>
           </h2>
           <p className="text-caption-12 text-fg-2">{courseContext(course)}</p>
         </div>
-        <div className="flex shrink-0 flex-wrap justify-end gap-2">
-          {course.status === 'PLANNED' ? (
-            <Button
-              pending={isPending}
-              onClick={() => changeStatus('IN_PROGRESS', `« ${course.title} » commencé.`)}
-            >
-              Commencer
-            </Button>
-          ) : null}
-          {course.status === 'IN_PROGRESS' ? (
-            <Button
-              pending={isPending}
-              onClick={() => changeStatus('COMPLETED', `« ${course.title} » terminé · +60 XP.`)}
-            >
-              Terminer
-            </Button>
-          ) : null}
-          {isCompleted ? (
-            <Button
-              variant="quiet"
-              pending={isPending}
-              onClick={() => changeStatus('IN_PROGRESS', `« ${course.title} » remis en cours.`)}
-            >
-              Remettre en cours
-            </Button>
-          ) : null}
-          <Link
-            href={`${basePath}?panel=course-${course.id}`}
-            scroll={false}
-            className={buttonClasses({ variant: 'quiet' })}
-            aria-label={`Modifier « ${course.title} »`}
-          >
-            Modifier
-          </Link>
-        </div>
+        <ChevronRightIcon className="mt-1 size-4.5 shrink-0 text-fg-3 transition-transform duration-(--duration-tick) group-hover:translate-x-0.5 group-hover:text-fg-1" />
       </div>
 
       <Ruler
@@ -175,22 +146,65 @@ function CourseCard({
               ? 'Plan à remplir'
               : `${course.progress.percent} % · ${course.progress.done} / ${course.progress.total} éléments`}
         </span>
-        {course.next && !isCompleted ? (
-          <span>
-            Ensuite : {COURSE_ITEM_LABELS[course.next.kind]} · {course.next.title}
-          </span>
-        ) : null}
         {course.nextDeadline && !isCompleted ? (
           <span>Échéance · {formatShortDate(course.nextDeadline)}</span>
         ) : null}
+        <span>
+          {course._count.notes} note{course._count.notes > 1 ? 's' : ''}
+        </span>
         {course.skills.length > 0 ? (
           <span className="text-fg-3">{course.skills.map((skill) => skill.name).join(', ')}</span>
         ) : null}
+      </div>
+
+      <div className="relative z-10 mt-auto flex flex-wrap items-center gap-2 border-t border-line-subtle pt-3">
+        {course.next && !isCompleted ? (
+          <Link
+            href={itemPath(course.id, course.next.id)}
+            className={`${buttonClasses({ variant: 'secondary', small: true })} min-w-0`}
+          >
+            <span className="truncate">
+              Continuer : {COURSE_ITEM_LABELS[course.next.kind]} · {course.next.title}
+            </span>
+          </Link>
+        ) : null}
+        <span className="flex-1" />
+        {course.status === 'PLANNED' ? (
+          <Button
+            small
+            pending={isPending}
+            onClick={() => changeStatus('IN_PROGRESS', `« ${course.title} » commencé.`)}
+          >
+            Commencer
+          </Button>
+        ) : null}
+        {course.status === 'IN_PROGRESS' ? (
+          <Button
+            small
+            variant="quiet"
+            pending={isPending}
+            onClick={() => changeStatus('COMPLETED', `« ${course.title} » terminé · +60 XP.`)}
+          >
+            Terminer
+          </Button>
+        ) : null}
+        {isCompleted ? (
+          <Button
+            small
+            variant="quiet"
+            pending={isPending}
+            onClick={() => changeStatus('IN_PROGRESS', `« ${course.title} » remis en cours.`)}
+          >
+            Remettre en cours
+          </Button>
+        ) : null}
         <Link
-          href={`/career/courses/${course.id}`}
-          className="ml-auto underline decoration-line-strong underline-offset-3 hover:text-fg-1"
+          href={`${basePath}?panel=course-${course.id}`}
+          scroll={false}
+          className={buttonClasses({ variant: 'quiet', small: true })}
+          aria-label={`Modifier « ${course.title} »`}
         >
-          Notes ({course._count.notes})
+          Modifier
         </Link>
       </div>
     </article>

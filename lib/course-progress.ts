@@ -45,6 +45,10 @@ export function adjacentItems<T extends { id: string }>(
   return { previous: flat[index - 1] ?? null, next: flat[index + 1] ?? null };
 }
 
+// Page of one module: its parts, quizzes and solo projects as cards.
+export const modulePath = (courseId: string, moduleId: string) =>
+  `/career/courses/${courseId}/modules/${moduleId}`;
+
 // Page of one part, quiz or solo project (with its notes).
 export const itemPath = (courseId: string, itemId: string) =>
   `/career/courses/${courseId}/parts/${itemId}`;
