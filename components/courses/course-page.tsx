@@ -12,7 +12,7 @@ import { LoadingRegion, Skeleton } from '@/components/ui/skeleton';
 import { formatShortDate } from '@/lib/dates';
 import { projectSlug } from '@/lib/github/helpers';
 import { COURSE_STATUS_LABELS, getCourseWithNotes, getProjectOptions } from '@/lib/learning-data';
-import { renderMarkdown } from '@/lib/markdown';
+import { renderMarkdownWithCode } from '@/lib/markdown';
 import { requireUser } from '@/lib/session';
 import { CourseNotes } from './course-notes';
 import { CoursePlan, type PlanModule } from './course-plan';
@@ -25,9 +25,9 @@ const STATUS_TONES: Record<CourseStatus, ChipTone> = {
   COMPLETED: 'success',
 };
 
-const withHtml = <T extends { content: string }>(note: T) => ({
+const withHtml = async <T extends { content: string }>(note: T) => ({
   ...note,
-  html: renderMarkdown(note.content),
+  html: await renderMarkdownWithCode(note.content),
 });
 
 // A course on its own page: its plan (modules, parts, quizzes, solo projects) with the notes
@@ -235,7 +235,7 @@ export async function CoursePage({
         <h2 id="notes-title" className="text-label-12 text-fg-3 uppercase">
           Notes générales · {course.notes.length}
         </h2>
-        <CourseNotes courseId={course.id} notes={course.notes.map(withHtml)} />
+        <CourseNotes courseId={course.id} notes={await Promise.all(course.notes.map(withHtml))} />
       </section>
     </>
   );

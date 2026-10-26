@@ -7,7 +7,7 @@ import type { CourseItemKind, CourseStatus } from '@/generated/prisma/client';
 import { isQuizPassed } from '@/lib/course-progress';
 import { parseDateInput } from '@/lib/dates';
 import { fieldErrors, formValues, type FormState } from '@/lib/forms';
-import { renderMarkdown } from '@/lib/markdown';
+import { renderMarkdownWithCode } from '@/lib/markdown';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/session';
 import type { LevelUp } from '@/lib/xp';
@@ -386,7 +386,7 @@ export async function updateCourseNote(
 // so the browser does not load the Markdown and sanitizer libraries.
 export async function previewMarkdown(source: string): Promise<string> {
   await requireUser();
-  return renderMarkdown(z.string().max(20_000).parse(source));
+  return renderMarkdownWithCode(z.string().max(20_000).parse(source));
 }
 
 export async function deleteCourseNote(noteId: string): Promise<{ error?: string }> {

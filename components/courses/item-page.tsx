@@ -8,7 +8,7 @@ import { Tag, type ChipTone } from '@/components/ui/chip';
 import { LoadingRegion, Skeleton } from '@/components/ui/skeleton';
 import { adjacentItems, COURSE_ITEM_LABELS, itemPath } from '@/lib/course-progress';
 import { getCourseItemPage } from '@/lib/learning-data';
-import { renderMarkdown } from '@/lib/markdown';
+import { renderMarkdownWithCode } from '@/lib/markdown';
 import { requireUser } from '@/lib/session';
 import { CourseNotes } from './course-notes';
 import { ItemControls } from './item-controls';
@@ -76,7 +76,12 @@ export async function ItemPage({
         <CourseNotes
           courseId={course.id}
           itemId={item.id}
-          notes={item.notes.map((note) => ({ ...note, html: renderMarkdown(note.content) }))}
+          notes={await Promise.all(
+            item.notes.map(async (note) => ({
+              ...note,
+              html: await renderMarkdownWithCode(note.content),
+            }))
+          )}
         />
       </section>
 
