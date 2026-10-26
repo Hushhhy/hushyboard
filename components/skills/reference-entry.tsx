@@ -8,7 +8,7 @@ import { ExternalLinkIcon } from '@/components/icons';
 import { buttonClasses } from '@/components/ui/button';
 import { DeleteDialog } from '@/components/ui/delete-dialog';
 import { highlightCode } from '@/lib/highlight';
-import { renderMarkdown } from '@/lib/markdown';
+import { renderMarkdownWithCode } from '@/lib/markdown';
 import { getReferenceEntry } from '@/lib/profile-data';
 import { codeLanguage } from '@/lib/skills';
 import {
@@ -95,7 +95,7 @@ export async function ReferenceEntryPanel({
         <>
           <MarkdownContent
             className="max-w-[68ch] text-fg-2"
-            html={renderMarkdown(details.description)}
+            html={await renderMarkdownWithCode(details.description)}
           />
           {details.syntax.trim() ? (
             <Section title="Syntaxe">

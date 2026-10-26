@@ -4,7 +4,7 @@ import { ExternalLinkIcon, PencilIcon, SparkleIcon } from '@/components/icons';
 import { buttonClasses } from '@/components/ui/button';
 import { formatShortDate } from '@/lib/dates';
 import { highlightCode } from '@/lib/highlight';
-import { renderMarkdown } from '@/lib/markdown';
+import { renderMarkdown, renderMarkdownWithCode } from '@/lib/markdown';
 import { getNotionSheetData } from '@/lib/profile-data';
 import { codeLanguage } from '@/lib/skills';
 import { docLink } from '@/lib/skills/reference/labels';
@@ -92,7 +92,7 @@ export async function NotionSheetPanel({
         <>
           <MarkdownContent
             className="max-w-[68ch] text-fg-2"
-            html={renderMarkdown(sheet.summary)}
+            html={await renderMarkdownWithCode(sheet.summary)}
           />
           <Section title="Syntaxe">
             <CodeBlock {...sheet.syntax} skillSlug={skill.slug} />

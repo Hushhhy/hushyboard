@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { renderMarkdown } from './markdown';
+import { renderMarkdown, renderMarkdownWithCode } from './markdown';
 
 describe('renderMarkdown', () => {
   it('renders headings, emphasis and lists', () => {
@@ -119,5 +119,40 @@ describe('renderMarkdown mermaid blocks', () => {
     const html = renderMarkdown('```mermaid\nflowchart LR\n  A["Début"] --> B\n```');
     expect(html).toContain('<code class="language-mermaid">');
     expect(html).toContain('A["Début"] --&gt; B');
+  });
+});
+
+describe('renderMarkdownWithCode', () => {
+  it('colors a code block by its language, with the theme variables', async () => {
+    const html = await renderMarkdownWithCode(
+      '```sql\nSELECT year, COUNT(*) FROM cars WHERE sold IS TRUE;\n```'
+    );
+    expect(html).toContain('<div class="code-view code-snippet" data-language="sql">');
+    expect(html).toMatch(/style="color:var\(--shiki-token-keyword\)">SELECT</);
+  });
+
+  it('reads aliases (py) and keeps the code characters exact', async () => {
+    const html = await renderMarkdownWithCode("```py\nif a < b and c > 0:\n    print('ok')\n```");
+    expect(html).toContain('data-language="py"');
+    expect(html).toContain('&#x3C;');
+    expect(html).toContain('print');
+    expect(html).not.toContain('&amp;lt;');
+  });
+
+  it('leaves mermaid, unknown languages and the rest of the note alone', async () => {
+    const html = await renderMarkdownWithCode(
+      '# Titre\n\n```mermaid\nflowchart LR\n  A --> B\n```\n\n```klingon\nqapla\n```\n\nFin.'
+    );
+    expect(html).toContain('<h1>Titre</h1>');
+    expect(html).toContain('<code class="language-mermaid">');
+    expect(html).toContain('data-language="klingon"');
+    expect(html).toContain('qapla');
+    expect(html).toContain('<p>Fin.</p>');
+  });
+
+  it('never lets HTML hidden in a code block run', async () => {
+    const html = await renderMarkdownWithCode('```html\n<script>alert(1)</script>\n```');
+    expect(html).not.toContain('<script>');
+    expect(html).toContain('&#x3C;');
   });
 });

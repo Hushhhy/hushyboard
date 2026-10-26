@@ -6,7 +6,7 @@ import { GithubError } from '@/lib/github/client';
 import { projectSlug } from '@/lib/github/helpers';
 import { getFile, getTree, type FileView } from '@/lib/github/reads';
 import { buildTree, countFiles, defaultFile, type TreeNode } from '@/lib/github/tree';
-import { renderMarkdown } from '@/lib/markdown';
+import { renderMarkdownWithCode } from '@/lib/markdown';
 import { getProjectBySlug } from '@/lib/projects-data';
 import { requireUser } from '@/lib/session';
 import { CopyButton } from './copy-button';
@@ -71,7 +71,15 @@ const LANGUAGE_LABELS: Record<string, string> = {
   text: 'Texte',
 };
 
-function FileBody({ file, path, githubUrl }: { file: FileView; path: string; githubUrl: string }) {
+async function FileBody({
+  file,
+  path,
+  githubUrl,
+}: {
+  file: FileView;
+  path: string;
+  githubUrl: string;
+}) {
   if (file.kind === 'image') {
     return (
       // External or proxied image of the repo: next/image would need every host configured.
@@ -95,7 +103,7 @@ function FileBody({ file, path, githubUrl }: { file: FileView; path: string; git
     );
   }
   if (file.language === 'markdown') {
-    return <MarkdownContent html={renderMarkdown(file.text)} />;
+    return <MarkdownContent html={await renderMarkdownWithCode(file.text)} />;
   }
   return <div className="code-view" dangerouslySetInnerHTML={{ __html: file.html }} />;
 }
