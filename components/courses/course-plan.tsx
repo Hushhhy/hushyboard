@@ -10,12 +10,7 @@ import { HabitCheckbox } from '@/components/ui/checkbox';
 import { Tag, type ChipTone } from '@/components/ui/chip';
 import { ErrorState } from '@/components/ui/error-state';
 import { UndoStatus } from '@/components/ui/undo-status';
-import {
-  COURSE_ITEM_LABELS,
-  computeProgress,
-  itemPath,
-  QUIZ_PASS_SCORE,
-} from '@/lib/course-progress';
+import { COURSE_ITEM_LABELS, itemPath, QUIZ_PASS_SCORE } from '@/lib/course-progress';
 
 export type PlanItem = {
   id: string;
@@ -28,8 +23,8 @@ export type PlanItem = {
 
 export type PlanModule = { id: string; title: string; items: PlanItem[] };
 
-const KIND_TONES: Record<CourseItemKind, ChipTone | undefined> = {
-  PART: undefined,
+const KIND_TONES: Record<CourseItemKind, ChipTone> = {
+  PART: 'neutral',
   QUIZ: 'info',
   SOLO_PROJECT: 'career',
 };
@@ -42,28 +37,27 @@ const XP_HINT: Record<CourseItemKind, string> = {
 
 type Change = { itemId: string; done?: boolean; score?: number | null };
 
-// The plan of a course: modules, then their parts, quizzes and solo projects.
-// Checking is instant (optimistic), saved on the server and undoable; each item opens its
-// own page with its notes.
-export function CoursePlan({ courseId, modules }: { courseId: string; modules: PlanModule[] }) {
+// The parts, quizzes and solo projects of a module, as cards: the whole card opens the item
+// page with its notes; « Fait » is checked on the card (instant, saved, undoable) and the
+// quiz score typed there.
+export function PartCards({ courseId, items }: { courseId: string; items: PlanItem[] }) {
   const { announce } = useRewards();
   const [, startTransition] = useTransition();
-  const [optimistic, apply] = useOptimistic(modules, (current, change: Change) =>
-    current.map((courseModule) => ({
-      ...courseModule,
-      items: courseModule.items.map((item) =>
-        item.id === change.itemId
-          ? {
-              ...item,
-              done: change.done ?? item.done,
-              score: change.score === undefined ? item.score : change.score,
-            }
-          : item
-      ),
-    }))
+  const [optimistic, apply] = useOptimistic(items, (current, change: Change) =>
+    current.map((item) =>
+      item.id === change.itemId
+        ? {
+            ...item,
+            done: change.done ?? item.done,
+            score: change.score === undefined ? item.score : change.score,
+          }
+        : item
+    )
   );
   const [undo, setUndo] = useState<{ message: string; itemId: string; done: boolean } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  // The first item not done: highlighted, it is where to continue.
+  const nextId = optimistic.find((item) => !item.done)?.id;
 
   function save(change: Change, message?: string, previousDone?: boolean) {
     setError(null);
@@ -92,76 +86,49 @@ export function CoursePlan({ courseId, modules }: { courseId: string; modules: P
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-3">
       <UndoStatus message={undo?.message ?? null} onUndo={revert} />
       {error ? <ErrorState title="Score non enregistré." description={error} announce /> : null}
-      {optimistic.map((courseModule, moduleIndex) => {
-        const progress = computeProgress(
-          courseModule.items.map((item) => ({ completedAt: item.done ? new Date() : null }))
-        );
-        const headingId = `module-${courseModule.id}`;
-        return (
-          <section
-            key={courseModule.id}
-            aria-labelledby={headingId}
-            className={`flex flex-col gap-2 rounded-control p-3 ${
-              progress.done > 0 && progress.done < progress.total
-                ? 'bg-surface-raised'
-                : 'bg-surface-base'
-            }`}
-          >
-            <div className="flex items-baseline gap-2">
-              <h3 id={headingId} className="flex-1 text-body-16 font-semibold">
-                Module {moduleIndex + 1} · {courseModule.title}
-              </h3>
-              <span className="text-caption-12 text-fg-3 tabular">
-                {progress.done} / {progress.total}
-              </span>
-            </div>
-            {courseModule.items.length === 0 ? (
-              <p className="text-caption-12 text-fg-3">
-                Module vide : ajoute ses parties en mode édition.
-              </p>
-            ) : (
-              <ul className="flex flex-col gap-1">
-                {courseModule.items.map((item) => (
-                  <li key={item.id}>
-                    <PlanItemRow
-                      courseId={courseId}
-                      item={item}
-                      onToggle={(done) =>
-                        save(
-                          { itemId: item.id, done },
-                          `« ${item.title} » ${done ? 'fait' : 'remis à faire'}.`,
-                          item.done
-                        )
-                      }
-                      onScore={(score) => save({ itemId: item.id, score })}
-                    />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        );
-      })}
+      <ol className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+        {optimistic.map((item, index) => (
+          <li key={item.id}>
+            <PartCard
+              courseId={courseId}
+              item={item}
+              position={index + 1}
+              isNext={item.id === nextId}
+              onToggle={(done) =>
+                save(
+                  { itemId: item.id, done },
+                  `« ${item.title} » ${done ? 'fait' : 'remis à faire'}.`,
+                  item.done
+                )
+              }
+              onScore={(score) => save({ itemId: item.id, score })}
+            />
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }
 
-function PlanItemRow({
+function PartCard({
   courseId,
   item,
+  position,
+  isNext,
   onToggle,
   onScore,
 }: {
   courseId: string;
   item: PlanItem;
+  position: number;
+  isNext: boolean;
   onToggle: (done: boolean) => void;
   onScore: (score: number | null) => void;
 }) {
   const scoreId = useId();
-  const tone = KIND_TONES[item.kind];
   const quizBelowPass =
     item.kind === 'QUIZ' && item.done && item.score !== null && item.score < QUIZ_PASS_SCORE;
 
@@ -173,34 +140,45 @@ function PlanItemRow({
   }
 
   return (
-    <div className="flex flex-col">
-      <div className="flex flex-wrap items-center gap-x-2">
-        {/* The checkbox is named for screen readers; the visible title is a link to the item page. */}
+    <article
+      className={`group relative flex h-full flex-col gap-2 rounded-card p-4 transition-colors duration-(--duration-tick) ${
+        isNext
+          ? 'bg-surface-raised shadow-raised ring-1 ring-career'
+          : 'bg-surface-default hover:bg-surface-raised'
+      }`}
+    >
+      <div className="flex items-center gap-2">
+        <span className="text-caption-12 text-fg-3 tabular">{position}</span>
+        <Tag tone={KIND_TONES[item.kind]}>{COURSE_ITEM_LABELS[item.kind]}</Tag>
+        {isNext ? (
+          <span className="text-caption-12 font-semibold text-career">À suivre</span>
+        ) : null}
+        <span className="flex-1" />
+        {/* Above the card link: checking does not open the page. */}
         <HabitCheckbox
-          className="shrink-0 px-1"
+          className="relative z-10 shrink-0 px-1"
           checked={item.done}
           onChange={(event) => onToggle(event.target.checked)}
           label={<span className="sr-only">Fait : {item.title}</span>}
         />
-        <span className="flex min-w-0 flex-1 flex-wrap items-center gap-2 py-1">
-          {tone ? <Tag tone={tone}>{COURSE_ITEM_LABELS[item.kind]}</Tag> : null}
-          <Link
-            href={itemPath(courseId, item.id)}
-            className={`text-body-14 font-medium underline decoration-transparent underline-offset-3 hover:decoration-current ${
-              item.done ? 'text-fg-2' : 'text-fg-1'
-            }`}
-          >
-            {item.title}
-          </Link>
-          {XP_HINT[item.kind] ? (
-            <span className="text-caption-12 text-fg-3">{XP_HINT[item.kind]}</span>
-          ) : null}
+      </div>
+      <h3 className="text-body-16 font-semibold">
+        <Link
+          href={itemPath(courseId, item.id)}
+          className={`after:absolute after:inset-0 after:rounded-card ${item.done ? 'text-fg-2' : ''}`}
+        >
+          {item.title}
+        </Link>
+      </h3>
+      <div className="mt-auto flex flex-wrap items-center gap-x-3 gap-y-1 text-caption-12 text-fg-2">
+        <span>
+          {item.noteCount} note{item.noteCount > 1 ? 's' : ''}
         </span>
+        {item.done ? <span className="text-success">Fait</span> : null}
+        {XP_HINT[item.kind] ? <span className="text-fg-3">{XP_HINT[item.kind]}</span> : null}
         {item.kind === 'QUIZ' ? (
-          <span className="flex items-center gap-1.5">
-            <label htmlFor={scoreId} className="text-caption-12 text-fg-2">
-              Score
-            </label>
+          <span className="relative z-10 ml-auto flex items-center gap-1.5">
+            <label htmlFor={scoreId}>Score</label>
             <input
               id={scoreId}
               key={item.score ?? 'empty'}
@@ -213,25 +191,16 @@ function PlanItemRow({
               }}
               className="h-8 w-14 rounded-control border border-line-strong bg-surface-sunken px-2 text-right text-body-14 tabular"
             />
-            <span aria-hidden="true" className="text-caption-12 text-fg-2">
-              %
-            </span>
+            <span aria-hidden="true">%</span>
           </span>
         ) : null}
-        <Link
-          href={itemPath(courseId, item.id)}
-          className="flex h-8 items-center rounded-control px-2 text-caption-12 font-semibold text-fg-2 hover:text-fg-1"
-        >
-          {item.noteCount} note{item.noteCount > 1 ? 's' : ''}
-          <span className="sr-only"> sur « {item.title} »</span>
-        </Link>
       </div>
       {quizBelowPass ? (
-        <p className="ml-9 text-caption-12 text-fg-2">
+        <p className="text-caption-12 text-fg-2">
           Score sous {QUIZ_PASS_SCORE} % : pas d’XP pour l’instant. Repasse le quiz et mets à jour
           le score.
         </p>
       ) : null}
-    </div>
+    </article>
   );
 }
