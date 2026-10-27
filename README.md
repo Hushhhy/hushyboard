@@ -145,4 +145,4 @@ To report a vulnerability, please open a private security advisory on GitHub rat
 
 ## License
 
-No license has been chosen yet. Until one is added, all rights are reserved.
+Released under the [MIT License](LICENSE).
