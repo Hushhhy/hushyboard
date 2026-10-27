@@ -9,6 +9,7 @@ import { DOMAIN_CLASSES } from '@/components/ui/domain';
 import { DomainIcon } from '@/components/trophies/trophy-icon';
 import { getLevelInfo, LEVEL_TITLES } from '@/lib/xp';
 import { formatEuros, formatSignedEuros } from '@/lib/finance';
+import { HomeHabitList } from '@/components/home/home-habit-list';
 import { ModuleCard } from '@/components/ui/module-card';
 import { Ruler } from '@/components/ui/ruler';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -18,7 +19,6 @@ import { LevelMedal } from '@/components/ui/level-medal';
 import { Skeleton, LoadingRegion } from '@/components/ui/skeleton';
 import {
   CareerIcon,
-  CheckIcon,
   FinanceIcon,
   HabitsIcon,
   LeisureIcon,
@@ -160,37 +160,7 @@ function HabitsModule({ data }: { data: HomeData }) {
           action={{ label: 'Créer une habitude', href: '/habits' }}
         />
       ) : (
-        <>
-          <Ruler
-            value={done}
-            max={habits.length}
-            segments={habits.length}
-            label="Habitudes faites aujourd'hui"
-            valueText={`${done} habitudes faites sur ${habits.length}`}
-            colorClass="bg-habits"
-            size="small"
-          />
-          <ul className="flex flex-col">
-            {habits.map((habit) => (
-              <li key={habit.id} className="flex items-center gap-2.5 py-1.5">
-                <span
-                  role="img"
-                  aria-label={habit.isDone ? 'Faite' : 'À faire'}
-                  className={`grid size-6 shrink-0 place-items-center rounded-[7px] border-[1.5px] ${
-                    habit.isDone
-                      ? 'border-habits bg-habits text-surface-sunken'
-                      : 'border-line-strong'
-                  }`}
-                >
-                  {habit.isDone ? <CheckIcon className="size-3.5" strokeWidth={2.4} /> : null}
-                </span>
-                <span className={`flex-1 font-medium ${habit.isDone ? 'text-fg-2' : ''}`}>
-                  {habit.name}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </>
+        <HomeHabitList habits={habits} />
       )}
     </ModuleCard>
   );
