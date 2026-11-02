@@ -249,9 +249,9 @@ HTML mockup « Habitudes ×3 ». Today: habits scheduled today (weekday habits o
 
 HTML mockup « Jeux vidéo ». Games by franchise in story order, status (À faire / En cours / Terminé / Abandonné), progress current/total, minutes played. Home shows the current game and « Ensuite dans la franchise ». No XP.
 
-## Finances `/finance` (+ `/finance/transactions`, `/finance/import`)
+## Finances `/finance` (+ `/finance/transactions`, `/finance/analysis`)
 
-HTML mockup « Finances ×3 ». Month view (income, expenses, balance, by category bars, month picker), transactions list (filters, add/edit manual expense), CSV import (bank statement → preview → dedupe by `importHash` → save; the CSV file is never stored). Editable default category list (Logement, Alimentation, Transports, Abonnements, Loisirs, Santé, Divers as EXPENSE; Revenus as INCOME; Épargne as SAVINGS). Amounts in cents, displayed with `formatEuros`.
+HTML mockup « Finances ×3 ». Every transaction is typed by hand (the CSV import was removed in phase 22: it mangled the Revolut statements). Month view (income, expenses, balance carried over, by category bars, month picker), transactions list (filters, add/edit manual expense, « Tout effacer » to start again from zero, categories kept), analysis (last 3, 6 or 12 months: monthly averages, savings rate, income vs expenses columns, month-end balance line, ranked categories, biggest expenses, category × month heatmap table). Editable default category list (Logement, Alimentation, Transports, Abonnements, Loisirs, Santé, Divers as EXPENSE; Revenus as INCOME; Épargne as SAVINGS). Amounts in cents, displayed with `formatEuros`.
 
 ## Home `/` (done, extend)
 
