@@ -26,7 +26,7 @@ import {
   shiftMonthKey,
   toDateInputValue,
 } from '@/lib/dates';
-import { formatEuros, formatSignedEuros, monthSummary } from '@/lib/finance';
+import { formatEuros, formatSignedEuros, monthSummary, runningBalances } from '@/lib/finance';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/session';
 import {
@@ -149,7 +149,7 @@ function NoCategories() {
 
 const shortMonth = new Intl.DateTimeFormat('fr-FR', { timeZone: 'UTC', month: 'short' });
 
-// Month-end balance of the last 6 months, as a line (finance color) with a table for
+// Month-end balance (carried over) of the last 6 months, as a line (finance color) with a table for
 // screen readers.
 function BalanceTrend({ points }: { points: { month: string; balance: number }[] }) {
   // Positions in % of the plot: the line stretches with the card, the dots and labels stay round.
@@ -257,21 +257,38 @@ export async function MonthView({ searchParams }: { searchParams: SearchParams }
     getCategories(user.id),
   ]);
   const trendStart = shiftMonthKey(month, -5);
+  const trendStartDate = monthKeyRange(trendStart).start;
   const { end } = monthKeyRange(month);
-  const lines = await prisma.transaction.findMany({
-    where: { userId: user.id, date: { gte: monthKeyRange(trendStart).start, lt: end } },
-    select: {
-      date: true,
-      amountCents: true,
-      category: { select: { id: true, name: true, kind: true } },
-    },
-  });
+  const [lines, before] = await Promise.all([
+    prisma.transaction.findMany({
+      where: { userId: user.id, date: { gte: trendStartDate, lt: end } },
+      select: {
+        date: true,
+        amountCents: true,
+        category: { select: { id: true, name: true, kind: true } },
+      },
+    }),
+    // Balance carried over from every month before the trend, with the same rule as
+    // monthSummary: transfers to savings do not count.
+    prisma.transaction.aggregate({
+      where: {
+        userId: user.id,
+        date: { lt: trendStartDate },
+        OR: [{ categoryId: null }, { category: { kind: { not: 'SAVINGS' } } }],
+      },
+      _sum: { amountCents: true },
+    }),
+  ]);
   const byMonth = (key: string) => lines.filter((line) => line.date.toISOString().startsWith(key));
   const summary = monthSummary(byMonth(month));
-  const trend = Array.from({ length: 6 }, (_, index) => {
-    const key = shiftMonthKey(trendStart, index);
-    return { month: key, balance: monthSummary(byMonth(key)).balance };
-  });
+  const trendMonths = Array.from({ length: 6 }, (_, index) => shiftMonthKey(trendStart, index));
+  const balances = runningBalances(
+    before._sum.amountCents ?? 0,
+    trendMonths.map((key) => monthSummary(byMonth(key)).balance)
+  );
+  const trend = trendMonths.map((key, index) => ({ month: key, balance: balances[index] }));
+  // Balance at the end of the shown month (today for the current month), carried over.
+  const balance = balances[balances.length - 1];
 
   const panel = param(params, 'panel');
   const editing =
@@ -283,9 +300,10 @@ export async function MonthView({ searchParams }: { searchParams: SearchParams }
   const isEmpty = byMonth(month).length === 0;
   const dayNote =
     month === current ? ` au ${Number(toDateInputValue(new Date()).slice(8))}` : ' en fin de mois';
-  const title = isEmpty
-    ? `${capitalize(formatMonthKeyName(month))} : aucune transaction.`
-    : `${capitalize(formatMonthKeyName(month))} : ${formatSignedEuros(summary.balance)} de solde${dayNote}.`;
+  const title =
+    isEmpty && balance === 0
+      ? `${capitalize(formatMonthKeyName(month))} : aucune transaction.`
+      : `${capitalize(formatMonthKeyName(month))} : ${formatSignedEuros(balance)} de solde${dayNote}.`;
 
   return (
     <>
@@ -319,8 +337,8 @@ export async function MonthView({ searchParams }: { searchParams: SearchParams }
         />
         <Kpi
           label="Solde"
-          value={formatSignedEuros(summary.balance)}
-          hint="revenus − dépenses"
+          value={formatSignedEuros(balance)}
+          hint={`dont ${formatSignedEuros(summary.balance)} ce mois-ci`}
           accent
         />
         <Kpi

@@ -279,9 +279,9 @@ function OfferModule({ data }: { data: HomeData }) {
 }
 
 function FinanceModule({ data, monthLabel }: { data: HomeData; monthLabel: string }) {
-  const { incomeCents, expensesCents } = data.finance;
-  const balance = incomeCents - expensesCents;
-  const hasData = incomeCents > 0 || expensesCents > 0;
+  const { incomeCents, expensesCents, balanceCents: balance } = data.finance;
+  const monthBalance = incomeCents - expensesCents;
+  const hasData = incomeCents > 0 || expensesCents > 0 || balance !== 0;
 
   return (
     <ModuleCard
@@ -296,7 +296,9 @@ function FinanceModule({ data, monthLabel }: { data: HomeData; monthLabel: strin
           <p className={`text-kpi-30 tabular ${balance >= 0 ? 'text-finance' : ''}`}>
             {formatSignedEuros(balance)}
           </p>
-          <p className="text-caption-12 text-fg-3">Solde du mois</p>
+          <p className="text-caption-12 text-fg-3">
+            Solde, dont {formatSignedEuros(monthBalance)} ce mois-ci
+          </p>
           <BarChart
             caption={`Revenus et dépenses, ${monthLabel}`}
             valueHeader="Montant"

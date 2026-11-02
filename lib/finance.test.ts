@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { formatEuros, formatSignedEuros, monthSummary, parseEurosToCents } from './finance';
+import {
+  formatEuros,
+  formatSignedEuros,
+  monthSummary,
+  parseEurosToCents,
+  runningBalances,
+} from './finance';
 
 describe('parseEurosToCents', () => {
   it('parses French and English decimal separators', () => {
@@ -61,6 +67,17 @@ describe('monthSummary', () => {
 
   it('has no share without income', () => {
     expect(monthSummary([{ amountCents: -500, category: null }]).spentShare).toBeNull();
+  });
+});
+
+describe('runningBalances', () => {
+  it('carries each month-end balance over to the next month', () => {
+    expect(runningBalances(10000, [5000, -2000, 0, 3000])).toEqual([15000, 13000, 13000, 16000]);
+  });
+
+  it('starts from the opening balance, not from 0', () => {
+    expect(runningBalances(-500, [0])).toEqual([-500]);
+    expect(runningBalances(0, [])).toEqual([]);
   });
 });
 

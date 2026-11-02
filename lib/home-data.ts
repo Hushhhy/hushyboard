@@ -3,7 +3,10 @@ import { prisma } from '@/lib/prisma';
 import { isoWeekdayInParis, monthRangeInParis, todayInParis } from '@/lib/dates';
 
 // Transfers to and from savings are neither income nor expenses (same rule as monthSummary).
-const NOT_SAVINGS = { NOT: { category: { is: { kind: 'SAVINGS' as const } } } };
+// Uncategorized lines count, hence the explicit null case.
+const NOT_SAVINGS = {
+  OR: [{ categoryId: null }, { category: { kind: { not: 'SAVINGS' as const } } }],
+};
 
 // Everything the home page needs, fetched in parallel (Promise.all) to keep it fast.
 export async function getHomeData(userId: string, now: Date) {
@@ -21,6 +24,7 @@ export async function getHomeData(userId: string, now: Date) {
     pendingOfferCount,
     income,
     expenses,
+    balance,
     currentGame,
     trophyCount,
     recentTrophies,
@@ -64,6 +68,11 @@ export async function getHomeData(userId: string, now: Date) {
         amountCents: { lt: 0 },
         ...NOT_SAVINGS,
       },
+      _sum: { amountCents: true },
+    }),
+    // Balance carried over since the first transaction, up to the end of this month.
+    prisma.transaction.aggregate({
+      where: { userId, date: { lt: month.end }, ...NOT_SAVINGS },
       _sum: { amountCents: true },
     }),
     prisma.game.findFirst({ where: { userId, status: 'PLAYING' }, orderBy: { updatedAt: 'desc' } }),
@@ -138,6 +147,7 @@ export async function getHomeData(userId: string, now: Date) {
     finance: {
       incomeCents: income._sum.amountCents ?? 0,
       expensesCents: Math.abs(expenses._sum.amountCents ?? 0),
+      balanceCents: balance._sum.amountCents ?? 0,
     },
     currentGame,
     nextGame,

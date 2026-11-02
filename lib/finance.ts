@@ -74,6 +74,13 @@ export function monthSummary(lines: SummaryLine[]) {
   };
 }
 
+// Month-end balances carried over from month to month: a month starts from the previous
+// month's end, not from 0. `opening` is the balance before the first month.
+export function runningBalances(opening: number, monthlyBalances: number[]): number[] {
+  let balance = opening;
+  return monthlyBalances.map((monthly) => (balance += monthly));
+}
+
 // "+412,30 €" / "−87,10 €": signed amount for balances.
 export function formatSignedEuros(amountCents: number): string {
   const text = formatEuros(Math.abs(amountCents));
