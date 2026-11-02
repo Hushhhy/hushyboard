@@ -22,7 +22,7 @@ export const PALETTE_PAGES: PaletteLink[] = [
   { label: 'Jeux vidéo', href: '/leisure/games', keywords: ['loisirs'] },
   { label: 'Finances', href: '/finance', keywords: ['budget', 'mois'] },
   { label: 'Transactions', href: '/finance/transactions' },
-  { label: 'Import CSV', href: '/finance/import', keywords: ['relevé', 'banque'] },
+  { label: 'Analyse des finances', href: '/finance/analysis', keywords: ['graphiques', 'budget'] },
   { label: 'Vitrine', href: '/trophies', keywords: ['trophées'] },
   { label: 'Mentions légales', href: '/legal' },
 ];

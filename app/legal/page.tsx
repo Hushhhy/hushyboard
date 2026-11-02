@@ -115,8 +115,7 @@ export default function LegalPage() {
             <p>Ne sont jamais conservés :</p>
             <ul className="list-disc pl-5">
               <li>
-                les fichiers importés (CV en PDF, relevés bancaires) : seules les informations
-                extraites sont gardées ;
+                les fichiers importés (CV en PDF) : seules les informations extraites sont gardées ;
               </li>
               <li>le contenu des mails : ils sont lus en direct depuis Gmail.</li>
             </ul>

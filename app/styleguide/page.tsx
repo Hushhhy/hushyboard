@@ -1,5 +1,10 @@
 import { Suspense, type ReactNode } from 'react';
 import { notFound } from 'next/navigation';
+import {
+  BalanceTrend,
+  CategoryHeatmap,
+  IncomeExpenseColumns,
+} from '@/components/finance/finance-charts';
 import { CareerIcon, FinanceIcon, HabitsIcon, LeisureIcon, PlusIcon } from '@/components/icons';
 import { BarChart } from '@/components/ui/bar-row';
 import { Button } from '@/components/ui/button';
@@ -17,6 +22,7 @@ import { Tabs } from '@/components/ui/tabs';
 import { Trophy, TrophyShelf } from '@/components/ui/trophy';
 import { RewardsProvider } from '@/components/rewards/rewards-provider';
 import { isMonthKey } from '@/lib/dates';
+import { analyzePeriod } from '@/lib/finance-analysis';
 import { InteractiveDemos } from './interactive-demos';
 
 const STATUSES = [
@@ -28,6 +34,27 @@ const STATUSES = [
   'REJECTED',
   'NO_RESPONSE',
 ] as const;
+
+// Six months of sample transactions for the finance charts.
+const DEMO_MONTHS = ['2026-06', '2026-07', '2026-08', '2026-09', '2026-10', '2026-11'];
+const DEMO_FINANCE = analyzePeriod(
+  DEMO_MONTHS.flatMap((month, index) =>
+    [
+      { amountCents: 210000, name: 'Revenus', kind: 'INCOME' as const },
+      { amountCents: -85000, name: 'Logement', kind: 'EXPENSE' as const },
+      { amountCents: -(32000 + index * 4100), name: 'Alimentation', kind: 'EXPENSE' as const },
+      { amountCents: -(index % 2 ? 61000 : 9000), name: 'Loisirs', kind: 'EXPENSE' as const },
+      { amountCents: -4500, name: 'Abonnements', kind: 'EXPENSE' as const },
+      { amountCents: -30000, name: 'Épargne', kind: 'SAVINGS' as const },
+    ].map(({ amountCents, ...category }) => ({
+      date: new Date(`${month}-05T00:00:00.000Z`),
+      amountCents,
+      category: { id: category.name, ...category },
+    }))
+  ),
+  DEMO_MONTHS,
+  -20000
+);
 
 // Development-only page to see and test every shared component. Not served in production.
 export default function StyleguidePage({ searchParams }: PageProps<'/styleguide'>) {
@@ -109,6 +136,20 @@ export default function StyleguidePage({ searchParams }: PageProps<'/styleguide'
               ]}
             />
           </div>
+        </Section>
+
+        <Section title="Graphiques des finances" column>
+          <div className="grid w-full gap-6 lg:grid-cols-2">
+            <IncomeExpenseColumns months={DEMO_FINANCE.perMonth} />
+            <BalanceTrend
+              caption="Solde à la fin de chaque mois"
+              points={DEMO_FINANCE.perMonth.map((month) => ({
+                month: month.month,
+                balance: month.closing,
+              }))}
+            />
+          </div>
+          <CategoryHeatmap months={DEMO_MONTHS} categories={DEMO_FINANCE.byCategory} />
         </Section>
 
         <Section title="Onglets et mois" column>
@@ -198,12 +239,12 @@ export default function StyleguidePage({ searchParams }: PageProps<'/styleguide'
             variant="block"
             icon={<FinanceIcon className="size-7 text-finance" />}
             title="Novembre est vide."
-            description="Importe le relevé CSV de ta banque ou saisis une dépense."
-            action={{ label: 'Importer un relevé', href: '/finance/import' }}
+            description="Saisis ta première dépense du mois."
+            action={{ label: 'Ajouter une dépense', href: '/finance?panel=transaction-new' }}
           />
           <ErrorState
-            title="Import impossible."
-            description="Le fichier n'est pas un CSV. Exporte le relevé au format CSV depuis ta banque."
+            title="Enregistrement impossible."
+            description="La connexion a été coupée avant la fin. Tes saisies sont gardées : réessaie."
             action={<Button>Réessayer</Button>}
           />
           <div className="flex max-w-80 flex-col gap-1">

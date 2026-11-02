@@ -323,8 +323,8 @@ function FinanceModule({ data, monthLabel }: { data: HomeData; monthLabel: strin
       ) : (
         <EmptyState
           title="Aucune transaction ce mois-ci."
-          description="Importe le relevé CSV de ta banque ou saisis une dépense."
-          action={{ label: 'Ouvrir les finances', href: '/finance' }}
+          description="Saisis tes revenus et tes dépenses au fil du mois."
+          action={{ label: 'Ajouter une dépense', href: '/finance?panel=transaction-new' }}
         />
       )}
     </ModuleCard>
