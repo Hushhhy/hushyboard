@@ -19,7 +19,7 @@ const NONE: TrophyStats = {
   goalsAchieved: 0,
   gamesFinished: 0,
   franchisesCompleted: 0,
-  csvImports: 0,
+  transactions: 0,
   trackedMonths: 0,
   sortedMonths: 0,
 };
@@ -35,9 +35,9 @@ describe('earnedTrophies', () => {
       'applications-10',
       'first-interview',
     ]);
-    expect(earnedTrophies({ ...NONE, level: 5, csvImports: 1, trackedMonths: 3 })).toEqual([
+    expect(earnedTrophies({ ...NONE, level: 5, transactions: 1, trackedMonths: 3 })).toEqual([
       'level-5',
-      'first-import',
+      'first-transaction',
       'months-3',
     ]);
   });

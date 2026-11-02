@@ -25,7 +25,7 @@ export type TrophyStats = {
   gamesFinished: number;
   // Franchises of at least 2 games, all finished.
   franchisesCompleted: number;
-  csvImports: number;
+  transactions: number;
   // Months with at least one transaction.
   trackedMonths: number;
   // Months with at least 10 transactions, all of them categorized.
@@ -162,12 +162,12 @@ const CATALOGUE = {
     earned: (s) => s.franchisesCompleted >= 1,
   },
   // Finance
-  'first-import': {
-    name: 'Premier relevé',
+  'first-transaction': {
+    name: 'Première pièce',
     domain: 'finance',
-    condition: 'Importe un premier relevé bancaire.',
-    feat: 'Premier relevé importé.',
-    earned: (s) => s.csvImports >= 1,
+    condition: 'Saisis ta première transaction.',
+    feat: 'Première transaction saisie.',
+    earned: (s) => s.transactions >= 1,
   },
   'months-3': {
     name: 'Trésor de Crésus',

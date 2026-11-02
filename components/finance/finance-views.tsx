@@ -2,10 +2,11 @@ import Link from 'next/link';
 import {
   createDefaultCategories,
   deleteTransaction,
+  resetFinance,
   setCategoryArchived,
 } from '@/app/(app)/finance/actions';
 import { PageHeader } from '@/components/app-shell/page-header';
-import { FinanceIcon, PencilIcon, PlusIcon, SearchIcon, UploadIcon } from '@/components/icons';
+import { FinanceIcon, PencilIcon, PlusIcon, SearchIcon } from '@/components/icons';
 import { ActionButton } from '@/components/skills/action-button';
 import { BarChart } from '@/components/ui/bar-row';
 import { buttonClasses } from '@/components/ui/button';
@@ -29,36 +30,31 @@ import {
 import { formatEuros, formatSignedEuros, monthSummary, runningBalances } from '@/lib/finance';
 import { prisma } from '@/lib/prisma';
 import { requireUser } from '@/lib/session';
-import {
-  CategoryCell,
-  CategoryForm,
-  ImportWizard,
-  TransactionForm,
-  type CategoryOption,
-} from './finance-client';
+import { CategoryCell, CategoryForm, TransactionForm, type CategoryOption } from './finance-client';
+import { BalanceTrend } from './finance-charts';
 
-type SearchParams = Promise<Record<string, string | string[] | undefined>>;
-const param = (params: Record<string, string | string[] | undefined>, key: string) =>
+export type SearchParams = Promise<Record<string, string | string[] | undefined>>;
+export const param = (params: Record<string, string | string[] | undefined>, key: string) =>
   typeof params[key] === 'string' ? (params[key] as string) : undefined;
 
 const KIND_LABELS = { EXPENSE: 'Dépenses', INCOME: 'Revenus', SAVINGS: 'Épargne' } as const;
 
-function FinanceTabs() {
+export function FinanceTabs() {
   return (
     <Tabs
       label="Sections des finances"
       items={[
         { href: '/finance', label: 'Mois' },
         { href: '/finance/transactions', label: 'Transactions' },
-        { href: '/finance/import', label: 'Import' },
+        { href: '/finance/analysis', label: 'Analyse' },
       ]}
     />
   );
 }
 
-const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
+export const capitalize = (text: string) => text.charAt(0).toUpperCase() + text.slice(1);
 
-async function getCategories(userId: string) {
+export async function getCategories(userId: string) {
   const categories = await prisma.financeCategory.findMany({
     where: { userId },
     orderBy: [{ position: 'asc' }, { name: 'asc' }],
@@ -71,7 +67,7 @@ async function getCategories(userId: string) {
 }
 
 // The displayed month (?month=), bounded by the first month with data and the current one.
-async function monthBounds(userId: string, requested: string | undefined) {
+export async function monthBounds(userId: string, requested: string | undefined) {
   const current = monthKeyInParis(new Date());
   const first = await prisma.transaction.findFirst({
     where: { userId },
@@ -118,11 +114,7 @@ function TransactionPanels({
           <div className="mt-auto flex justify-end border-t border-line-subtle pt-3">
             <DeleteDialog
               title={`Supprimer « ${editing.label} » ?`}
-              description={
-                editing.source === 'CSV_IMPORT'
-                  ? 'La transaction sera supprimée. Si tu réimportes le même relevé, elle sera de nouveau ajoutée.'
-                  : 'La transaction sera supprimée définitivement.'
-              }
+              description="La transaction sera supprimée définitivement."
               onConfirm={deleteTransaction.bind(null, editing.id)}
             />
           </div>
@@ -147,90 +139,7 @@ function NoCategories() {
 
 // --- Month -------------------------------------------------------------------------------
 
-const shortMonth = new Intl.DateTimeFormat('fr-FR', { timeZone: 'UTC', month: 'short' });
-
-// Month-end balance (carried over) of the last 6 months, as a line (finance color) with a table for
-// screen readers.
-function BalanceTrend({ points }: { points: { month: string; balance: number }[] }) {
-  // Positions in % of the plot: the line stretches with the card, the dots and labels stay round.
-  const values = points.map((point) => point.balance);
-  const top = Math.max(0, ...values);
-  const bottom = Math.min(0, ...values);
-  const span = top - bottom || 1;
-  const x = (index: number) => 5 + (index * 90) / Math.max(1, points.length - 1);
-  const y = (value: number) => 8 + ((top - value) * 84) / span;
-  const path = points
-    .map((point, index) => `${index ? 'L' : 'M'}${x(index)},${y(point.balance)}`)
-    .join(' ');
-  return (
-    <figure className="flex flex-col gap-2">
-      <figcaption className="sr-only">Solde de chaque mois, sur les 6 derniers mois</figcaption>
-      <div aria-hidden="true" className="relative h-32">
-        <svg
-          viewBox="0 0 100 100"
-          preserveAspectRatio="none"
-          className="absolute inset-0 size-full overflow-visible"
-        >
-          <line
-            x1={5}
-            x2={95}
-            y1={y(0)}
-            y2={y(0)}
-            className="stroke-line-strong"
-            strokeDasharray="3 3"
-            vectorEffect="non-scaling-stroke"
-          />
-          <path
-            d={path}
-            fill="none"
-            className="stroke-finance"
-            strokeWidth={2}
-            strokeLinejoin="round"
-            vectorEffect="non-scaling-stroke"
-          />
-        </svg>
-        {points.map((point, index) => (
-          <span
-            key={point.month}
-            className={`absolute -translate-1/2 rounded-full bg-finance ${
-              index === points.length - 1 ? 'size-2.5' : 'size-1.5'
-            }`}
-            style={{ left: `${x(index)}%`, top: `${y(point.balance)}%` }}
-          />
-        ))}
-      </div>
-      <div aria-hidden="true" className="relative h-4 text-caption-12 text-fg-3">
-        {points.map((point, index) => (
-          <span
-            key={point.month}
-            className="absolute -translate-x-1/2"
-            style={{ left: `${x(index)}%` }}
-          >
-            {shortMonth.format(new Date(`${point.month}-01T00:00:00.000Z`))}
-          </span>
-        ))}
-      </div>
-      <table className="sr-only">
-        <thead>
-          <tr>
-            <th scope="col">Mois</th>
-            <th scope="col">Solde</th>
-          </tr>
-        </thead>
-        <tbody>
-          {points.map((point) => (
-            <tr key={point.month}>
-              <th scope="row">{formatMonthKey(point.month)}</th>
-              <td>{formatSignedEuros(point.balance)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </figure>
-  );
-}
-
-function Kpi({
+export function Kpi({
   label,
   value,
   hint,
@@ -312,9 +221,8 @@ export async function MonthView({ searchParams }: { searchParams: SearchParams }
       <div className="flex flex-wrap items-center gap-2">
         <MonthPicker month={month} min={min} max={current} basePath="/finance" />
         <span className="flex-1" />
-        <Link href="/finance/import" className={buttonClasses()}>
-          <UploadIcon className="size-4" />
-          Importer un CSV
+        <Link href="/finance/analysis" className={buttonClasses()}>
+          Voir l’analyse
         </Link>
         <Link href={panelHref} scroll={false} className={buttonClasses({ variant: 'primary' })}>
           <PlusIcon className="size-4" />
@@ -357,8 +265,8 @@ export async function MonthView({ searchParams }: { searchParams: SearchParams }
           {summary.byCategory.length === 0 ? (
             <EmptyState
               title={`Aucune dépense en ${formatMonthKeyName(month)}.`}
-              description="Importe le relevé de ta banque ou ajoute une dépense à la main."
-              action={{ label: 'Importer un CSV', href: '/finance/import' }}
+              description="Saisis tes dépenses au fil du mois pour les voir réparties ici."
+              action={{ label: 'Ajouter une dépense', href: panelHref }}
             />
           ) : (
             <>
@@ -386,7 +294,7 @@ export async function MonthView({ searchParams }: { searchParams: SearchParams }
           )}
         </ModuleCard>
         <ModuleCard title="Solde fin de mois · 6 derniers mois">
-          <BalanceTrend points={trend} />
+          <BalanceTrend points={trend} caption="Solde de chaque mois, sur les 6 derniers mois" />
         </ModuleCard>
       </div>
 
@@ -418,15 +326,18 @@ export async function TransactionsView({ searchParams }: { searchParams: SearchP
   const limit = Math.min(1000, Math.max(PAGE_SIZE, Number(param(params, 'limit')) || PAGE_SIZE));
   const { start, end } = monthKeyRange(month);
 
-  const all = await prisma.transaction.findMany({
-    where: {
-      userId: user.id,
-      date: { gte: start, lt: end },
-      ...(query ? { label: { contains: query, mode: 'insensitive' as const } } : {}),
-    },
-    orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
-    include: { category: { select: { id: true, name: true, kind: true } } },
-  });
+  const [all, total] = await Promise.all([
+    prisma.transaction.findMany({
+      where: {
+        userId: user.id,
+        date: { gte: start, lt: end },
+        ...(query ? { label: { contains: query, mode: 'insensitive' as const } } : {}),
+      },
+      orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
+      include: { category: { select: { id: true, name: true, kind: true } } },
+    }),
+    prisma.transaction.count({ where: { userId: user.id } }),
+  ]);
   const matches = (key: FilterKey, line: (typeof all)[number]) =>
     key === 'all' ||
     (key === 'expense' && line.amountCents < 0) ||
@@ -549,13 +460,11 @@ export async function TransactionsView({ searchParams }: { searchParams: SearchP
                 : 'Aucune transaction pour ce filtre.'
             }
             description={
-              counts.all === 0 && !query
-                ? 'Importe le relevé de ta banque ou ajoute une dépense à la main.'
-                : undefined
+              counts.all === 0 && !query ? 'Ajoute ta première dépense ou ton revenu.' : undefined
             }
             action={
               counts.all === 0 && !query
-                ? { label: 'Importer un CSV', href: '/finance/import' }
+                ? { label: 'Ajouter une dépense', href: withPanel('transaction-new') }
                 : { label: 'Effacer les filtres', href: href({ filter: null, q: null }) }
             }
           />
@@ -574,9 +483,6 @@ export async function TransactionsView({ searchParams }: { searchParams: SearchP
                     </th>
                     <th scope="col" className="py-2 font-medium">
                       Catégorie
-                    </th>
-                    <th scope="col" className="py-2 font-medium">
-                      Source
                     </th>
                     <th scope="col" className="py-2 text-right font-medium">
                       Montant
@@ -607,9 +513,6 @@ export async function TransactionsView({ searchParams }: { searchParams: SearchP
                           }
                           label={line.label}
                         />
-                      </td>
-                      <td className="py-2 text-caption-12 text-fg-3">
-                        {line.source === 'CSV_IMPORT' ? 'Import CSV' : 'Saisie'}
                       </td>
                       <td
                         className={`py-2 text-right font-semibold whitespace-nowrap tabular ${
@@ -650,6 +553,24 @@ export async function TransactionsView({ searchParams }: { searchParams: SearchP
           </>
         )}
       </section>
+
+      {total > 0 ? (
+        <section
+          aria-label="Repartir de zéro"
+          className="flex flex-wrap items-center gap-3 rounded-card border border-line-subtle px-4 py-3"
+        >
+          <p className="min-w-60 flex-1 text-body-14 text-fg-2">
+            Repartir de zéro : efface tes {total} transaction{total > 1 ? 's' : ''}, tous mois
+            confondus. Les catégories sont gardées.
+          </p>
+          <DeleteDialog
+            title="Effacer toutes les transactions ?"
+            description={`Les ${total} transaction${total > 1 ? 's' : ''} de tous les mois seront supprimées définitivement, ainsi que l’historique des anciens imports CSV. Tes catégories restent.`}
+            onConfirm={resetFinance}
+            triggerLabel="Tout effacer"
+          />
+        </section>
+      ) : null}
 
       <TransactionPanels categories={categories.active} editing={editing} closeHref={pageHref} />
 
@@ -718,55 +639,6 @@ export async function TransactionsView({ searchParams }: { searchParams: SearchP
           <CategoryForm category={editingCategory} closeHref={withPanel('categories')} />
         </SidePanel>
       ) : null}
-    </>
-  );
-}
-
-// --- Import -------------------------------------------------------------------------------
-
-export async function ImportView() {
-  const user = await requireUser();
-  const imports = await prisma.csvImport.findMany({
-    where: { userId: user.id },
-    orderBy: { importedAt: 'desc' },
-    take: 5,
-  });
-  return (
-    <>
-      <PageHeader
-        breadcrumb="Finances"
-        title={
-          imports.length === 0
-            ? 'Importe ton premier relevé bancaire.'
-            : `Dernier import le ${formatShortDate(imports[0].importedAt)}.`
-        }
-      />
-      <FinanceTabs />
-      <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_18.75rem]">
-        <ImportWizard />
-        <ModuleCard title="Derniers imports">
-          {imports.length === 0 ? (
-            <p className="text-body-14 text-fg-2">Aucun import pour l’instant.</p>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {imports.map((item) => (
-                <li key={item.id} className="flex flex-col">
-                  <span className="truncate font-semibold" title={item.fileName}>
-                    {item.fileName}
-                  </span>
-                  <span className="text-caption-12 text-fg-2">
-                    {formatShortDate(item.importedAt)} · {item.importedCount} ajoutée
-                    {item.importedCount > 1 ? 's' : ''} sur {item.rowCount}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-          <p className="text-caption-12 text-fg-3">
-            Réimporter un relevé déjà importé n’ajoute rien : les doublons sont reconnus.
-          </p>
-        </ModuleCard>
-      </div>
     </>
   );
 }

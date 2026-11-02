@@ -23,7 +23,6 @@ export async function getTrophyStats(userId: string): Promise<TrophyStats> {
     xp,
     goalsAchieved,
     games,
-    csvImports,
     days,
     uncategorizedDays,
   ] = await Promise.all([
@@ -39,7 +38,6 @@ export async function getTrophyStats(userId: string): Promise<TrophyStats> {
       where: { userId },
       select: { franchise: true, status: true, endless: true },
     }),
-    prisma.csvImport.count({ where: { userId } }),
     prisma.transaction.groupBy({ by: ['date'], where: { userId }, _count: { _all: true } }),
     prisma.transaction.groupBy({
       by: ['date'],
@@ -61,7 +59,7 @@ export async function getTrophyStats(userId: string): Promise<TrophyStats> {
     goalsAchieved,
     gamesFinished: games.filter((game) => game.status === 'FINISHED').length,
     franchisesCompleted: completedFranchises(games),
-    csvImports,
+    transactions: days.reduce((total, day) => total + day._count._all, 0),
     ...financeMonths(
       days.map((day) => ({
         date: day.date,
